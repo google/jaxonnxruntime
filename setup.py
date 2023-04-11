@@ -37,6 +37,12 @@ tests_require = [
     "pytest",
     "pytype",
 ]
+doc_require =  [
+    "sphinx",
+    "myst_nb",
+    "sphinx_design",
+    "sphinx-book-theme",
+]
 
 __version__ = None
 
@@ -66,6 +72,7 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     extras_require={
-        "test": tests_require,
+        "testing": tests_require,
+        "doc": doc_require,
     },
 )

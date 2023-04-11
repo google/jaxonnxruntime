@@ -13,3 +13,4 @@
 # limitations under the License.
 
 """JAX based onnxruntime."""
+from .version import __version__
