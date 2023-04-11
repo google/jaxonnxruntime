@@ -114,6 +114,7 @@ jobs:
         python3 -m venv venv
         venv/bin/python3 -m pip install .[all]
         venv/bin/python3 -m pip install .[testing]
+        venv/bin/python3 -m pip install --upgrade pytest
         venv/bin/python3 -m pip install -r docs/requirements.txt
     - name: Install Jaxonnxruntime
       run: |
