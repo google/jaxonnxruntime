@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jaxonnxruntime"
+description = "Jaxonnxruntime: JAX based ONNX Runtime."
+keywords = []
+authors = [
+    {name = "Jaxonnxruntime team", email = "jaxonnxruntime-dev@google.com"},
+]
+dependencies = [
+    "numpy",
+    "jax",
+    "jaxlib",
+    "onnx",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dynamic = ["version", "readme"]
+
+[project.optional-dependencies]
+all = [
+]
+
+testing = [
+    "mypy",
+    "opencv-python",
+    "pytest",
+    "pytype",
+    "pytest-cov",
+    "pytest-custom_exit_code",
+]
+
+doc = [
+    "sphnix",
+    "myst_nb",
+    "sphinx_design",
+    "sphinx-book-theme",
+]
+
+[project.urls]
+homepage = "https://github.com/google/jaxonnxruntime"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
+version = {attr = "jaxonnxruntime.version.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["jaxonnxruntime*"]
+
+[tool.setuptools.package-data]
+jaxonnxruntime = ["*py.typed"]
+
+[tool.yapf]
+based_on_style = "yapf"
+
+[tool.pytype]
+
+[tool.mypy]
+show_error_codes = true
+no_implicit_optional = true
+disable_error_code = "attr-defined"
+
+[[tool.mypy.overrides]]
+module = [
+    "tensorflow.*",
+    "tensorboard.*",
+    "absl.*",
+    "jax.*",
+    "rich.*",
+    "jaxlib.cuda.*",
+    "jaxlib.cpu.*",
+    "msgpack",
+    "numpy.*",
+    "optax.*",
+    "orbax.*",
+    "opt_einsum.*",
+    "scipy.*",
+    "jaxlib.mlir.*",
+    "yaml",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    # By default error out on any warnings.
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "@abc.abstractmethod",
+    "raise NotImplementedError",
+]

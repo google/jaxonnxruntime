@@ -126,7 +126,7 @@ def call_onnx(
 
 def build_ref_dict(model: onnx.ModelProto) -> Dict[str, int]:
   """Initialize reference count dict."""
-  ref_dict = {}
+  ref_dict: dict[Any, Any] = {}
   for node in model.graph.node:
     inputs = node.input
     for input_ in inputs:
@@ -158,7 +158,7 @@ def _get_all_handlers(
       ValueError: If there is no OP_TYPE attribute defined in the Handler class.
   """
 
-  handlers = {}
+  handlers: Dict[Any, Any] = {}
   for handler in Handler.__subclasses__():
     if not hasattr(handler, 'OP_TYPE'):
       logger.warning(

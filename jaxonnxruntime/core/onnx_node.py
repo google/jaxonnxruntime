@@ -44,8 +44,7 @@ def convert_onnx(attr_proto: onnx.AttributeProto) -> Any:
   elif attr_proto.ints:
     return tuple(attr_proto.ints)
   elif attr_proto.strings:
-    str_list = list(attr_proto.strings)
-    str_list = tuple(map(lambda x: str(x, 'utf-8'), str_list))
+    str_list = tuple(map(lambda x: str(x, 'utf-8'), list(attr_proto.strings)))
     return str_list
   elif attr_proto.HasField('sparse_tensor'):
     return attr_proto.sparse_tensor

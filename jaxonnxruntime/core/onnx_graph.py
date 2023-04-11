@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Wrap the onnx.GraphProto as OnnxGraph class and provide useful graph manipulation methods."""
-from typing import List, Sequence
+from typing import Any, List, Sequence
 import onnx
 
 
@@ -52,7 +52,7 @@ class OnnxGraph:
         **{proto.name: proto for proto in graph_proto.output},
         **{proto.name: proto for proto in graph_proto.value_info},
     }
-    self.metadata = {}
+    self.metadata: dict[str, Any] = {}
     self._initialize_metadata()
 
   def _initialize_metadata(self):
@@ -97,8 +97,8 @@ class OnnxGraph:
 
   def get_real_input(self) -> list[str]:
     """Returns unique non-node input names."""
-    real_input = []
-    output_list = []
+    real_input: list[str] = []
+    output_list: list[str] = []
     for node in self.node_dict.values():
       output_list.extend(node.output)
     for node in self.node_dict.values():

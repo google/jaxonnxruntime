@@ -85,7 +85,7 @@ def onnx_conv(
     x: jnp.ndarray,
     w: jnp.ndarray,
     b: Optional[jnp.ndarray],
-    group: Optional[int] = 1,
+    group: int = 1,
     kernel_shape: Optional[tuple[int, ...]] = None,
     pads: Any = "VALID",
     strides: Optional[tuple[int, ...]] = None,
@@ -109,12 +109,12 @@ def onnx_conv(
 
   kernel_shape = kernel_shape or w.shape
   spatial_size = w.ndim - 2
-  strides = strides or [1] * spatial_size
+  strides = strides or tuple([1] * spatial_size)
 
   if b is not None:
     b = b.reshape([1, w.shape[0]] + [1] * spatial_size)
   else:
-    b = 0
+    b = jnp.array(0)
 
   out = lax.conv_general_dilated(
       lhs=x,
