@@ -36,6 +36,7 @@ testing = [
     "pytype",
     "pytest-cov",
     "pytest-custom_exit_code",
+    "pytest-xdist",
 ]
 
 [project.urls]
