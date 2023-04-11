@@ -115,14 +115,6 @@ if $RUN_PYTYPE; then
   echo "=== RUNNING PYTYPE ==="
   # Validate types in library code.
   pytype --jobs auto --config pyproject.toml jaxonnxruntime/
-
-  # Validate types in examples.
-  for egd in $(find examples -maxdepth 1 -mindepth 1 -type d); do
-      # use cd to make sure pytype cache lives in example dir and doesn't name clash
-      # use *.py to avoid importing configs as a top-level import which leads to import errors
-      # because config files use relative imports (e.g. from config import ...).
-      (cd $egd ; pytype --jobs auto --config ../../pyproject.toml "*.py")
-  done
 fi
 
 if $RUN_MYPY; then
