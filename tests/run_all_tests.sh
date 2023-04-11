@@ -82,12 +82,12 @@ if $RUN_DOCTEST; then
   # test build html
   sphinx-build -M html docs docs/_build -T
   # test docstrings
-  pytest -n auto jaxonnxruntime --doctest-modules
+  pytest -n auto jaxonnxruntime --doctest-modules --suppress-no-test-exit-code
 fi
 
 # check that jaxonnxruntime is running on editable mode
 # (i.e. no notebook installed jaxonnxruntime from pypi)
-echo "=== CHECKING FLAX IS EDITABLE ==="
+echo "=== CHECKING JAXONNXRUNTIME IS EDITABLE ==="
 assert_error="jaxonnxruntime is not running on editable mode."
 (cd docs; python -c "import jaxonnxruntime; assert 'site-packages' not in jaxonnxruntime.__file__, \"$assert_error\"")
 
@@ -97,7 +97,7 @@ export JAX_NUMPY_RANK_PROMOTION=raise
 if $RUN_PYTEST; then
   echo "=== RUNNING PYTESTS ==="
   PYTEST_IGNORE=
-  # Run battery of core FLAX API tests.
+  # Run battery of core Jaxonnxruntime API tests.
   echo "pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE"
   pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE
 

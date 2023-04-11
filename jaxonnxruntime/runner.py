@@ -173,15 +173,15 @@ class Runner:
       test_case.__module__ = self._parent_module
     return test_case
 
-  def include(self, pattern: str) -> ...:
+  def include(self, pattern: str):
     self._include_patterns.add(re.compile(pattern))
     return self
 
-  def exclude(self, pattern: str) -> ...:
+  def exclude(self, pattern: str):
     self._exclude_patterns.add(re.compile(pattern))
     return self
 
-  def xfail(self, pattern: str) -> ...:
+  def xfail(self, pattern: str):
     self._xfail_patterns.add(re.compile(pattern))
     return self
 
@@ -232,7 +232,7 @@ class Runner:
         unittest.TextTestRunner().run(BackendTest(backend).test_suite)
     """
     suite = unittest.TestSuite()
-    for case in sorted(self.test_cases.values()):
+    for case in sorted(self.test_cases.values()):  # type: ignore
       suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(case))
     return suite
 
@@ -373,7 +373,7 @@ class Runner:
       elif model_type_proto.HasField('optional_type'):
         optional = onnx.OptionalProto()
         optional.ParseFromString(protobuf_content)
-        target_list.append(numpy_helper.to_optional(optional))
+        target_list.append(numpy_helper.to_optional(optional))  # type: ignore
       else:
         print(
             'Loading proto of that specific type (Map/Sparse Tensor) is'

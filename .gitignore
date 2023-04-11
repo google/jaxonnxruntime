@@ -13,3 +13,5 @@ build/
 .vscode/*
 /.devcontainer
 docs/**/tmp
+.coverage
+coverage.xml

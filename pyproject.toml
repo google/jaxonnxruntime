@@ -25,12 +25,17 @@ classifiers = [
 ]
 dynamic = ["version", "readme"]
 
+[project.optional-dependencies]
+all = [
+]
 
 testing = [
     "mypy",
     "opencv-python",
     "pytest",
     "pytype",
+    "pytest-cov",
+    "pytest-custom_exit_code",
 ]
 
 doc = [
@@ -55,6 +60,8 @@ jaxonnxruntime = ["*py.typed"]
 
 [tool.yapf]
 based_on_style = "yapf"
+
+[tool.pytype]
 
 [tool.mypy]
 show_error_codes = true
