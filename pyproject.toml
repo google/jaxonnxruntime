@@ -37,6 +37,7 @@ testing = [
     "pytest-cov",
     "pytest-custom_exit_code",
     "pytest-xdist",
+    "absl-py",
 ]
 
 [project.urls]
