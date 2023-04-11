@@ -38,13 +38,6 @@ testing = [
     "pytest-custom_exit_code",
 ]
 
-doc = [
-    "sphnix",
-    "myst_nb",
-    "sphinx_design",
-    "sphinx-book-theme",
-]
-
 [project.urls]
 homepage = "https://github.com/google/jaxonnxruntime"
 
