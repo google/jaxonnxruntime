@@ -5,7 +5,7 @@ name: Build
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - 'test_*'
   pull_request:
@@ -57,7 +57,7 @@ jobs:
           url=https://flax.readthedocs.io/en/latest/contributing.html#too-many-commits-in-a-pull-request
           echo "See $url for help on how to resolve this."
           exit 1
-        fi  
+        fi
   test-import:
     name: Test import standalone
     runs-on: ubuntu-latest

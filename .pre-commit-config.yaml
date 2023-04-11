@@ -1,0 +1,31 @@
+# Install the pre-commit hooks below with
+# 'pre-commit install'
+
+# Auto-update the version of the hooks with
+# 'pre-commit autoupdate'
+
+# Run the hooks on all files with
+# 'pre-commit run --all'
+
+repos:
+- repo: https://github.com/mwouts/jupytext
+  rev: v1.14.5
+  hooks:
+  - id: jupytext
+    args: [--sync]
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: check-toml
+  - id: trailing-whitespace
+    exclude: ^docs/.*\.md$
+- repo: https://github.com/kynan/nbstripout
+  rev: 0.6.1
+  hooks:
+    - id: nbstripout
+      args: [
+        --keep-output,
+        --keep-count,
+        --extra-keys,
+        "metadata.kernelspec metadata.vscode metadata.colab cell.metadata.executionInfo.user cell.metadata.executionInfo.user_tz cell.metadata.colab",
+      ]
