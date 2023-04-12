@@ -97,7 +97,6 @@ if $RUN_PYTEST; then
   pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE
 fi
 
-
 if $RUN_MYPY; then
   echo "=== RUNNING MYPY ==="
   # Validate types in library code.
