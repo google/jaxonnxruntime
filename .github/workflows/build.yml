@@ -91,6 +91,13 @@ jobs:
             python-version: 3.10
           - test-type: mypy
             python-version: 3.8
+          - test-type: mypy
+            python-version: 3.10
+          - test-type: doctest
+            python-version: 3.8
+          - test-type: doctest
+            python-version: 3.10
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -114,7 +121,6 @@ jobs:
         python3 -m venv venv
         venv/bin/python3 -m pip install .[all]
         venv/bin/python3 -m pip install .[testing]
-        venv/bin/python3 -m pip install --upgrade pytest
         venv/bin/python3 -m pip install -r docs/requirements.txt
     - name: Install Jaxonnxruntime
       run: |
