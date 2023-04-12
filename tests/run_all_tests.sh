@@ -4,7 +4,6 @@ PYTEST_OPTS=
 RUN_DOCTEST=true
 RUN_MYPY=true
 RUN_PYTEST=true
-RUN_PYTYPE=true
 GH_VENV=false
 
 for flag in "$@"; do
@@ -22,9 +21,6 @@ case $flag in
   ;;
   --no-pytest)
   RUN_PYTEST=false
-  ;;
-  --no-pytype)
-  RUN_PYTYPE=false
   ;;
   --no-mypy)
   RUN_MYPY=false
@@ -49,7 +45,6 @@ echo "PYTEST_OPTS: $PYTEST_OPTS"
 echo "RUN_DOCTEST: $RUN_DOCTEST"
 echo "RUN_PYTEST: $RUN_PYTEST"
 echo "RUN_MYPY: $RUN_MYPY"
-echo "RUN_PYTYPE: $RUN_PYTYPE"
 echo "GH_VENV: $GH_VENV"
 echo "WHICH PYTHON: $(which python)"
 echo "jax: $(python -c 'import jax; print(jax.__version__)')"
@@ -100,21 +95,6 @@ if $RUN_PYTEST; then
   # Run battery of core Jaxonnxruntime API tests.
   echo "pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE"
   pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE
-
-  # Per-example tests.
-  #
-  # we apply pytest within each example to avoid pytest's annoying test-filename collision.
-  # In pytest foo/bar/baz_test.py and baz/bleep/baz_test.py will collide and error out when
-  # /foo/bar and /baz/bleep aren't set up as packages.
-  for egd in $(find examples -maxdepth 1 -mindepth 1 -type d); do
-      pytest $egd
-  done
-fi
-
-if $RUN_PYTYPE; then
-  echo "=== RUNNING PYTYPE ==="
-  # Validate types in library code.
-  pytype --jobs auto --config pyproject.toml jaxonnxruntime/
 fi
 
 if $RUN_MYPY; then

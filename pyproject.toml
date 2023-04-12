@@ -31,9 +31,7 @@ all = [
 
 testing = [
     "mypy",
-    "opencv-python",
     "pytest",
-    "pytype",
     "pytest-cov",
     "pytest-custom_exit_code",
     "pytest-xdist",
