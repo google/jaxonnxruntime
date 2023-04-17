@@ -14,12 +14,14 @@
 
 """Defines a Handler class and a decorator to register ONNX ops."""
 import logging
+import inspect
 from typing import Any
 from onnx import defs
 
 logger = logging.getLogger(__name__)
 
 OnnxNode = Any
+JaxFunc = Any
 
 
 class Handler:
@@ -64,6 +66,13 @@ class Handler:
             node.op_type, cls.SINCE_VERSION
         )
     )
+
+  @classmethod
+  def prepare_attrs_list(cls, node: OnnxNode, onnx_jax_impl: JaxFunc) -> None:
+    """Prepare attrs_list for the jax function onnx_jax_impl(*inputs, *attr_list)."""
+    args = list(inspect.signature(onnx_jax_impl).parameters.keys())
+    attrs = [node.attrs.get(k, None) for k in args[node.len_inputs :]]
+    node.attrs_list.extend(attrs)
 
 
 def register_op(op_type: str, domain: str = "") -> Any:
