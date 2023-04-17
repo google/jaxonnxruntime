@@ -21,7 +21,6 @@ from absl.testing import absltest
 from jaxonnxruntime import runner
 from jaxonnxruntime.backend import Backend as JaxBackend
 
-
 class Runner(runner.Runner):
 
   def __init__(self, backend: JaxBackend, parent_module: Any = None) -> None:
@@ -41,10 +40,22 @@ class NodeTest(absltest.TestCase):
 
 
 backend_test = Runner(JaxBackend, __name__)
+expect_fail_patterns = []
 include_patterns = []
 exclude_patterns = []
 
+include_patterns.append('test_abs_')
+include_patterns.append('test_add_')
+include_patterns.append('test_cast_')
 include_patterns.append('test_conv_')
+
+# TODO: should modify onnx.numpy_helper.to_array to support load bfloat16.
+exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
+
+
+expect_fail_patterns.append("test_cast_FLOAT_to_STRING")
+expect_fail_patterns.append("test_cast_STRING_to_FLOAT")
+
 
 for pattern in include_patterns:
   backend_test.include(pattern)
@@ -52,9 +63,14 @@ for pattern in include_patterns:
 for pattern in exclude_patterns:
   backend_test.exclude(pattern)
 
+for pattern in expect_fail_patterns:
+    backend_test.xfail(pattern)
+
 for name, func in backend_test.test_cases.items():
   setattr(NodeTest, name, func)
 
 
 if __name__ == '__main__':
+  import jax
+  jax.config.update("jax_enable_x64", True)
   absltest.main()

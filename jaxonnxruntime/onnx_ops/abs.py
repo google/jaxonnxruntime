@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Define ONNX Abs operator."""
+from collections.abc import Callable
+from typing import Any
+
 from jax import jit
 from jax import lax
 
@@ -29,17 +32,17 @@ class Abs(Handler):
   """Implementation of the ONNX Abs operator."""
 
   @classmethod
-  def version_1(cls, node, **kwargs):
+  def version_1(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
     """Return the absolute value of the input."""
     return onnx_abs
 
   @classmethod
-  def version_6(cls, node, **kwargs):
+  def version_6(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
     """Return the absolute value of the input."""
     return onnx_abs
 
   @classmethod
-  def version_13(cls, node, **kwargs):
+  def version_13(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
     """Return the absolute value of the input."""
     return onnx_abs
 

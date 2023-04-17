@@ -11,15 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Define ONNX Add operator."""
+from jax import jit
+from jax import lax
+from jax import numpy as jnp
 
-"""Define ONNX ops."""
-import importlib
-import os
+from jaxonnxruntime.core import handler
+from jaxonnxruntime.core import onnx_node
 
-import jax
+register_op = handler.register_op
+Handler = handler.Handler
+OnnxNode = onnx_node.OnnxNode
 
-# Some op tests need float64 support. like Cast.
-jax.config.update("jax_enable_x64", True)
 
-from . import abs  # pylint: disable=redefined-builtin
-from . import add, cast, conv
+@register_op("Add")
+class Add(Handler):
+  """Implementation of the ONNX Add operator."""
+
+  @classmethod
+  def version_14(cls, node, **kwargs):
+    return onnx_add
+
+
+@jit
+def onnx_add(a, b):
+  return jnp.add(a, b)
