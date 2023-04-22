@@ -13,11 +13,37 @@
 # limitations under the License.
 
 """Define ONNX ops."""
-
+# pylint: disable=redefined-builtin
 import importlib
 import os
 
-from . import abs  # pylint: disable=redefined-builtin
+from . import abs
 from . import add
 from . import cast
+from . import concat
+from . import constant
+from . import constantofshape
 from . import conv
+from . import div
+from . import exp
+from . import gather
+from . import gemm
+from . import matmul
+from . import mul
+from . import nonzero
+from . import pad
+from . import pow
+from . import reducemax
+from . import reducemean
+from . import reducesum
+from . import reshape
+from . import shape
+from . import slice
+from . import softmax
+from . import split
+from . import sqrt
+from . import squeeze
+from . import sub
+from . import tanh
+from . import transpose
+from . import unsqueeze

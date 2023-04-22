@@ -25,7 +25,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Cast operator."""
+"""Define ONNX ConstantOfShape operator."""
+# pylint: disable=unused-argument
 from collections.abc import Callable, Sequence
 import functools
 import inspect
@@ -36,14 +37,10 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 import onnx
 
-register_op = handler.register_op
-Handler = handler.Handler
-OnnxNode = onnx_node.OnnxNode
 
-
-@handler.register_op("Cast")
-class Cast(handler.Handler):
-  """Implementation of the ONNX Cast operator."""
+@handler.register_op('ConstantOfShape')
+class ConstantOfShape(handler.Handler):
+  """Implementation of the ONNX ConstantOfShape operator."""
 
   @classmethod
   def _prepare(
@@ -57,39 +54,28 @@ class Cast(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
-    if not node.attrs_dict["from_type"]:
-      from_type = node.context_graph.value_info_dict[
-          node.inputs[0]
-      ].type.tensor_type.elem_type
-      node.attrs_dict["from_type"] = from_type
+    assert len(inputs) == 1
+    node.attrs_dict['shape'] = tuple(inputs[0].tolist())
+    if 'value' in node.attrs_dict:
+      np_value = onnx.numpy_helper.to_array(node.attrs_dict['value'])
+      if len(np_value.tolist()) != 1:
+        raise ValueError(
+            'ONNX ConstantOfShape op `value` attr should contain only 1 value'
+            f' but got {np_value} on node {node.node_proto}'
+        )
+      node.attrs_dict['value'] = np_value.tolist()[0]
+      node.attrs_dict['dtype'] = np_value.dtype
 
   @classmethod
-  def version_13(
+  def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Cast op."""
-    cls._prepare(node, inputs, onnx_cast)
-    return onnx_cast
+    """ONNX version_9 ConstantOfShape op."""
+    cls._prepare(node, inputs, onnx_constantofshape)
+    return onnx_constantofshape
 
 
-@functools.partial(jit, static_argnames=("to", "from_type"))
-def onnx_cast(x, *, to, from_type=None):
-  if from_type is onnx.TensorProto.STRING or to is onnx.TensorProto.STRING:
-    raise NotImplementedError(
-        "Cast JAX version do not support STRING type yet."
-    )
-  to_type = tensor_dtype_to_jnp_dtype(to)
-  from_type = tensor_dtype_to_jnp_dtype(from_type) if from_type else x.dtype
-  try:
-    return x.view(from_type).astype(to_type)
-  except Exception as e:
-    raise ValueError(
-        f"onnx_cast can not support from_type = {from_type}, to_type ="
-        f" {to_type}"
-    ) from e
-
-
-def tensor_dtype_to_jnp_dtype(tensor_type):
-  if tensor_type is onnx.TensorProto.BFLOAT16:
-    return jnp.bfloat16
-  return jnp.dtype(onnx.helper.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type])
+@functools.partial(jit, static_argnames=('value', 'shape', 'dtype'))
+def onnx_constantofshape(*input_args, value=0, shape=None, dtype=jnp.float32):
+  """The internal jax impl for onnx ConstantOfShape op."""
+  return jnp.full(fill_value=value, shape=shape, dtype=dtype)
