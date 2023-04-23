@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """Defines a Handler class and a decorator to register ONNX ops."""
-import logging
 import inspect
+import logging
 from typing import Any
 from onnx import defs
 
