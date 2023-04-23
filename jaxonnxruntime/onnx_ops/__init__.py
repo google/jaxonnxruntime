@@ -13,13 +13,11 @@
 # limitations under the License.
 
 """Define ONNX ops."""
+
 import importlib
 import os
 
-import jax
-
-# Some op tests need float64 support. like Cast.
-jax.config.update("jax_enable_x64", True)
-
 from . import abs  # pylint: disable=redefined-builtin
-from . import add, cast, conv
+from . import add
+from . import cast
+from . import conv
