@@ -16,10 +16,10 @@
 
 import collections
 from typing import Any
-
 from absl.testing import absltest
 from jaxonnxruntime import runner
 from jaxonnxruntime.backend import Backend as JaxBackend
+
 
 class Runner(runner.Runner):
 
@@ -47,14 +47,49 @@ exclude_patterns = []
 include_patterns.append('test_abs_')
 include_patterns.append('test_add_')
 include_patterns.append('test_cast_')
+include_patterns.append('test_concat_')
+include_patterns.append('test_constant_')
+include_patterns.append('test_constantofshape_')
 include_patterns.append('test_conv_')
+include_patterns.append('test_div_')
+include_patterns.append('test_exp_')
+include_patterns.append('test_gather_')
+include_patterns.append('test_gemm_')
+include_patterns.append('test_matmul_')
+include_patterns.append('test_mul_')
+include_patterns.append('test_nonzero_')
+include_patterns.append('test_pow_')
+include_patterns.append('test_reduce_max_')
+include_patterns.append('test_reduce_mean_')
+include_patterns.append('test_reduce_sum_')
+include_patterns.append('test_reshape_')
+include_patterns.append('test_shape_')
+include_patterns.append('test_slice_')
+include_patterns.append('test_softmax_')
+include_patterns.append('test_split_')
+include_patterns.append('test_sqrt_')
+include_patterns.append('test_sub_')
+include_patterns.append('test_squeeze_')
+include_patterns.append('test_tanh_')
+include_patterns.append('test_transpose_')
+include_patterns.append('test_unsqueeze_')
 
-# TODO: should modify onnx.numpy_helper.to_array to support load bfloat16.
+# TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
+# bfloat16.
 exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
+# Not implement yet
+exclude_patterns.append('test_gather_elements_')
+exclude_patterns.append('test_reduce_sum_square_')
+# Need more debug
+exclude_patterns.append('test_softmax_axis_0_expanded_cpu')
+exclude_patterns.append('test_softmax_axis_1_expanded_cpu')
+exclude_patterns.append('test_softmax_axis_2_expanded_cpu')
+exclude_patterns.append('test_softmax_default_axis_expanded_cpu')
+exclude_patterns.append('test_softmax_large_number_expanded_cpu')
+exclude_patterns.append('test_softmax_negative_axis_expanded_cpu')
 
-
-expect_fail_patterns.append("test_cast_FLOAT_to_STRING")
-expect_fail_patterns.append("test_cast_STRING_to_FLOAT")
+expect_fail_patterns.append('test_cast_FLOAT_to_STRING')
+expect_fail_patterns.append('test_cast_STRING_to_FLOAT')
 
 
 for pattern in include_patterns:
@@ -64,13 +99,11 @@ for pattern in exclude_patterns:
   backend_test.exclude(pattern)
 
 for pattern in expect_fail_patterns:
-    backend_test.xfail(pattern)
+  backend_test.xfail(pattern)
 
 for name, func in backend_test.test_cases.items():
   setattr(NodeTest, name, func)
 
 
 if __name__ == '__main__':
-  import jax
-  jax.config.update("jax_enable_x64", True)
   absltest.main()

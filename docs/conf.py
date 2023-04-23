@@ -38,7 +38,8 @@ sys.path.append(os.path.abspath('./_ext'))
 # -- Project information -----------------------------------------------------
 
 project = 'Jaxonnxruntime'
-copyright = '2023, The Jaxonnxruntime authors'  # pylint: disable=redefined-builtin
+# pylint: disable=redefined-builtin
+copyright = '2023, The Jaxonnxruntime authors'
 author = 'The Jaxonnxruntime authors'
 
 
@@ -101,9 +102,11 @@ html_static_path = ['_static']
 
 html_theme_options = {
     'repository_url': 'https://github.com/google/jaxonnxruntime',
-    'use_repository_button': True,     # add a 'link to repository' button
-    'use_issues_button': False,        # add an 'Open an Issue' button
-    'path_to_docs': 'docs',            # used to compute the path to launch notebooks in colab
+    'use_repository_button': True,  # add a 'link to repository' button
+    'use_issues_button': False,  # add an 'Open an Issue' button
+    'path_to_docs': (
+        'docs'
+    ),  # used to compute the path to launch notebooks in colab
     'launch_buttons': {
         'colab_url': 'https://colab.research.google.com/',
     },
@@ -118,8 +121,7 @@ nb_execution_timeout = 100
 # List of patterns, relative to source directory, that match notebook
 # files that will not be executed.
 myst_enable_extensions = ['dollarmath']
-nb_execution_excludepatterns = [
-]
+nb_execution_excludepatterns = []
 # raise exceptions on execution so CI can catch errors
 nb_execution_allow_errors = False
 nb_execution_raise_on_error = True

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Add operator."""
+"""Define ONNX ReduceMax operator."""
 import functools
 import inspect
 from collections.abc import Callable, Sequence
@@ -23,9 +23,9 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Add")
-class Add(handler.Handler):
-  """Implementation of the ONNX Add operator."""
+@handler.register_op("ReduceMax")
+class ReduceMax(handler.Handler):
+  """Implementation of the ONNX ReduceMax operator."""
 
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
@@ -33,17 +33,18 @@ class Add(handler.Handler):
     kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
+    node.attrs_dict['keepdims'] = True if node.attrs_dict['keepdims'] == 1 else False
 
   @classmethod
-  def version_14(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
-    """ONNX version_14 Add op."""
-    cls._prepare(node, inputs, onnx_add)
-    return onnx_add
+  def version_13(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
+    """ONNX version_13 ReduceMax op."""
+    cls._prepare(node, inputs, onnx_reducemax)
+    return onnx_reducemax
 
 
-@functools.partial(jit, static_argnames=())
-def onnx_add(*input_args):
-  """The internal jax impl for onnx Add op."""
-  assert len(input_args) == 2
-  a, b = input_args
-  return jnp.add(a, b)
+@functools.partial(jit, static_argnames=('axes', 'keepdims'))
+def onnx_reducemax(*input_args, axes, keepdims=True):
+  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceMax."""
+  assert len(input_args) == 1
+  x = input_args[0]
+  return jnp.max(x, axis=axes, keepdims=keepdims)

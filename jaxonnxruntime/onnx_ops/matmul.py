@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Add operator."""
+"""Define ONNX MatMul operator."""
 import functools
 import inspect
 from collections.abc import Callable, Sequence
@@ -23,9 +23,9 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Add")
-class Add(handler.Handler):
-  """Implementation of the ONNX Add operator."""
+@handler.register_op("MatMul")
+class MatMul(handler.Handler):
+  """Implementation of the ONNX MatMul operator."""
 
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
@@ -35,15 +35,15 @@ class Add(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_14(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
-    """ONNX version_14 Add op."""
-    cls._prepare(node, inputs, onnx_add)
-    return onnx_add
+  def version_13(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
+    """ONNX version_13 MatMul op."""
+    cls._prepare(node, inputs, onnx_matmul)
+    return onnx_matmul
 
 
 @functools.partial(jit, static_argnames=())
-def onnx_add(*input_args):
-  """The internal jax impl for onnx Add op."""
+def onnx_matmul(*input_args):
+  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#MatMul."""
   assert len(input_args) == 2
   a, b = input_args
-  return jnp.add(a, b)
+  return jnp.matmul(a, b)

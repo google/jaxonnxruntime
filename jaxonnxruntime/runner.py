@@ -27,6 +27,7 @@ import time
 from typing import Any, Optional, Pattern, Set, Type, Union
 import unittest
 
+import jax
 from jaxonnxruntime.backend import Backend
 import numpy as np
 
@@ -37,6 +38,7 @@ from onnx import numpy_helper
 NodeProto = onnx.NodeProto
 ModelProto = onnx.ModelProto
 
+jax.config.update('jax_enable_x64', True)
 
 class TestItem:
 
