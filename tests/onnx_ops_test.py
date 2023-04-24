@@ -17,7 +17,6 @@
 import collections
 from typing import Any
 from absl.testing import absltest
-import jax
 from jaxonnxruntime import runner
 from jaxonnxruntime.backend import Backend as JaxBackend
 
@@ -73,5 +72,4 @@ for name, func in backend_test.test_cases.items():
 
 
 if __name__ == '__main__':
-  jax.config.update('jax_enable_x64', True)
   absltest.main()
