@@ -11,43 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Define ONNX Abs operator."""
-from collections.abc import Callable
+import functools
+import inspect
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from jax import jit
-from jax import lax
-
+from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
-register_op = handler.register_op
-Handler = handler.Handler
-OnnxNode = onnx_node.OnnxNode
 
-
-@register_op("Abs")
-class Abs(Handler):
+@handler.register_op("Abs")
+class Abs(handler.Handler):
   """Implementation of the ONNX Abs operator."""
 
   @classmethod
-  def version_1(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
-    """Return the absolute value of the input."""
-    return onnx_abs
+  def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
+    sig = inspect.signature(onnx_jax_impl)
+    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
+    for name in kwparams:
+      node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_6(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
-    """Return the absolute value of the input."""
-    return onnx_abs
-
-  @classmethod
-  def version_13(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
-    """Return the absolute value of the input."""
+  def version_13(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
+    """ONNX version_13 Abs op."""
+    cls._prepare(node, inputs, onnx_abs)
     return onnx_abs
 
 
-@jit
-def onnx_abs(x):
-  """Element-wise absolute value of `x`."""
-  return lax.abs(x)
+@functools.partial(jit, static_argnames=())
+def onnx_abs(*input_args):
+  """The internal jax impl for onnx Abs op."""
+  assert len(input_args) == 1
+  x, = input_args
+  return jnp.abs(x)

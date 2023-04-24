@@ -13,7 +13,8 @@
 # limitations under the License.
 """Define ONNX Concat operator."""
 import functools
-from collections.abc import Callable
+import inspect
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from jax import jit
@@ -27,13 +28,16 @@ class Concat(handler.Handler):
   """Implementation of the ONNX Concat operator."""
 
   @classmethod
-  def _prepare(cls, node: onnx_node.OnnxNode):
-    super().prepare_attrs_dict(node, onnx_concat)
+  def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
+    sig = inspect.signature(onnx_jax_impl)
+    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
+    for name in kwparams:
+      node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_13(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
+  def version_13(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
     """ONNX version_13 Concat op."""
-    cls._prepare(node)
+    cls._prepare(node, inputs, onnx_concat)
     return onnx_concat
 
 

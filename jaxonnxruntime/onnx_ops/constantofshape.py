@@ -11,21 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Add operator."""
+"""Define ONNX ConstantOfShape operator."""
 import functools
 import inspect
 from collections.abc import Callable, Sequence
 from typing import Any
 
+import onnx
 from jax import jit
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Add")
-class Add(handler.Handler):
-  """Implementation of the ONNX Add operator."""
+@handler.register_op("ConstantOfShape")
+class ConstantOfShape(handler.Handler):
+  """Implementation of the ONNX ConstantOfShape operator."""
 
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
@@ -33,17 +34,23 @@ class Add(handler.Handler):
     kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
+    assert len(inputs) == 1
+    node.attrs_dict['shape'] = tuple(inputs[0].tolist())
+    if 'value' in node.attrs_dict:
+      np_value = onnx.numpy_helper.to_array(node.attrs_dict['value'])
+      if len(np_value.tolist()) != 1:
+        raise ValueError(f"ONNX ConstantOfShape op `value` attr should contain only 1 value but got {np_value} on node {node.node_proto}")
+      node.attrs_dict['value'] = np_value.tolist()[0]
+      node.attrs_dict['dtype'] = np_value.dtype
 
   @classmethod
-  def version_14(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
-    """ONNX version_14 Add op."""
-    cls._prepare(node, inputs, onnx_add)
-    return onnx_add
+  def version_9(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
+    """ONNX version_9 ConstantOfShape op."""
+    cls._prepare(node, inputs, onnx_constantofshape)
+    return onnx_constantofshape
 
 
-@functools.partial(jit, static_argnames=())
-def onnx_add(*input_args):
-  """The internal jax impl for onnx Add op."""
-  assert len(input_args) == 2
-  a, b = input_args
-  return jnp.add(a, b)
+@functools.partial(jit, static_argnames=('value', 'shape', 'dtype'))
+def onnx_constantofshape(*input_args, value=0, shape=None, dtype=jnp.float32):
+  """The internal jax impl for onnx ConstantOfShape op."""
+  return jnp.full(fill_value=value, shape=shape, dtype=dtype)

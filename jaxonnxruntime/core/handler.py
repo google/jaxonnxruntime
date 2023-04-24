@@ -15,7 +15,7 @@
 """Defines a Handler class and a decorator to register ONNX ops."""
 import inspect
 import logging
-from typing import Any
+from typing import Any, Sequence
 from onnx import defs
 
 logger = logging.getLogger(__name__)
@@ -56,10 +56,10 @@ class Handler:
     return since_version
 
   @classmethod
-  def handle(cls, node: OnnxNode, **kwargs) -> Any:
+  def handle(cls, node: OnnxNode, inputs: Sequence[Any], **kwargs) -> Any:
     ver_handle = getattr(cls, "version_{}".format(cls.SINCE_VERSION), None)
     if ver_handle:
-      return ver_handle(node, **kwargs)  # pylint: disable=not-callable
+      return ver_handle(node, inputs, **kwargs)  # pylint: disable=not-callable
 
     raise NotImplementedError(
         "{} version {} is not implemented.".format(
@@ -68,11 +68,9 @@ class Handler:
     )
 
   @classmethod
-  def prepare_attrs_dict(cls, node: OnnxNode, onnx_jax_impl: JaxFunc) -> None:
-    """Prepare attrs_dict for the jax function onnx_jax_impl(*inputs, **attrs_dict)."""
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
-    node.attrs_dict = {name: node.attrs.get(name, None) for name in kwparams}
+  def _prepare(cls, node: OnnxNode, inputs: Sequence[Any], onnx_jax_impl: JaxFunc) -> None:
+    """The abstract method to rewwrite the node.attrs_dict."""
+    raise NotImplementedError
 
 def register_op(op_type: str, domain: str = "") -> Any:
   """Register op into specific domain. default value "" is ai.onnx domain."""

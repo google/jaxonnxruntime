@@ -80,7 +80,7 @@ def call_onnx(
           f'failt to get input tensor for node inputs {node.inputs}, the'
           f' node proto is {node.node_proto}'
       ) from e
-    jit_func = _get_jit_func(node, handlers=handlers)
+    jit_func = _get_jit_func(node, inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
     outputs = jit_func(*node_inputs, **node.attrs_dict)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]
@@ -179,7 +179,7 @@ def _get_all_handlers(
   return handlers
 
 
-def _get_jit_func(node, handlers, **kwargs):
+def _get_jit_func(node, inputs, handlers, **kwargs):
   """Get the JAX node implementation."""
   handler = (
       handlers[node.domain].get(node.op_type, None)
@@ -187,6 +187,6 @@ def _get_jit_func(node, handlers, **kwargs):
       else None
   )
   if handler:
-    return handler.handle(node, **kwargs)
+    return handler.handle(node, inputs, **kwargs)
   else:
     raise NotImplementedError(f'{node.op_type} is not implemented.')

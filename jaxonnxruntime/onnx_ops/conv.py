@@ -11,17 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Define ONNX Conv operator."""
-import copy
-from collections.abc import Callable
 import functools
+import inspect
+from collections.abc import Callable, Sequence
 from typing import Any, Optional
 
 from jax import jit
 from jax import lax
-import jax.numpy as jnp
-
+from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -31,14 +29,12 @@ class Conv(handler.Handler):
   """Implementation of the ONNX Conv operator."""
 
   @classmethod
-  def version_11(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
-    """ONNX version_11 CONV op."""
-    cls._prepare(node)
-    return onnx_conv
+  def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
+    sig = inspect.signature(onnx_jax_impl)
+    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
+    for name in kwparams:
+      node.attrs_dict[name] = node.attrs.get(name, None)
 
-  @classmethod
-  def _prepare(cls, node: onnx_node.OnnxNode) -> None:
-    super().prepare_attrs_dict(node, onnx_conv)
     if not node.attrs_dict['group']:
       node.attrs_dict["group"] = 1
     if "pads" in node.attrs:
@@ -59,6 +55,12 @@ class Conv(handler.Handler):
             "Invalid auto_pad attribute: {}".format(node.attrs_dict["auto_pad"])
         )
       node.attrs_dict["pads"] = onnx_to_jax_pad_type[node.attrs["auto_pad"]]
+
+  @classmethod
+  def version_11(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
+    """ONNX version_11 Conv op."""
+    cls._prepare(node, inputs, onnx_conv)
+    return onnx_conv
 
 
 @functools.partial(

@@ -36,10 +36,13 @@ template_head = """# Copyright 2023 The Jaxonnxruntime Authors.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 \"\"\"Define ONNX {op_name} operator.\"\"\"
-from collections.abc import Callable
+import functools
+import inspect
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from jax import jit
+from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -49,32 +52,34 @@ class {op_name}(handler.Handler):
   \"\"\"Implementation of the ONNX {op_name} operator.\"\"\"
 
   @classmethod
-  def _prepare(cls, node: onnx_node.OnnxNode):
-    super().prepare_attrs_list(node, onnx_{op_name_lower})
-    # TODO({username}): update the onnx_node.attr_list if need. Otherwise
-    # ignore this comment.
+  def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
+    sig = inspect.signature(onnx_jax_impl)
+    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
+    for name in kwparams:
+      node.attrs_dict[name] = node.attrs.get(name, None)
 """
 
 template_version_func = """
   @classmethod
-  def version_{version}(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
+  def version_{version}(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
     \"\"\"ONNX version_{version} {op_name} op.\"\"\"
-    cls._prepare(node)
+    cls._prepare(node, inputs, onnx_{op_name_lower})
     return onnx_{op_name_lower}
 """
 
 template_tail = """
 
-@jit
-def onnx_{op_name_lower}(x):
+@functools.partial(jit, static_argnames=())
+def onnx_{op_name_lower}(*input_args):
   \"\"\"The internal jax impl for onnx {op_name} op.\"\"\"
   # TODO({username}): add the implementation here.
   # Then update the onnx_ops_teset.py to include it,
   # `include_patterns.append('test_{op_name_lower}_')`.
-  return x
+  return input_args
 """
 
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+root_dir = os.path.join(root_dir, "jaxonnxruntime")
 op_schema_set = {
     str(op_schema.name) for op_schema in onnx.defs.get_all_schemas()
 }
@@ -112,7 +117,7 @@ def update_onnx_ops_init_file(op_name):
 def main(args):
   # get the version list for the ONNX operator
   op_name = args.op_name
-  if op_name not in op_schema_set:
+  if str(op_name) not in op_schema_set:
     raise ValueError(
         f'ONNX {op_name} is not ONNX op list {sorted(op_schema_set)}?.'
     )
