@@ -13,9 +13,9 @@
 # limitations under the License.
 
 """Define ONNX Conv operator."""
+import copy
 from collections.abc import Callable
 import functools
-import inspect
 from typing import Any, Optional
 
 from jax import jit
@@ -31,33 +31,23 @@ class Conv(handler.Handler):
   """Implementation of the ONNX Conv operator."""
 
   @classmethod
-  def version_1(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
-    """ONNX version_1 CONV op."""
-    cls._rewrite(node)
-    cls._prepare(node)
-    return onnx_conv
-
-  @classmethod
   def version_11(cls, node: onnx_node.OnnxNode) -> Callable[..., Any]:
     """ONNX version_11 CONV op."""
-    cls._rewrite(node)
     cls._prepare(node)
     return onnx_conv
 
   @classmethod
-  def _rewrite(cls: Any, node: onnx_node.OnnxNode) -> None:
-    """Rewrite the OnnxNode class for Jax implementation."""
-    if "group" not in node.attrs:
-      node.attrs["group"] = 1
+  def _prepare(cls, node: onnx_node.OnnxNode) -> None:
+    super().prepare_attrs_dict(node, onnx_conv)
+    if not node.attrs_dict['group']:
+      node.attrs_dict["group"] = 1
     if "pads" in node.attrs:
       pads = node.attrs["pads"]
       # ONNX follows [x1_begin, x2_begin...x1_end, x2_end,...].
       # lax conv is a sequence of n (low, high) integer pairs.
       n = len(pads) // 2
       pads_new = ((pads[i], pads[i + n]) for i in range(n))
-      node.attrs["pads"] = tuple(pads_new)
-      if "auto_pads" in node.attrs:
-        del node.attrs["auto_pads"]
+      node.attrs_dict["pads"] = tuple(pads_new)
     else:
       onnx_to_jax_pad_type = {
           "SAME_UPPER": "SAME",
@@ -66,15 +56,9 @@ class Conv(handler.Handler):
       }
       if node.attrs["auto_pad"] not in onnx_to_jax_pad_type:
         raise ValueError(
-            "Invalid auto_pad attribute: {}".format(node.attrs["auto_pad"])
+            "Invalid auto_pad attribute: {}".format(node.attrs_dict["auto_pad"])
         )
-      node.attrs["pads"] = onnx_to_jax_pad_type[node.attrs["auto_pad"]]
-
-  @classmethod
-  def _prepare(cls, node: onnx_node.OnnxNode) -> None:
-    args = list(inspect.signature(onnx_conv).parameters.keys())
-    attrs = [node.attrs.get(k, None) for k in args[node.len_inputs :]]
-    node.attrs_list.extend(attrs)
+      node.attrs_dict["pads"] = onnx_to_jax_pad_type[node.attrs["auto_pad"]]
 
 
 @functools.partial(
@@ -82,9 +66,7 @@ class Conv(handler.Handler):
     static_argnames=("group", "kernel_shape", "pads", "strides", "dilations"),
 )
 def onnx_conv(
-    x: jnp.ndarray,
-    w: jnp.ndarray,
-    b: Optional[jnp.ndarray],
+    *inputs,
     group: int = 1,
     kernel_shape: Optional[tuple[int, ...]] = None,
     pads: Any = "VALID",
@@ -94,19 +76,25 @@ def onnx_conv(
   """JAX common impl of onnx Conv.
 
   Args:
-    x (jax.numpy.ndarray): The input tensor.
-    w (jax.numpy.ndarray): The weight tensor.
-    b (jax.numpy.ndarray): The bias tensor.
-    group (int): The number of groups.
-    kernel_shape (tuple): The kernel shape.
-    pads (tuple): The padding.
-    strides (tuple): The strides.
-    dilations (tuple): The dilations.
+    inputs: all those inputs. it include
+      x: The input tensor.
+      w: The weight tensor.
+      b (optional): The bias tensor.
+    group: The number of groups.
+    kernel_shape: The kernel shape.
+    pads: The padding.
+    strides: The strides.
+    dilations: The dilations.
 
   Returns:
     jax.numpy.ndarray: The output tensor.
   """
-
+  assert len(inputs) == 2 or len(inputs) == 3
+  if len(inputs) == 2:
+    x, w = inputs
+    b = None
+  else:
+    x, w, b = inputs
   kernel_shape = kernel_shape or w.shape
   spatial_size = w.ndim - 2
   strides = strides or tuple([1] * spatial_size)

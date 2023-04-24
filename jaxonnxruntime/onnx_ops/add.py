@@ -42,7 +42,7 @@ class Add(Handler):
   """Implementation of the ONNX Add operator."""
 
   @classmethod
-  def version_14(cls, node, **kwargs):
+  def version_14(cls, node):
     return onnx_add
 
 

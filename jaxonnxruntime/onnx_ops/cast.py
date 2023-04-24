@@ -66,16 +66,16 @@ class Cast(Handler):
 
   @classmethod
   def _prepare(cls, node: OnnxNode):
-    super().prepare_attrs_list(node, onnx_cast)
-    if not node.attrs_list[-1]:
+    super().prepare_attrs_dict(node, onnx_cast)
+    if not node.attrs_dict['from_type']:
       from_type = node.context_graph.value_info_dict[
           node.inputs[0]
       ].type.tensor_type.elem_type
-      node.attrs_list[-1] = from_type
+      node.attrs_dict['from_type'] = from_type
 
 
 @functools.partial(jit, static_argnames=("to", "from_type"))
-def onnx_cast(x, to, from_type=None):
+def onnx_cast(x, *, to, from_type=None):
   if from_type is onnx.TensorProto.STRING or to is onnx.TensorProto.STRING:
     raise NotImplementedError(
         "Cast JAX version do not support STRING type yet."

@@ -47,6 +47,7 @@ exclude_patterns = []
 include_patterns.append('test_abs_')
 include_patterns.append('test_add_')
 include_patterns.append('test_cast_')
+include_patterns.append('test_concat_')
 include_patterns.append('test_conv_')
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load

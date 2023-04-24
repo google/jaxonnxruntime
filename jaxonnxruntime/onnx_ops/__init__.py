@@ -20,4 +20,5 @@ import os
 from . import abs  # pylint: disable=redefined-builtin
 from . import add
 from . import cast
+from . import concat
 from . import conv

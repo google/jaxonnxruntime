@@ -82,7 +82,7 @@ def call_onnx(
       ) from e
     jit_func = _get_jit_func(node, handlers=handlers)
     jit_func_dict[node.name] = jit_func
-    outputs = jit_func(*node_inputs, *node.attrs_list)
+    outputs = jit_func(*node_inputs, **node.attrs_dict)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]
 
     for name, output in zip(node.outputs, outputs):
@@ -96,7 +96,7 @@ def call_onnx(
       node = onnx_node_dict[node_proto.name]
       node_inputs = [tensor_dict[x] for x in node.inputs]
       jit_func = jit_func_dict[node.name]
-      outputs = jit_func(*node_inputs, *node.attrs_list)
+      outputs = jit_func(*node_inputs, **node.attrs_dict)
       outputs = outputs if isinstance(outputs, Sequence) else [outputs]
 
       for name, output in zip(node.outputs, outputs):

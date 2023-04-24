@@ -68,12 +68,11 @@ class Handler:
     )
 
   @classmethod
-  def prepare_attrs_list(cls, node: OnnxNode, onnx_jax_impl: JaxFunc) -> None:
-    """Prepare attrs_list for the jax function onnx_jax_impl(*inputs, *attr_list)."""
-    args = list(inspect.signature(onnx_jax_impl).parameters.keys())
-    attrs = [node.attrs.get(k, None) for k in args[node.len_inputs :]]
-    node.attrs_list.extend(attrs)
-
+  def prepare_attrs_dict(cls, node: OnnxNode, onnx_jax_impl: JaxFunc) -> None:
+    """Prepare attrs_dict for the jax function onnx_jax_impl(*inputs, **attrs_dict)."""
+    sig = inspect.signature(onnx_jax_impl)
+    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
+    node.attrs_dict = {name: node.attrs.get(name, None) for name in kwparams}
 
 def register_op(op_type: str, domain: str = "") -> Any:
   """Register op into specific domain. default value "" is ai.onnx domain."""
