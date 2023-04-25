@@ -29,3 +29,4 @@ from . import gemm
 from . import matmul
 from . import mul
 from . import nonzero
+from . import pow
