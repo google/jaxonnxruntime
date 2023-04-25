@@ -52,6 +52,7 @@ include_patterns.append('test_constantofshape_')
 include_patterns.append('test_conv_')
 include_patterns.append('test_div_')
 include_patterns.append('test_gather_')
+include_patterns.append('test_gemm_')
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.

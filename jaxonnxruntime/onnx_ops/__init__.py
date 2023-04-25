@@ -25,3 +25,4 @@ from . import constantofshape
 from . import conv
 from . import div
 from . import gather
+from . import gemm
