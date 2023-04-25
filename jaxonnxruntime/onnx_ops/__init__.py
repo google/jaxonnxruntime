@@ -32,3 +32,4 @@ from . import nonzero
 from . import pow
 from . import reducemean
 from . import reshape
+from . import shape
