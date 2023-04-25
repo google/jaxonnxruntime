@@ -71,7 +71,7 @@ template_tail = """
 
 @functools.partial(jit, static_argnames=())
 def onnx_{op_name_lower}(*input_args):
-  \"\"\"The internal jax impl for onnx {op_name} op.\"\"\"
+  \"\"\"The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#{op_name}.\"\"\"
   # TODO({username}): add the implementation here.
   # Then update the onnx_ops_teset.py to include it,
   # `include_patterns.append('test_{op_name_lower}_')`.

@@ -51,10 +51,13 @@ include_patterns.append('test_concat_')
 include_patterns.append('test_constantofshape_')
 include_patterns.append('test_conv_')
 include_patterns.append('test_div_')
+include_patterns.append('test_gather_')
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.
 exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
+# Not implement yet
+exclude_patterns.append('test_gather_elements_')
 
 
 expect_fail_patterns.append('test_cast_FLOAT_to_STRING')
