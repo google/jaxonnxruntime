@@ -30,3 +30,5 @@ from . import matmul
 from . import mul
 from . import nonzero
 from . import pow
+from . import reducemean
+from . import reshape

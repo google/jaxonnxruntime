@@ -57,6 +57,8 @@ include_patterns.append('test_matmul_')
 include_patterns.append('test_mul_')
 include_patterns.append('test_nonzero_')
 include_patterns.append('test_pow_')
+include_patterns.append('test_reducemean_')
+include_patterns.append('test_reshape_')
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.

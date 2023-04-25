@@ -17,6 +17,7 @@ import inspect
 from collections.abc import Callable, Sequence
 from typing import Any, Optional
 
+import jax
 from jax import jit
 from jax import lax
 from jax import numpy as jnp
@@ -74,7 +75,7 @@ def onnx_conv(
     pads: Any = "VALID",
     strides: Optional[tuple[int, ...]] = None,
     dilations: Optional[tuple[int, ...]] = None,
-) -> jnp.ndarray:
+) -> jax.Array:
   """JAX common impl of onnx Conv.
 
   Args:
