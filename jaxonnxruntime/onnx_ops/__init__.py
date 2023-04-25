@@ -27,3 +27,4 @@ from . import div
 from . import gather
 from . import gemm
 from . import matmul
+from . import mul
