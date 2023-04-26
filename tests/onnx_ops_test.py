@@ -66,6 +66,7 @@ include_patterns.append('test_reshape_')
 include_patterns.append('test_shape_')
 include_patterns.append('test_slice_')
 include_patterns.append('test_softmax_')
+include_patterns.append('test_split_')
 include_patterns.append('test_sub_')
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
