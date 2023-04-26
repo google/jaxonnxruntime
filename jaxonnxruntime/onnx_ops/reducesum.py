@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX ReduceMean operator."""
+"""Define ONNX ReduceSum operator."""
 import functools
 import inspect
 from collections.abc import Callable, Sequence
@@ -23,9 +23,9 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("ReduceMean")
-class ReduceMean(handler.Handler):
-  """Implementation of the ONNX ReduceMean operator."""
+@handler.register_op("ReduceSum")
+class ReduceSum(handler.Handler):
+  """Implementation of the ONNX ReduceSum operator."""
 
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
@@ -34,19 +34,25 @@ class ReduceMean(handler.Handler):
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
 
+    if len(inputs) >= 2:
+      node.attrs_dict['axes'] = tuple(inputs[1].tolist())
+      node.attrs_dict['axes'] = None if len(node.attrs_dict['axes']) == 0 else  node.attrs_dict['axes']
     node.attrs_dict['keepdims'] = True if node.attrs_dict['keepdims'] == 1 else False
 
 
   @classmethod
   def version_13(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
-    """ONNX version_13 ReduceMean op."""
-    cls._prepare(node, inputs, onnx_reducemean)
-    return onnx_reducemean
+    """ONNX version_13 ReduceSum op."""
+    cls._prepare(node, inputs, onnx_reducesum)
+    return onnx_reducesum
 
 
-@functools.partial(jit, static_argnames=('axes', 'keepdims'))
-def onnx_reducemean(*input_args, axes=None, keepdims=False):
-  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceMean."""
-  assert len(input_args) == 1
+#@functools.partial(jit, static_argnames=('axes', 'keepdims'))
+def onnx_reducesum(*input_args, axes=None, keepdims=False, noop_with_empty_axes=None):
+  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceSum."""
+  assert len(input_args) == 1 or len(input_args) == 2
   data = input_args[0]
-  return jnp.mean(data, axis=axes, keepdims=keepdims)
+  noop_with_empty_axes = 0 if not noop_with_empty_axes else noop_with_empty_axes
+  if noop_with_empty_axes != 0:
+    return data
+  return jnp.sum(data, axis=axes, keepdims=keepdims)
