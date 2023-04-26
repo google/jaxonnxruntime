@@ -13,7 +13,7 @@ dependencies = [
     "numpy",
     "jax",
     "jaxlib",
-    "onnx=1.12.0",
+    "onnx==1.12.0",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
