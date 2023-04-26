@@ -41,4 +41,5 @@ from . import shape
 from . import slice
 from . import softmax
 from . import split
+from . import sqrt
 from . import sub
