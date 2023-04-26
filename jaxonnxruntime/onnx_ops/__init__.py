@@ -46,3 +46,4 @@ from . import squeeze
 from . import sub
 from . import tanh
 from . import transpose
+from . import unsqueeze
