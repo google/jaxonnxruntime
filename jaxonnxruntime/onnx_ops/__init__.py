@@ -44,3 +44,5 @@ from . import split
 from . import sqrt
 from . import squeeze
 from . import sub
+from . import tanh
+from . import transpose

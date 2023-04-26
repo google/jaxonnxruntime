@@ -70,7 +70,8 @@ include_patterns.append('test_split_')
 include_patterns.append('test_sqrt_')
 include_patterns.append('test_sub_')
 include_patterns.append('test_squeeze_')
-
+include_patterns.append('test_tanh_')
+include_patterns.append('test_transpose_')
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.
 exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
