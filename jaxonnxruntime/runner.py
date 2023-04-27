@@ -35,9 +35,8 @@ import onnx
 from onnx import numpy_helper
 
 
-NodeProto = onnx.NodeProto
-ModelProto = onnx.ModelProto
 jax.config.update('jax_enable_x64', True)
+jax.config.update('jax_numpy_rank_promotion', 'warn')
 
 
 class TestItem:
@@ -45,7 +44,7 @@ class TestItem:
   def __init__(
       self,
       func: Callable[..., Any],
-      proto: list[Optional[Union[ModelProto, NodeProto]]],
+      proto: list[Optional[Union[onnx.ModelProto, onnx.NodeProto]]],
   ) -> None:
     self.func = func
     self.proto = proto
@@ -268,7 +267,7 @@ class Runner:
       category: str,
       test_name: str,
       test_func: Callable[..., Any],
-      report_item: list[Optional[Union[ModelProto, NodeProto]]],
+      report_item: list[Optional[Union[onnx.ModelProto, onnx.NodeProto]]],
       devices: Iterable[str] = ('CPU', 'CUDA'),
   ) -> None:
     """Add test to each device and category."""
@@ -309,7 +308,9 @@ class Runner:
 
   def _add_model_test(self, model_test, kind: str) -> None:
     """model is loaded at runtime, note sometimes it could even never loaded if the test skipped."""
-    model_marker: list[Optional[Union[ModelProto, NodeProto]]] = [None]
+    model_marker: list[Optional[Union[onnx.ModelProto, onnx.NodeProto]]] = [
+        None
+    ]
 
     def run(test_self: Any, device: str) -> None:  # pylint: disable=unused-argument
       model_dir = model_test.model_dir
