@@ -11,6 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Copyright 2023 The Jaxonnxruntime Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Define ONNX Cast operator."""
 import functools
 import inspect
@@ -22,6 +36,12 @@ from jax import jit
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+
+import onnx
+
+register_op = handler.register_op
+Handler = handler.Handler
+OnnxNode = onnx_node.OnnxNode
 
 
 @handler.register_op("Cast")
@@ -45,7 +65,6 @@ class Cast(handler.Handler):
     """ONNX version_13 Cast op."""
     cls._prepare(node, inputs, onnx_cast)
     return onnx_cast
-
 
 @functools.partial(jit, static_argnames=("to", "from_type"))
 def onnx_cast(x, *, to, from_type=None):

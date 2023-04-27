@@ -15,6 +15,7 @@
 """Defines a Handler class and a decorator to register ONNX ops."""
 import inspect
 import logging
+
 from typing import Any, Sequence
 from onnx import defs
 

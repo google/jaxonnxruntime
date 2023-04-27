@@ -17,6 +17,7 @@
 import collections
 from typing import Any
 from absl.testing import absltest
+import jax
 from jaxonnxruntime import runner
 from jaxonnxruntime.backend import Backend as JaxBackend
 
@@ -73,6 +74,7 @@ include_patterns.append('test_squeeze_')
 include_patterns.append('test_tanh_')
 include_patterns.append('test_transpose_')
 include_patterns.append('test_unsqueeze_')
+
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.
