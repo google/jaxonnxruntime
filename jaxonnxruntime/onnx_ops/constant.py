@@ -25,10 +25,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Cast operator."""
+"""Define ONNX Constant operator."""
+# pylint: disable=unused-argument
+# pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 from jax import jit
 from jax import numpy as jnp
@@ -36,60 +37,61 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 import onnx
 
-register_op = handler.register_op
-Handler = handler.Handler
-OnnxNode = onnx_node.OnnxNode
+
+def _asarray(proto):
+  return jnp.asarray(
+      onnx.numpy_helper.to_array(proto).reshape(tuple(proto.dims))
+  )
 
 
-@handler.register_op("Cast")
-class Cast(handler.Handler):
-  """Implementation of the ONNX Cast operator."""
+@handler.register_op('Constant')
+class Constant(handler.Handler):
+  """Implementation of the ONNX Constant operator."""
 
   @classmethod
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
-    if not node.attrs_dict["from_type"]:
-      from_type = node.context_graph.value_info_dict[
-          node.inputs[0]
-      ].type.tensor_type.elem_type
-      node.attrs_dict["from_type"] = from_type
+    attr_to_dtype = {
+        'value_int': jnp.int64,
+        'value_ints': jnp.int64,
+        'value_float': jnp.float32,
+        'value_floats': jnp.float32,
+    }
+
+    matched = 0
+    if 'value_string' in node.attrs:
+      node.attrs_dict['value'] = node.attrs['value_string']
+      matched = matched + 1
+    elif 'value_strings' in node.attrs:
+      node.attrs_dict['value'] = node.attrs['value_strings']
+      matched = matched + 1
+    elif 'value' in node.attrs:
+      node.attrs_dict['value'] = _asarray(node.attrs['value'])
+      matched = matched + 1
+    else:
+      for item in attr_to_dtype:
+        if item in node.attrs:
+          node.attrs_dict['value'] = jnp.array(
+              node.attrs[item], dtype=attr_to_dtype[item]
+          )
+        matched = matched + 1
+
+    assert (
+        matched == 1
+    ), f'Should only provide one of value attributes, but get {matched}'
 
   @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Cast op."""
-    cls._prepare(node, inputs, onnx_cast)
-    return onnx_cast
+    """ONNX version_13 Constant op."""
+    cls._prepare(node, inputs, onnx_constant)
+    return onnx_constant
 
 
-@functools.partial(jit, static_argnames=("to", "from_type"))
-def onnx_cast(x, *, to, from_type=None):
-  if from_type is onnx.TensorProto.STRING or to is onnx.TensorProto.STRING:
-    raise NotImplementedError(
-        "Cast JAX version do not support STRING type yet."
-    )
-  to_type = tensor_dtype_to_jnp_dtype(to)
-  from_type = tensor_dtype_to_jnp_dtype(from_type) if from_type else x.dtype
-  try:
-    return x.view(from_type).astype(to_type)
-  except Exception as e:
-    raise ValueError(
-        f"onnx_cast can not support from_type = {from_type}, to_type ="
-        f" {to_type}"
-    ) from e
-
-
-def tensor_dtype_to_jnp_dtype(tensor_type):
-  if tensor_type is onnx.TensorProto.BFLOAT16:
-    return jnp.bfloat16
-  return jnp.dtype(onnx.helper.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type])
+@functools.partial(jit, static_argnames=())
+def onnx_constant(*input_args, value):
+  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Constant."""
+  assert len(input_args) == 0
+  return value

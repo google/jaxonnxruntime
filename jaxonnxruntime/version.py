@@ -13,5 +13,4 @@
 # limitations under the License.
 
 """Current jaxonnxruntime version at head on Github."""
-__version__ = "0.0.1"
-
+__version__ = "0.0.2"

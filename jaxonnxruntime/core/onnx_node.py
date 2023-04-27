@@ -61,8 +61,8 @@ class OnnxNode:
     domain (str): The domain of the node.
     attrs (dict): A dictionary of attributes for the node, where the keys are
       the attribute names and the values are the attribute values.
-    attrs_list (list): A list of the attributes for the node, in the order they
-      appear in the ONNX NodeProto.
+    attrs_dict (dict): A dict of the attributes for the node, it is for the jax
+      onnx implementation keyword arguments.
     inputs (list): A list of the node's input names.
     outputs (list): A list of the node's output names.
     node_proto (onnx.NodeProto): The underlying ONNX NodeProto object.
@@ -82,7 +82,7 @@ class OnnxNode:
     self.attrs: dict[str, Any] = dict(
         [(attr.name, convert_onnx(attr)) for attr in node.attribute]
     )
-    self.attrs_list: list[Any] = []
+    self.attrs_dict: dict[str, Any] = {}
     self.inputs: list[str] = list(node.input)
     self.outputs: list[str] = list(node.output)
     self.node_proto: onnx.NodeProto = node
