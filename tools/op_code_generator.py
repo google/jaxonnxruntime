@@ -82,9 +82,6 @@ def onnx_{op_name_lower}(*input_args):
 
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 root_dir = os.path.join(root_dir, 'jaxonnxruntime')
-# BEGIN GOOGLE-INTERNAL
-root_dir = os.path.dirname(root_dir)
-# END GOOGLE-INTERNAL
 op_schema_set = {
     str(op_schema.name) for op_schema in onnx.defs.get_all_schemas()
 }
