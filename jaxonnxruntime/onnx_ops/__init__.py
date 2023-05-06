@@ -19,6 +19,7 @@ import os
 
 from . import abs
 from . import add
+from . import batchnormalization
 from . import cast
 from . import concat
 from . import constant
@@ -26,9 +27,12 @@ from . import constantofshape
 from . import conv
 from . import div
 from . import exp
+from . import flatten
 from . import gather
 from . import gemm
+from . import globalaveragepool
 from . import matmul
+from . import maxpool
 from . import mul
 from . import nonzero
 from . import pad
@@ -36,6 +40,7 @@ from . import pow
 from . import reducemax
 from . import reducemean
 from . import reducesum
+from . import relu
 from . import reshape
 from . import shape
 from . import slice
