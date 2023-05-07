@@ -18,6 +18,7 @@ import argparse
 import logging
 import os
 import re
+from jaxonnxruntime import onnx_ops
 import onnx
 
 
@@ -80,8 +81,7 @@ def onnx_{op_name_lower}(*input_args):
   return input_args
 """
 
-root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-root_dir = os.path.join(root_dir, 'jaxonnxruntime')
+root_dir = os.path.dirname(os.path.realpath(onnx_ops.__file__))
 op_schema_set = {
     str(op_schema.name) for op_schema in onnx.defs.get_all_schemas()
 }
@@ -89,7 +89,7 @@ op_schema_set = {
 
 def update_onnx_ops_init_file(op_name):
   """Update onnx_ops/__init_.py with the created op."""
-  init_py_file = os.path.join(root_dir, 'onnx_ops/__init__.py')
+  init_py_file = os.path.join(root_dir, '__init__.py')
   with open(init_py_file, 'r') as f:
     existing_imports = f.read()
 
@@ -141,7 +141,7 @@ def main(args):
       username=username,
   )
   logging.info('Genereate new code=\n%s', code)
-  op_def_path = os.path.join(root_dir, f'onnx_ops/{op_name.lower()}.py')
+  op_def_path = os.path.join(root_dir, f'{op_name.lower()}.py')
   with open(op_def_path, 'w') as f:
     f.write(code)
 

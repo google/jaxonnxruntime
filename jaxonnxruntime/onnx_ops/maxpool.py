@@ -45,7 +45,6 @@
 
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any, Union
 
 from jax import jit
@@ -63,19 +62,26 @@ class MaxPool(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
-
     node.attrs_dict["ceil_mode"] = node.attrs.get("ceil_mode", 0)
     node.attrs_dict["storage_order"] = node.attrs.get("storage_order", 0)
+    strides = node.attrs.get("strides", None)
+    x = inputs[0]
+    node.attrs_dict["strides"] = (
+        ((1,) * (x.ndim - len(strides)) + tuple(strides))
+        if strides
+        else (1,) * x.ndim
+    )
+    dilations = node.attrs.get("dilations", None)
+    node.attrs_dict["dilations"] = (
+        ((1,) * (x.ndim - len(dilations)) + tuple(dilations))
+        if dilations
+        else (1,) * x.ndim
+    )
+    kernel_shape = node.attrs.get("kernel_shape", None)
+    node.attrs_dict["kernel_shape"] = (1,) * (
+        x.ndim - len(kernel_shape)
+    ) + tuple(kernel_shape)
 
-    # Copy from conv.py. They share same logic.
     if "pads" in node.attrs:
       pads = node.attrs["pads"]
       # ONNX follows [x1_begin, x2_begin...x1_end, x2_end,...].
@@ -129,21 +135,9 @@ def onnx_maxpool(
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#MaxPool for more details."""
   assert len(input_args) == 1
   x = input_args[0]
-  dims = (1,) * (x.ndim - len(kernel_shape)) + tuple(kernel_shape)
-  strides = (
-      ((1,) * (x.ndim - len(strides)) + tuple(strides))
-      if strides
-      else (1,) * x.ndim
-  )
-  dilations = (
-      ((1,) * (x.ndim - len(dilations)) + tuple(dilations))
-      if dilations
-      else (1,) * x.ndim
-  )
-
   if ceil_mode != 0:
     raise ValueError("ceil_mode = 1 is not implement yet.")
 
   return lax.reduce_window(
-      x, -jnp.inf, lax.max, dims, strides, pads, None, dilations
+      x, -jnp.inf, lax.max, kernel_shape, strides, pads, None, dilations
   )

@@ -25,11 +25,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX BatchNormalization operator."""
+"""Define ONNX Sum operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
 import functools
+import inspect
 from typing import Any
 
 from jax import jit
@@ -38,46 +39,33 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op('BatchNormalization')
-class BatchNormalization(handler.Handler):
-  """Implementation of the ONNX BatchNormalization operator."""
+@handler.register_op("Sum")
+class Sum(handler.Handler):
+  """Implementation of the ONNX Sum operator."""
 
   @classmethod
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    node.attrs_dict['epsilon'] = node.attrs.get('epsilon', 1e-5)
-    node.attrs_dict['momentum'] = node.attrs.get('momentum', 0.9)
-    node.attrs_dict['training_mode'] = node.attrs.get('training_mode', 0)
+    sig = inspect.signature(onnx_jax_impl)
+    kwparams = [
+        param.name
+        for param in sig.parameters.values()
+        if param.kind == inspect.Parameter.KEYWORD_ONLY
+    ]
+    for name in kwparams:
+      node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_15(
+  def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_15 BatchNormalization op."""
-    cls._prepare(node, inputs, onnx_batchnormalization)
-    return onnx_batchnormalization
+    """ONNX version_13 Sum op."""
+    cls._prepare(node, inputs, onnx_sum)
+    return onnx_sum
 
 
-@functools.partial(
-    jit, static_argnames=('epsilon', 'momentum', 'training_mode')
-)
-def onnx_batchnormalization(
-    *input_args, epsilon: float, momentum: float, training_mode: int
-):
-  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#BatchNormalization for more details."""
-  x, scale, b, input_mean, input_var = input_args
-
-  dims_x = len(x.shape)
-  dim_ones = (1,) * (dims_x - 2)
-  scale = scale.reshape(-1, *dim_ones)
-  b = b.reshape(-1, *dim_ones)
-  input_mean = input_mean.reshape(-1, *dim_ones)
-  input_var = input_var.reshape(-1, *dim_ones)
-
-  if training_mode == 0:
-    return (x - input_mean) / jnp.sqrt(input_var + epsilon) * scale + b
-  else:
-    raise NotImplementedError(
-        'BatchNormalization with training_mode was not implemented yet.'
-    )
+@functools.partial(jit, static_argnames=())
+def onnx_sum(*input_args):
+  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Sum for more details."""
+  return jnp.sum(jnp.array(input_args), axis=0)

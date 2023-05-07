@@ -66,16 +66,16 @@ class Conv(handler.Handler):
       pads_new = ((pads[i], pads[i + n]) for i in range(n))
       node.attrs_dict["pads"] = tuple(pads_new)
     else:
+      pad_str_type = node.attrs.get("auto_pad", "VALID")
       onnx_to_jax_pad_type = {
           "SAME_UPPER": "SAME",
           "VALID": "VALID",
           "SAME_LOWER": "SAME_LOWER",
       }
-      if node.attrs["auto_pad"] not in onnx_to_jax_pad_type:
-        raise ValueError(
-            "Invalid auto_pad attribute: {}".format(node.attrs_dict["auto_pad"])
-        )
-      node.attrs_dict["pads"] = onnx_to_jax_pad_type[node.attrs["auto_pad"]]
+      assert (
+          pad_str_type in onnx_to_jax_pad_type
+      ), f"Invalid auto_pad attribute: {pad_str_type}"
+      node.attrs_dict["pads"] = onnx_to_jax_pad_type[pad_str_type]
 
   @classmethod
   def version_11(

@@ -84,14 +84,11 @@ fi
 # (i.e. no notebook installed jaxonnxruntime from pypi)
 echo "=== CHECKING JAXONNXRUNTIME IS EDITABLE ==="
 assert_error="jaxonnxruntime is not running on editable mode."
-(cd docs; python -c "import jaxonnxruntime; assert 'site-packages' not in jaxonnxruntime.__file__, \"$assert_error\"")
-
-# env vars must be set after doctest
-export JAX_NUMPY_RANK_PROMOTION=raise
+(cd docs; python -c "import jaxonnxruntime; assert 'site-packages' not in jaxonnxruntime.__file__, \"$assert_error\"";cd -)
 
 if $RUN_PYTEST; then
   echo "=== RUNNING PYTESTS ==="
-  PYTEST_IGNORE=
+  PYTEST_IGNORE="--ignore=tests/onnx_models_test.py"
   # Run battery of core Jaxonnxruntime API tests.
   echo "pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE"
   pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE

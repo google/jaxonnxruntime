@@ -46,6 +46,7 @@ exclude_patterns = []
 
 include_patterns.append('test_abs_')
 include_patterns.append('test_add_')
+include_patterns.append('test_averagepool_')
 include_patterns.append('test_batchnormalization_')
 include_patterns.append('test_cast_')
 include_patterns.append('test_concat_')
@@ -74,6 +75,7 @@ include_patterns.append('test_softmax_')
 include_patterns.append('test_split_')
 include_patterns.append('test_sqrt_')
 include_patterns.append('test_sub_')
+include_patterns.append('test_sum_')
 include_patterns.append('test_squeeze_')
 include_patterns.append('test_tanh_')
 include_patterns.append('test_transpose_')
@@ -99,6 +101,7 @@ exclude_patterns.append('test_maxpool_with_argmax_2d_')
 expect_fail_patterns.append('test_cast_FLOAT_to_STRING')
 expect_fail_patterns.append('test_cast_STRING_to_FLOAT')
 expect_fail_patterns.append('test_maxpool_2d_ceil_')
+expect_fail_patterns.append('test_averagepool_2d_ceil_')
 
 
 for pattern in include_patterns:

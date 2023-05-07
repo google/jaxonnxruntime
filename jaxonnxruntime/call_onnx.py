@@ -80,7 +80,7 @@ def call_onnx(
           f'failt to get input tensor for node inputs {node.inputs}, the'
           f' node proto is {node.node_proto}'
       ) from e
-    jit_func = _get_jit_func(node, inputs, handlers=handlers)
+    jit_func = _get_jit_func(node, node_inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
     outputs = jit_func(*node_inputs, **node.attrs_dict)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]

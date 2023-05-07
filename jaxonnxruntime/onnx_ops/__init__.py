@@ -19,6 +19,7 @@ import os
 
 from . import abs
 from . import add
+from . import averagepool
 from . import batchnormalization
 from . import cast
 from . import concat
@@ -49,6 +50,7 @@ from . import split
 from . import sqrt
 from . import squeeze
 from . import sub
+from . import sum
 from . import tanh
 from . import transpose
 from . import unsqueeze
