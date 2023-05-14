@@ -34,6 +34,15 @@ class Runner(runner.Runner):
     for rt in runner.load_model_tests(kind='node'):
       self._add_model_test(rt, 'Node')
 
+    for rt in runner.load_model_tests(kind='simple'):
+      self._add_model_test(rt, 'Simple')
+
+    for ct in runner.load_model_tests(kind='pytorch-converted'):
+      self._add_model_test(ct, 'PyTorchConverted')
+
+    for ot in runner.load_model_tests(kind='pytorch-operator'):
+      self._add_model_test(ot, 'PyTorchOperator')
+
 
 class NodeTest(absltest.TestCase):
   pass
@@ -113,8 +122,8 @@ for pattern in exclude_patterns:
 for pattern in expect_fail_patterns:
   backend_test.xfail(pattern)
 
-for name, func in backend_test.test_cases.items():
-  setattr(NodeTest, name, func)
+# import all test cases at global scope to make them visible to python.unittest
+globals().update(backend_test.test_cases)
 
 
 if __name__ == '__main__':

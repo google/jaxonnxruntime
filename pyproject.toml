@@ -13,7 +13,8 @@ dependencies = [
     "numpy",
     "jax",
     "jaxlib",
-    "onnx==1.12.0",
+    "orbax_export",
+    "onnx==1.12.0",  # Please keep this as the last line since onnx request old protobuf lib.
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
