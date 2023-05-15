@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Quick example how to run resnet50 with jaxonnxruntime."""
+"""Quick example how to run imagenet model with jaxonnxruntime."""
 
-# Users can do more experiments based on flax resnet50 examples
-# https://github.com/google/flax/tree/main/examples/imagenet
+# example cmd:
+# python imagenet_main.py --model_name=resnet50 --output_dir=/tmp/resnet50
 
 import logging
 
