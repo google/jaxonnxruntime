@@ -32,6 +32,7 @@ from . import flatten
 from . import gather
 from . import gemm
 from . import globalaveragepool
+from . import leakyrelu
 from . import matmul
 from . import maxpool
 from . import mul
