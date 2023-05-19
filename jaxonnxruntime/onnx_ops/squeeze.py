@@ -44,7 +44,9 @@ class Squeeze(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    if len(inputs) >= 2:
+    if len(inputs) == 1:
+      node.attrs_dict['axis'] = None
+    else:
       node.attrs_dict['axis'] = tuple(inputs[1].tolist())
 
   @classmethod

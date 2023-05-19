@@ -53,10 +53,7 @@ class ReduceMean(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
-
-    node.attrs_dict['keepdims'] = (
-        True if node.attrs_dict['keepdims'] == 1 else False
-    )
+    node.attrs_dict['keepdims'] = node.attrs.get('keepdims', True)
 
   @classmethod
   def version_13(
@@ -68,7 +65,7 @@ class ReduceMean(handler.Handler):
 
 
 @functools.partial(jit, static_argnames=('axes', 'keepdims'))
-def onnx_reducemean(*input_args, axes=None, keepdims=False):
+def onnx_reducemean(*input_args, axes=None, keepdims=True):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceMean."""
   assert len(input_args) == 1
   data = input_args[0]

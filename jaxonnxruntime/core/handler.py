@@ -46,8 +46,8 @@ class Handler:
     except Exception:  # pylint: disable=broad-except
       logger.warning(
           (
-              "Fail to get since_version of %s in domain %s{domain} "
-              "with max_inclusive_version= %i {version}. Set to 1."
+              "Fail to get since_version of %s in domain %s "
+              "with max_inclusive_version= %d. Set to 1."
           ),
           op_type,
           domain,

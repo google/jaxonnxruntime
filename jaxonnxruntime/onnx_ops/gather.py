@@ -28,7 +28,6 @@
 """Define ONNX Gather operator."""
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 
 from jax import jit
@@ -45,14 +44,7 @@ class Gather(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
+    node.attrs_dict["axis"] = node.attrs.get("axis", 0)
 
   @classmethod
   def version_13(
@@ -68,4 +60,5 @@ def onnx_gather(*input_args, axis=0):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Gather."""
   assert len(input_args) == 2
   data, indices = input_args
+  indices = indices.astype(jnp.int64)
   return jnp.take(data, indices, axis=axis)

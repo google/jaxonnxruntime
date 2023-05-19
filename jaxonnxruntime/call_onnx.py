@@ -66,6 +66,8 @@ def call_onnx(
       graph_inputs = graph_helper.get_real_input()
       assert len(inputs) == len(graph_inputs)
       return dict(zip(graph_inputs, inputs))
+    else:
+      raise NotImplementedError('Please use inputs of type dict or Sequence!')
 
   tensor_dict = dict(**_maybe_convert_to_dict(inputs), **model_params)
 
