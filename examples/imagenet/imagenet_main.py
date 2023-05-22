@@ -23,14 +23,12 @@ from absl import app
 from absl import flags
 import jax
 from jax import numpy as jnp
+from jax.experimental import jax2tf
 from jaxonnxruntime import backend as JaxBackend
 from jaxonnxruntime import call_onnx
 import numpy as np
-from orbax.export import ExportManager
-from orbax.export import JaxModule
-from orbax.export import ServingConfig
+from orbax import export as orbax_export
 import tensorflow as tf
-
 
 import onnx
 from onnx import hub
@@ -71,11 +69,10 @@ def _cosin_sim(a, b):
   return cos_sim
 
 
-def run_model_from_onnx_backend():
+def run_model_from_onnx_backend(model_name):
   """Test standard ONNX Backend API on onnx.hub models."""
 
   model_name_list = list(map(lambda x: x.model.lower(), hub.list_models()))
-  model_name = FLAGS.model_name
   assert (
       model_name in model_name_list
   ), f"{model_name} is valid model name in onnx.hub."
@@ -94,8 +91,8 @@ def run_model_from_onnx_backend():
     for i, _ in enumerate(shape):
       if isinstance(shape[i], str):
         shape[i] = 1
-      key = jax.random.PRNGKey(0)
-      return jax.random.normal(key, shape)
+    key = jax.random.PRNGKey(0)
+    return jax.random.normal(key, shape)
 
   inputs = [_create_dummy_tensor(item) for item in model_info_inputs]
   results = JaxBackend.run(model, inputs)
@@ -114,10 +111,9 @@ def run_model_from_onnx_backend():
     )
 
 
-def export_model():
+def export_model(model_name, model_path):
   """export jax model to disk."""
   model_name_list = list(map(lambda x: x.model.lower(), hub.list_models()))
-  model_name = FLAGS.model_name
   assert (
       model_name in model_name_list
   ), f"{model_name} is valid model name in onnx.hub."
@@ -130,8 +126,8 @@ def export_model():
     for i, _ in enumerate(shape):
       if isinstance(shape[i], str):
         shape[i] = 1
-      key = jax.random.PRNGKey(0)
-      return jax.random.normal(key, shape, dtype=jnp.float32)
+    key = jax.random.PRNGKey(0)
+    return jax.random.normal(key, shape, dtype=jnp.float32)
 
   inputs = [_create_dummy_tensor(item) for item in model_info_inputs]
   input_names = [item["name"] for item in model_info_inputs]
@@ -140,7 +136,7 @@ def export_model():
   output_names = [n.name for n in model.graph.output]
 
   # Wrap the model params and function into a JaxModule.
-  jax_module = JaxModule(
+  jax_module = orbax_export.JaxModule(
       params,
       jax_model,
       trainable=False,
@@ -152,7 +148,7 @@ def export_model():
     return {name: output for name, output in zip(output_names, outputs)}
 
   serving_configs = [
-      ServingConfig(
+      orbax_export.ServingConfig(
           signature_key="serving_default",
           input_signature=[
               [
@@ -163,12 +159,11 @@ def export_model():
           tf_postprocessor=tf_postprocessor,
       ),
   ]
-  em = ExportManager(
+  em = orbax_export.ExportManager(
       jax_module,
       serving_configs,
   )
   # Save the model.
-  model_path = FLAGS.output_dir
   logging.info("Exporting the model to %s.", model_path)
   em.save(model_path)
 
@@ -189,15 +184,50 @@ def export_model():
   print(f"jax and savedmodel similarity = {similarity}")
 
 
+def eval_poly_shape(model_name):
+  """Exmaple how to evaluate the polymorphic shape."""
+  model_name_list = list(map(lambda x: x.model.lower(), hub.list_models()))
+  assert (
+      model_name in model_name_list
+  ), f"{model_name} is valid model name in onnx.hub."
+  model = _download_model(model_name)
+  model_info = hub.get_model_info(model_name)
+  model_info_inputs = list(model_info.metadata.get("io_ports").get("inputs"))
+
+  def _create_dummy_tensor(model_info_input):
+    shape = model_info_input.get("shape")
+    for i, _ in enumerate(shape):
+      if isinstance(shape[i], str):
+        shape[i] = 1
+    key = jax.random.PRNGKey(0)
+    return jax.random.normal(key, shape, dtype=jnp.float32)
+
+  inputs = [_create_dummy_tensor(item) for item in model_info_inputs]
+  jax_model, params = call_onnx.call_onnx(model, inputs)
+
+  def infer_func(inputs):
+    return jax_model(params, inputs)
+
+  out_spec, out_poly_shape = jax2tf.eval_polymorphic_shape(
+      infer_func, polymorphic_shapes=["n, 3, 224, 224"]
+  )(inputs)
+  logging.info("out_spec = %s, out_poly_shape = %s", out_spec, out_poly_shape)
+
+
 def main(argv) -> None:
   if len(argv) > 1:
     raise app.UsageError("Too many command-line arguments.")
-  logging.info("Start running model from onnx backend.")
-  run_model_from_onnx_backend()
-  logging.info("Start exporting model.")
+  model_name = FLAGS.model_name
+  model_path = FLAGS.output_dir
   jax.config.update("jax2tf_default_native_serialization", True)
-  jax.config.update("jax_enable_x64", True)
-  export_model()
+  # jax.config.update("jax_enable_x64", True)
+
+  logging.info("Start running model from onnx backend.")
+  run_model_from_onnx_backend(model_name=model_name)
+  logging.info("Start exporting model.")
+  export_model(model_name=model_name, model_path=model_path)
+  logging.info("Eval model shape")
+  eval_poly_shape(model_name=model_name)
 
 
 if __name__ == "__main__":

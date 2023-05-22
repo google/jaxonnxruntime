@@ -74,6 +74,6 @@ def onnx_flatten(*input_args, axis):
   dim = len(x.shape)
   assert axis < dim and axis >= -dim, f"axis should with [{-dim}, {dim}]"
   new_shape = (
-      (1, -1) if axis == 0 else (np.prod(x.shape[0:axis]).astype(int), -1)
+      (1, -1) if axis == 0 else (-1, np.prod(x.shape[axis:]).astype(int))
   )
   return jnp.reshape(x, new_shape)
