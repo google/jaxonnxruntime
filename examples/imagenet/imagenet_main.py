@@ -52,6 +52,7 @@ def _download_model(model_name):
   try:
     logging.info("Start downloading model %s", model_name)
     model = hub.load(model_name)
+    model = onnx.shape_inference.infer_shapes(model)
   except Exception as e:
     raise RuntimeError(f"Fail to download model {model_name}.") from e
 
@@ -67,6 +68,14 @@ def _cosin_sim(a, b):
   b = b.flatten()
   cos_sim = jnp.dot(a, b) / (jnp.linalg.norm(a) * jnp.linalg.norm(b))
   return cos_sim
+
+
+def _get_tensor_type_name(s_type):
+  split_str = s_type.split("(")
+  split_s = split_str[1].split(")")
+  if len(split_s) > 2:
+    raise NotImplementedError("Encountered multiple Tensor types!")
+  return split_s[0]
 
 
 def run_model_from_onnx_backend(model_name):
@@ -91,8 +100,10 @@ def run_model_from_onnx_backend(model_name):
     for i, _ in enumerate(shape):
       if isinstance(shape[i], str):
         shape[i] = 1
-    key = jax.random.PRNGKey(0)
-    return jax.random.normal(key, shape)
+    dtype_name = _get_tensor_type_name(model_info_input.get("type"))
+    dtype_value = onnx.TensorProto.DataType.Value(dtype_name.upper())
+    dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[dtype_value]
+    return np.random.normal(size=shape).astype(dtype)
 
   inputs = [_create_dummy_tensor(item) for item in model_info_inputs]
   results = JaxBackend.run(model, inputs)

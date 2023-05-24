@@ -104,9 +104,11 @@ def call_onnx(
       for name, output in zip(node.outputs, outputs):
         tensor_dict[name] = output
 
-      node_input_shapes = [tensor_dict[x].shape for x in node.inputs]
-      node_output_shapes = [tensor_dict[x].shape for x in node.outputs]
-      logger.debug('\t%s  -> %s', node_input_shapes, node_output_shapes)
+      # Below lines may cause error when tensor_dict[x] is a list
+      # Comment out because they are only for debugging
+      # node_input_shapes = [tensor_dict[x].shape for x in node.inputs]
+      # node_output_shapes = [tensor_dict[x].shape for x in node.outputs]
+      # logger.debug('\t%s  -> %s', node_input_shapes, node_output_shapes)
 
       for input_ in node.inputs:
         if input_ in ref_dict:
