@@ -35,6 +35,7 @@ from . import gemm
 from . import globalaveragepool
 from . import identity
 from . import leakyrelu
+from . import lrn
 from . import matmul
 from . import maxpool
 from . import mul

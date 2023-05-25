@@ -28,9 +28,10 @@
 """Define ONNX ReduceSum operator."""
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
+import functools
 import inspect
 from typing import Any
-
+from jax import jit
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -71,7 +72,9 @@ class ReduceSum(handler.Handler):
     return onnx_reducesum
 
 
-# @functools.partial(jit, static_argnames=('axes', 'keepdims'))
+@functools.partial(
+    jit, static_argnames=('axes', 'keepdims', 'noop_with_empty_axes')
+)
 def onnx_reducesum(
     *input_args, axes=None, keepdims=False, noop_with_empty_axes=None
 ):

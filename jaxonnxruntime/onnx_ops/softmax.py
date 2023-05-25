@@ -27,9 +27,10 @@
 # limitations under the License.
 """Define ONNX Softmax operator."""
 from collections.abc import Callable, Sequence
+import functools
 from typing import Any
-
 import jax
+from jax import jit
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -53,7 +54,7 @@ class Softmax(handler.Handler):
     return onnx_softmax
 
 
-# @functools.partial(jit, static_argnames=('axis'))
+@functools.partial(jit, static_argnames=('axis'))
 def onnx_softmax(*input_args, axis):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Softmax."""
   assert len(input_args) == 1
