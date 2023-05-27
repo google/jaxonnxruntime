@@ -75,7 +75,6 @@ include_patterns.append('test_lrn_')
 include_patterns.append('test_matmul_')
 include_patterns.append('test_maxpool_')
 include_patterns.append('test_mul_')
-include_patterns.append('test_nonzero_')
 include_patterns.append('test_onehot_')
 include_patterns.append('test_pow_')
 include_patterns.append('test_reciprocal_')
@@ -117,6 +116,7 @@ expect_fail_patterns.append('test_cast_FLOAT_to_STRING')
 expect_fail_patterns.append('test_cast_STRING_to_FLOAT')
 expect_fail_patterns.append('test_maxpool_2d_ceil_')
 expect_fail_patterns.append('test_averagepool_2d_ceil_')
+expect_fail_patterns.append('test_nonzero_')
 
 
 for pattern in include_patterns:

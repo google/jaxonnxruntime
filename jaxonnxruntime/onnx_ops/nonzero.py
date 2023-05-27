@@ -27,13 +27,22 @@
 # limitations under the License.
 """Define ONNX NonZero operator."""
 from collections.abc import Callable, Sequence
+import functools
 import inspect
 import logging
 from typing import Any
 
+from jax import jit
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+
+
+# TODO(johnqiangzhang): use global variable to control this option.
+# Later we should convert to `config` and users can turn on/off.
+# If it is true, the NonZero output tuple length equals to the input element
+# numbers.
+use_fully_padding = True
 
 
 @handler.register_op("NonZero")
@@ -52,6 +61,15 @@ class NonZero(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
+    assert len(inputs) == 1
+    if use_fully_padding:
+      node.attrs_dict["size"] = inputs[0].size
+    if node.attrs_dict["size"] is None:
+      raise ValueError(
+          "NonZero Jax implementation must have static size attribute but"
+          " not.Here we force size = the element number of input array.If"
+          " your model is not such case, the result maybe wrong."
+      )
 
   @classmethod
   def version_13(
@@ -62,10 +80,10 @@ class NonZero(handler.Handler):
     return onnx_nonzero
 
 
-# @functools.partial(jit, static_argnames=("size"))
-def onnx_nonzero(*input_args):
+@functools.partial(jit, static_argnames="size")
+def onnx_nonzero(*input_args, size):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#NonZero."""
   assert len(input_args) == 1
   logging.warning("onnx_nonzero cann not support jax.jit mode.")
   (x,) = input_args
-  return jnp.stack(jnp.nonzero(x))
+  return jnp.stack(jnp.nonzero(x, size=size))
