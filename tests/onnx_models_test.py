@@ -12,77 +12,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""Test onnx real model."""
-import collections
-import unittest
+import json
 
-import jax
-from jaxonnxruntime.backend import Backend as JaxBackend
-import onnx.backend.test
-from onnx.backend.test.loader import load_model_tests
+from absl.testing import absltest
+from jaxonnxruntime import backend as jort_backend
+import numpy as np
 
-# Some node tests require jax_enable_x64=True.
-# E.g. argmax, bitshift.
-jax.config.update("jax_enable_x64", True)
-
-# This is a pytest magic variable to load extra plugins
-pytest_plugins = ("onnx.backend.test.report",)
+import onnx
+from onnx import hub
 
 
-class Runner(onnx.backend.test.runner.Runner):
-
-  def __init__(self, backend, parent_module=None) -> None:
-    self.backend = backend
-    self._parent_module = parent_module
-    self._include_patterns = set()
-    self._exclude_patterns = set()
-    self._xfail_patterns = set()
-    self._test_items = collections.defaultdict(dict)
-
-    for rt in load_model_tests(kind="real"):
-      self._add_model_test(rt, "Real")
-
-    for rt in load_model_tests(kind="simple"):
-      self._add_model_test(rt, "Simple")
+def _load_model(model_name, *_):
+  model = hub.load(model_name)
+  model = onnx.shape_inference.infer_shapes(model)
+  model_info = hub.get_model_info(model_name)
+  model_inputs_info = list(model_info.metadata.get('io_ports').get('inputs'))
+  return model, model_inputs_info
 
 
-backend_test = Runner(JaxBackend, __name__)
-expect_fail_patterns = []
-include_patterns = []
-exclude_patterns = []
-
-include_patterns.append("test_resnet50_")
-
-for pattern in include_patterns:
-  backend_test.include(pattern)
-
-for pattern in exclude_patterns:
-  backend_test.exclude(pattern)
-
-for pattern in expect_fail_patterns:
-  backend_test.xfail(pattern)
+def _get_tensor_type_name(s_type):
+  split_str = s_type.split('(')
+  split_s = split_str[1].split(')')
+  if len(split_s) > 2:
+    raise NotImplementedError('Encountered multiple Tensor types!')
+  return split_s[0]
 
 
-class ModelTest(unittest.TestCase):
-  pass
+def _create_dummy_tensor(model_info_input):
+  shape = model_info_input.get('shape')
+  for i, _ in enumerate(shape):
+    if isinstance(shape[i], str):
+      shape[i] = 1
+  dtype_name = _get_tensor_type_name(model_info_input.get('type'))
+  dtype_value = onnx.TensorProto.DataType.Value(dtype_name.upper())
+  dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[dtype_value]
+  return np.random.normal(size=shape).astype(dtype)
 
 
-for name, func in backend_test.test_cases.items():
-  setattr(ModelTest, name, func)
+def _run_model_test(model_name, model_dir):
+  model, model_inputs_info = _load_model(
+      model_name,
+      model_dir,
+  )
+  inputs = [_create_dummy_tensor(item) for item in model_inputs_info]
+  _ = jort_backend.run(model, inputs)
 
 
-if __name__ == "__main__":
-  unittest.main()
+class TestModelRunThrough(absltest.TestCase):
+
+  def test_bertsquad_12(self):
+    model_name = 'bert-squad'
+
+    model_dir = None
+
+    _run_model_test(model_name, model_dir)
+
+  def test_gpt2_10(self):
+    model_name = 'gpt-2'
+
+    model_dir = None
+
+    _run_model_test(model_name, model_dir)
+
+  def test_resnet50_v1_7(self):
+    model_name = 'resnet50'
+
+    model_dir = None
+
+    _run_model_test(model_name, model_dir)
+
+
+if __name__ == '__main__':
+  absltest.main()
