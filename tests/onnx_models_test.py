@@ -62,23 +62,17 @@ class TestModelRunThrough(absltest.TestCase):
 
   def test_bertsquad_12(self):
     model_name = 'bert-squad'
-
     model_dir = None
-
     _run_model_test(model_name, model_dir)
 
   def test_gpt2_10(self):
     model_name = 'gpt-2'
-
     model_dir = None
-
     _run_model_test(model_name, model_dir)
 
   def test_resnet50_v1_7(self):
     model_name = 'resnet50'
-
     model_dir = None
-
     _run_model_test(model_name, model_dir)
 
 
