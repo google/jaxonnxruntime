@@ -14,8 +14,7 @@
 
 """Create the Backend class."""
 # pylint: disable=unused-argument
-
-from typing import Any, NewType
+from typing import Any
 
 import jax
 from jaxonnxruntime import call_onnx
@@ -25,15 +24,6 @@ import onnx
 
 # Copy from onnx.backend base.py.
 # Due to some reasons, we can not inherit base.py.
-
-
-class DeviceType:
-  """An enumeration of device types."""
-
-  _TYPE = NewType('_TYPE', int)
-  CPU: _TYPE = _TYPE(0)
-  CUDA: _TYPE = _TYPE(1)
-  TPU: _TYPE = _TYPE(2)
 
 
 class BackendRep:
@@ -88,16 +78,10 @@ class Backend:
       True if the model is compatible with the backend device, False otherwise.
     """
     # Check if the specified device is available
-    if device == 'CUDA':
-      try:
-        jax.devices('gpu')
-      except:  # pylint: disable=bare-except
-        return False
-    if device == 'TPU':
-      try:
-        jax.devices('tpu')
-      except:  # pylint: disable=bare-except
-        return False
+    device = device.lower()
+    suppport_devices = [d.platform for d in jax.devices()]
+    if device not in suppport_devices:
+      return False
     return True
 
   @classmethod

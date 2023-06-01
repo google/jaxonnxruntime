@@ -268,7 +268,7 @@ class Runner:
       test_name: str,
       test_func: Callable[..., Any],
       report_item: list[Optional[Union[onnx.ModelProto, onnx.NodeProto]]],
-      devices: Iterable[str] = ('CPU', 'CUDA'),
+      devices: Iterable[str] = ('CPU', 'GPU', 'TPU'),
   ) -> None:
     """Add test to each device and category."""
     # We don't prepend the 'test_' prefix to improve greppability
