@@ -28,16 +28,20 @@
 """Convert ONNX model into jax function."""
 
 import logging
-from typing import Any, Callable, Dict, Sequence, Type, Tuple, Union
+from typing import Any, Callable, Dict, Sequence, Tuple, Type, Union
 
+import jax
+from jax import numpy as jnp
 from jaxonnxruntime import onnx_ops  # pylint: disable=unused-import
 from jaxonnxruntime.core import handler as onnx_handler
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
+
 import onnx
 from onnx import defs
 from onnx.helper import make_opsetid
+
 
 OnnxNode = onnx_node.OnnxNode
 OnnxGraph = onnx_graph.OnnxGraph
@@ -94,6 +98,17 @@ def call_onnx_graph(
   graph_helper = OnnxGraph(graph)
 
   # step 1: Trace those static info
+  def f(val_info: onnx.ValueInfoProto):
+    shape, dtype = onnx_utils.get_shape_and_dtype_from_val_info(val_info)
+    return jax.ShapeDtypeStruct(shape, dtype)
+
+  shape_dtype_struct_dict: dict[str, jax.ShapeDtypeStruct] = {}
+  for input_name in graph_helper.get_real_input():
+    shape, dtype = onnx_utils.get_shape_and_dtype_from_val_info(
+        graph_helper.value_info_dict[input_name]
+    )
+    shape_dtype_struct_dict[input_name] = jax.ShapeDtypeStruct(shape, dtype)
+
   jit_func_dict = {}
   onnx_node_dict = {}
   if opset is None:
@@ -115,12 +130,17 @@ def call_onnx_graph(
       ) from e
     jit_func = _get_jit_func(node, node_inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
-    outputs = jit_func(*node_inputs, **node.attrs_dict)
+
+    def wrapped_jit_func(*node_inputs):
+      return jit_func(*node_inputs, **node.attrs_dict)
+
+    outputs = jax.eval_shape(wrapped_jit_func, *node_inputs)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]
 
     for name, output in zip(node.outputs, outputs):
-      tensor_dict[name] = output
-
+      print('johnqiangzhang', type(name), output)
+      shape_dtype_struct_dict[str(name)] = output
+  del shape_dtype_struct_dict
   input_names = onnx_utils.get_graph_input(graph)
 
   def model_func(model_params, inputs):
@@ -229,7 +249,12 @@ def _get_all_handlers(
   return handlers
 
 
-def _get_jit_func(node, inputs, handlers, **kwargs):
+def _get_jit_func(
+    node: OnnxNode,
+    inputs: list[Any],
+    handlers: Dict[str, Dict[str, type[Handler]]],
+    **kwargs,
+):
   """Get the JAX node implementation."""
   handler = (
       handlers[node.domain].get(node.op_type, None)

@@ -51,18 +51,20 @@ class OnnxGraph:
   """
 
   def __init__(self, graph_proto: onnx.GraphProto):
-    self.graph_proto = graph_proto
-    self.node_dict = {}
+    self.graph_proto: onnx.GraphProto = graph_proto
+    self.node_dict: dict[str, onnx.NodeProto] = {}
     for index, nd in enumerate(graph_proto.node):
       node_name = f"node_{index}"
       nd.name = node_name
       self.node_dict[node_name] = nd
-    self.initializer_dict = {ts.name: ts for ts in graph_proto.initializer}
-    self.input = [proto.name for proto in graph_proto.input]
-    self.output = [proto.name for proto in graph_proto.output]
-    self.doc_string = graph_proto.doc_string
-    self.name = graph_proto.name
-    self.value_info_dict = {
+    self.initializer_dict: dict[str, onnx.TensorProto] = {
+        ts.name: ts for ts in graph_proto.initializer
+    }
+    self.input: list[str] = [proto.name for proto in graph_proto.input]
+    self.output: list[str] = [proto.name for proto in graph_proto.output]
+    self.doc_string: str = graph_proto.doc_string
+    self.name: str = graph_proto.name
+    self.value_info_dict: dict[str, onnx.ValueInfoProto] = {
         **{proto.name: proto for proto in graph_proto.input},
         **{proto.name: proto for proto in graph_proto.output},
         **{proto.name: proto for proto in graph_proto.value_info},
