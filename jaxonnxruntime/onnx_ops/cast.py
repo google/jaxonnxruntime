@@ -31,9 +31,9 @@ import functools
 import inspect
 from typing import Any
 from jax import jit
-from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+from jaxonnxruntime.core import onnx_utils
 import onnx
 
 register_op = handler.register_op
@@ -77,12 +77,15 @@ class Cast(handler.Handler):
 
 @functools.partial(jit, static_argnames=("to", "from_type"))
 def onnx_cast(x, *, to, from_type=None):
+  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Cast for more details."""
   if from_type is onnx.TensorProto.STRING or to is onnx.TensorProto.STRING:
     raise NotImplementedError(
         "Cast JAX version do not support STRING type yet."
     )
-  to_type = tensor_dtype_to_jnp_dtype(to)
-  from_type = tensor_dtype_to_jnp_dtype(from_type) if from_type else x.dtype
+  to_type = onnx_utils.tensor_dtype_to_jnp_dtype(to)
+  from_type = (
+      onnx_utils.tensor_dtype_to_jnp_dtype(from_type) if from_type else x.dtype
+  )
   try:
     return x.view(from_type).astype(to_type)
   except Exception as e:
@@ -90,9 +93,3 @@ def onnx_cast(x, *, to, from_type=None):
         f"onnx_cast can not support from_type = {from_type}, to_type ="
         f" {to_type}"
     ) from e
-
-
-def tensor_dtype_to_jnp_dtype(tensor_type):
-  if tensor_type is onnx.TensorProto.BFLOAT16:
-    return jnp.bfloat16
-  return jnp.dtype(onnx.helper.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type])
