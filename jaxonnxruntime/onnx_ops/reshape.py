@@ -31,6 +31,7 @@ import functools
 from typing import Any
 from jax import jit
 from jax import numpy as jnp
+from jaxonnxruntime import config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 import numpy as np
@@ -44,6 +45,14 @@ class Reshape(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
+    if config.jaxort_only_allow_initializers_as_static_args:
+      if node.inputs[1] not in node.context_graph.initializer_dict:
+        raise ValueError(
+            f'{node.inputs[1]} is not constant but used as `shape` of Reshape'
+            ' static argument during `jax.jit`. '
+            'the jitted function gives wrong results if its value changes '
+            'in another input.'
+        )
     node.attrs_dict['shape'] = tuple(inputs[1].tolist())
     node.attrs_dict['allowzero'] = node.attrs.get('allowzero', 0)
 

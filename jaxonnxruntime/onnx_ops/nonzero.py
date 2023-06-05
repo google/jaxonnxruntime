@@ -34,15 +34,9 @@ from typing import Any
 
 from jax import jit
 from jax import numpy as jnp
+from jaxonnxruntime import config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
-
-
-# TODO(johnqiangzhang): use global variable to control this option.
-# Later we should convert to `config` and users can turn on/off.
-# If it is true, the NonZero output tuple length equals to the input element
-# numbers.
-use_fully_padding = True
 
 
 @handler.register_op("NonZero")
@@ -62,13 +56,11 @@ class NonZero(handler.Handler):
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
     assert len(inputs) == 1
-    if use_fully_padding:
+    if config.jaxort_nonzero_use_fully_padding:
       node.attrs_dict["size"] = inputs[0].size
     if node.attrs_dict["size"] is None:
       raise ValueError(
-          "NonZero Jax implementation must have static size attribute but"
-          " not.Here we force size = the element number of input array.If"
-          " your model is not such case, the result maybe wrong."
+          "NonZero Jax implementation must have static size attribute but not."
       )
 
   @classmethod

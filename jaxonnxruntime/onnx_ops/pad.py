@@ -32,6 +32,7 @@ from typing import Any
 
 from jax import jit
 from jax import numpy as jnp
+from jaxonnxruntime import config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -45,6 +46,14 @@ class Pad(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     node.attrs_dict['mode'] = node.attrs.get('mode', 'constant')
+    if config.jaxort_only_allow_initializers_as_static_args:
+      if node.inputs[1] not in node.context_graph.initializer_dict:
+        raise ValueError(
+            f'{node.inputs[1]} is not constant but used as `pads`'
+            ' static argument during `jax.jit`. '
+            'the jitted function gives wrong results if its value changes'
+            'in another input.'
+        )
     node.attrs_dict['pads'] = tuple(inputs[1].tolist())
 
     if len(inputs) >= 3:

@@ -16,9 +16,12 @@ import json
 
 from absl.testing import absltest
 from jaxonnxruntime import backend as jort_backend
+from jaxonnxruntime import config
 import numpy as np
 
 import onnx
+
+
 from onnx import hub
 
 
@@ -63,12 +66,36 @@ class TestModelRunThrough(absltest.TestCase):
   def test_bertsquad_12(self):
     model_name = 'bert-squad'
     model_dir = None
+    prev_jaxort_only_allow_initializers_as_static_args = (
+        config.jaxort_only_allow_initializers_as_static_args
+    )
+    config.update('jaxort_only_allow_initializers_as_static_args', False)
     _run_model_test(model_name, model_dir)
+    config.update(
+        'jaxort_only_allow_initializers_as_static_args',
+        prev_jaxort_only_allow_initializers_as_static_args,
+    )
 
   def test_gpt2_10(self):
     model_name = 'gpt-2'
     model_dir = None
+    prev_jaxort_nonzero_use_fully_padding = (
+        config.jaxort_nonzero_use_fully_padding
+    )
+    config.update('jaxort_nonzero_use_fully_padding', True)
+    prev_jaxort_only_allow_initializers_as_static_args = (
+        config.jaxort_only_allow_initializers_as_static_args
+    )
+    config.update('jaxort_only_allow_initializers_as_static_args', False)
     _run_model_test(model_name, model_dir)
+    config.update(
+        'jaxort_nonzero_use_fully_padding',
+        prev_jaxort_nonzero_use_fully_padding,
+    )
+    config.update(
+        'jaxort_only_allow_initializers_as_static_args',
+        prev_jaxort_only_allow_initializers_as_static_args,
+    )
 
   def test_resnet50_v1_7(self):
     model_name = 'resnet50'
