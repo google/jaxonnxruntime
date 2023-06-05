@@ -93,7 +93,7 @@ def update_onnx_ops_init_file(op_name):
   with open(init_py_file, 'r') as f:
     existing_imports = f.read()
 
-  new_import = f'from . import {op_name.lower()}'
+  new_import = f'from . import {op_name.lower()} as {op_name.lower()}'
   if new_import in existing_imports:
     logging.info('Already have %s in onnx_ops/__init__.py.', op_name)
     return

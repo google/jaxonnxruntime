@@ -13,4 +13,6 @@
 # limitations under the License.
 
 """JAX based onnxruntime."""
-from .version import __version__
+# pylint: disable=useless-import-alias
+# PEP 484: import <name> as <name> is required for names to be exported.
+from .version import __version__ as __version__

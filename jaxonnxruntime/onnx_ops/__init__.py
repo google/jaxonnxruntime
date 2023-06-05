@@ -14,49 +14,51 @@
 
 """Define ONNX ops."""
 # pylint: disable=redefined-builtin
+# pylint: disable=useless-import-alias
 import importlib
 import os
 
-from . import abs
-from . import add
-from . import averagepool
-from . import batchnormalization
-from . import cast
-from . import concat
-from . import constant
-from . import constantofshape
-from . import conv
-from . import div
-from . import dropout
-from . import exp
-from . import flatten
-from . import gather
-from . import gemm
-from . import globalaveragepool
-from . import identity
-from . import leakyrelu
-from . import lrn
-from . import matmul
-from . import maxpool
-from . import mul
-from . import nonzero
-from . import onehot
-from . import pad
-from . import pow
-from . import reciprocal
-from . import reducemax
-from . import reducemean
-from . import reducesum
-from . import relu
-from . import reshape
-from . import shape
-from . import slice
-from . import softmax
-from . import split
-from . import sqrt
-from . import squeeze
-from . import sub
-from . import sum
-from . import tanh
-from . import transpose
-from . import unsqueeze
+# PEP 484: import <name> as <name> is required for names to be exported.
+from . import abs as abs
+from . import add as add
+from . import averagepool as averagepool
+from . import batchnormalization as batchnormalization
+from . import cast as cast
+from . import concat as concat
+from . import constant as constant
+from . import constantofshape as constantofshape
+from . import conv as conv
+from . import div as div
+from . import dropout as dropout
+from . import exp as exp
+from . import flatten as flatten
+from . import gather as gather
+from . import gemm as gemm
+from . import globalaveragepool as globalaveragepool
+from . import identity as identity
+from . import leakyrelu as leakyrelu
+from . import lrn as lrn
+from . import matmul as matmul
+from . import maxpool as maxpool
+from . import mul as mul
+from . import nonzero as nonzero
+from . import onehot as onehot
+from . import pad as pad
+from . import pow as pow
+from . import reciprocal as reciprocal
+from . import reducemax as reducemax
+from . import reducemean as reducemean
+from . import reducesum as reducesum
+from . import relu as relu
+from . import reshape as reshape
+from . import shape as shape
+from . import slice as slice
+from . import softmax as softmax
+from . import split as split
+from . import sqrt as sqrt
+from . import squeeze as squeeze
+from . import sub as sub
+from . import sum as sum
+from . import tanh as tanh
+from . import transpose as transpose
+from . import unsqueeze as unsqueeze
