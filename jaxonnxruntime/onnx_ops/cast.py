@@ -28,9 +28,9 @@
 """Define ONNX Cast operator."""
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 from jax import jit
+from jaxonnxruntime import config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
@@ -49,22 +49,24 @@ class Cast(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
-    if not node.attrs_dict["from_type"]:
+    node.attrs_dict["to"] = node.attrs.get("to", int)
+    if node.context_graph.value_info_dict.get(node.inputs[0]) is not None:
       tensor_proto = node.context_graph.value_info_dict.get(node.inputs[0])
-      if tensor_proto is not None:
-        from_type = tensor_proto.type.tensor_type.elem_type
-      else:
-        tensor_proto = node.context_graph.initializer_dict.get(node.inputs[0])
-        from_type = tensor_proto.data_type
-      node.attrs_dict["from_type"] = from_type
+      from_type = onnx_utils.tensor_dtype_to_jnp_dtype(
+          tensor_proto.type.tensor_type.elem_type
+      )
+    elif node.context_graph.initializer_dict.get(node.inputs[0]) is not None:
+      tensor_proto = node.context_graph.initializer_dict.get(node.inputs[0])
+      from_type = onnx_utils.tensor_dtype_to_jnp_dtype(tensor_proto.data_type)
+    else:
+      if config.jaxort_only_allow_initializers_as_static_args:
+        raise ValueError(
+            f"{node.inputs[0]} is not constant but used as a static argument "
+            "when `jax.jit` the `Cast` operator. "
+            "The jitted function gives wrong results if its value changes."
+        )
+      from_type = inputs[0].dtype
+    node.attrs_dict["from_type"] = from_type
 
   @classmethod
   def version_13(
@@ -83,13 +85,10 @@ def onnx_cast(x, *, to, from_type=None):
         "Cast JAX version do not support STRING type yet."
     )
   to_type = onnx_utils.tensor_dtype_to_jnp_dtype(to)
-  from_type = (
-      onnx_utils.tensor_dtype_to_jnp_dtype(from_type) if from_type else x.dtype
-  )
   try:
     return x.view(from_type).astype(to_type)
   except Exception as e:
     raise ValueError(
-        f"onnx_cast can not support from_type = {from_type}, to_type ="
+        f"onnx_cast cannot support from_type = {from_type}, to_type ="
         f" {to_type}"
     ) from e
