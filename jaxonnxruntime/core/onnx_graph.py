@@ -26,7 +26,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Wrap the onnx.GraphProto as OnnxGraph class and provide useful graph manipulation methods."""
+import collections
 from typing import Any, List, Sequence
+
 import onnx
 
 
@@ -153,21 +155,31 @@ class OnnxGraph:
 
   def topological_sort(self) -> Sequence[onnx.NodeProto]:
     """Return the topological sort order of those nodes."""
+    in_degree = collections.defaultdict(int)
+    for u in self.node_dict:
+      if u not in in_degree:
+        in_degree[u] = 0
+      for v in self.get_child_nodes_name(u):
+        in_degree[v] += 1
 
-    visited = {}
-    stack = []
+    queue = collections.deque(
+        [v for v in in_degree.keys() if in_degree[v] == 0]
+    )
+    sorted_list = []
 
-    # A recursive function used by topologicalSort
-    def topological_sort_util(v):
-      visited[v] = True
-      for i in self.get_child_nodes_name(v):
-        if i not in visited or not visited[i]:
-          topological_sort_util(i)
-      stack.append(v)
+    while queue:
+      u = queue.popleft()
+      sorted_list.append(u)
 
-    for i in self.node_dict:
-      if i not in visited or not visited[i]:
-        topological_sort_util(i)
+      for v in self.get_child_nodes_name(u):
+        in_degree[v] -= 1
+        if in_degree[v] == 0:
+          queue.append(v)
 
-    # return list in reverse order.
-    return list(reversed([self.node_dict[n] for n in stack]))
+    if len(sorted_list) != len(self.node_dict):
+      raise RuntimeError(
+          f"Graph has a cycle, sorted_list={sorted_list},"
+          f" node_dict={self.node_dict.keys()}"
+      )
+
+    return [self.node_dict[n] for n in sorted_list]
