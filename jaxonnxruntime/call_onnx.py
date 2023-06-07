@@ -53,18 +53,38 @@ def call_onnx(
 ) -> Tuple[Callable[..., Any], Any]:
   """Convert. ONNX model to jax_func with model parameters."""
 
+  graph = model.graph
+  model_func, model_params = construct_jax_modules(graph, inputs)
+
+  return model_func, model_params
+
+
+def contain_subgraph(node):
+  return node.op_type in ('If', 'Loop')
+
+
+def flatten_subgraph(node, tensor_dict):
+  for a_name, a in node.attrs.items():
+    if isinstance(a, onnx.GraphProto):
+      input_names = a.input
+      inputs = {k: tensor_dict[k] for k in input_names}
+      jax_func, params = construct_jax_modules(a, inputs)
+      node.attrs_dict[a_name] = (jax_func, params)
+      node.attrs_dict[f'{a_name}_input_num'] = len(input_names)
+      node.inputs.extend(input_names)
+
+
+def construct_jax_modules(
+    graph: onnx.GraphProto, inputs: Union[Sequence[Any], Dict[str, Any]]
+) -> Tuple[Callable[..., Any], Any]:
+  """Convert ONNX GraphProto to jax_func with model parameters."""
+  tensor_ref_dict = build_ref_dict(graph)
+  graph_helper = OnnxGraph(graph)
+
+  # step 1: Trace those static info
   def _asarray(proto):
     return jnp.asarray(numpy_helper.to_array(proto).reshape(tuple(proto.dims)))
 
-  tensor_ref_dict = build_ref_dict(model)
-  graph = model.graph
-  graph_helper = OnnxGraph(graph)
-  if model.ir_version < 3:
-    opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
-  else:
-    opset = model.opset_import
-
-  # step 1: Trace those static info
   model_params = {n.name: _asarray(n) for n in graph.initializer}
   jit_func_dict = {}
   onnx_node_dict = {}
@@ -88,6 +108,8 @@ def call_onnx(
   for node_proto in node_execute_order_list:
     node = OnnxNode(node_proto, graph_helper)
     onnx_node_dict[node.name] = node
+    if contain_subgraph(node):
+      flatten_subgraph(node, tensor_dict)
     try:
       node_inputs = [tensor_dict[x] for x in node.inputs]
     except Exception as e:
@@ -141,10 +163,10 @@ def call_onnx(
   return model_func, model_params
 
 
-def build_ref_dict(model: onnx.ModelProto) -> Dict[str, int]:
+def build_ref_dict(graph: onnx.GraphProto) -> Dict[str, int]:
   """Initialize reference count dict."""
   ref_dict: dict[Any, Any] = {}
-  for node in model.graph.node:
+  for node in graph.node:
     inputs = node.input
     for input_ in inputs:
       if input_ in ref_dict:

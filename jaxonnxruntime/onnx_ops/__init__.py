@@ -39,6 +39,7 @@ from . import gather as gather
 from . import gemm as gemm
 from . import globalaveragepool as globalaveragepool
 from . import identity as identity
+from . import if_op as if_op
 from . import leakyrelu as leakyrelu
 from . import less as less
 from . import lessorequal as lessorequal
