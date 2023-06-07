@@ -17,7 +17,9 @@
 # Users can do more experiments based on flax resnet50 examples
 # https://github.com/google/flax/tree/main/examples/imagenet
 
+import functools
 import logging
+from typing import Any
 
 from absl import app
 from absl import flags
@@ -32,7 +34,7 @@ import tensorflow as tf
 
 import onnx
 from onnx import hub
-
+from onnx import shape_inference
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
@@ -48,18 +50,20 @@ flags.DEFINE_string(
 )
 
 
-def _download_model(model_name):
+@functools.lru_cache(maxsize=32)
+def _download_model(model_name: str) -> tuple[onnx.ModelProto, hub.ModelInfo]:
   try:
     logging.info("Start downloading model %s", model_name)
     model = hub.load(model_name)
-    model = onnx.shape_inference.infer_shapes(model)
+    model = shape_inference.infer_shapes(model)
+    model_info = hub.get_model_info(model_name)
   except Exception as e:
     raise RuntimeError(f"Fail to download model {model_name}.") from e
 
-  return model
+  return model, model_info
 
 
-def _cosin_sim(a, b):
+def _cosin_sim(a: Any, b: Any) -> float:
   a = np.array(a)
   b = np.array(b)
   a = a.astype(jnp.float32)
@@ -70,7 +74,7 @@ def _cosin_sim(a, b):
   return cos_sim
 
 
-def _get_tensor_type_name(s_type):
+def _get_tensor_type_name(s_type: str) -> str:
   split_str = s_type.split("(")
   split_s = split_str[1].split(")")
   if len(split_s) > 2:
@@ -78,21 +82,15 @@ def _get_tensor_type_name(s_type):
   return split_s[0]
 
 
-def run_model_from_onnx_backend(model_name):
+def run_model_from_onnx_backend(model_name: str) -> None:
   """Test standard ONNX Backend API on onnx.hub models."""
-
-  model_name_list = list(map(lambda x: x.model.lower(), hub.list_models()))
-  assert (
-      model_name in model_name_list
-  ), f"{model_name} is valid model name in onnx.hub."
-  model = _download_model(model_name)
+  model, model_info = _download_model(model_name)
 
   try:
     onnx.checker.check_model(model)
   except AttributeError as e:
     logging.warning("Fail to load onnx.checker, skip the check. %s", e)
 
-  model_info = hub.get_model_info(model_name)
   model_info_inputs = list(model_info.metadata.get("io_ports").get("inputs"))
 
   def _create_dummy_tensor(model_info_input):
@@ -122,14 +120,13 @@ def run_model_from_onnx_backend(model_name):
     )
 
 
-def export_model(model_name, model_path):
+def export_model(model_name: str, model_path: str) -> None:
   """export jax model to disk."""
   model_name_list = list(map(lambda x: x.model.lower(), hub.list_models()))
   assert (
       model_name in model_name_list
   ), f"{model_name} is valid model name in onnx.hub."
-  model = _download_model(model_name)
-  model_info = hub.get_model_info(model_name)
+  model, model_info = _download_model(model_name)
   model_info_inputs = list(model_info.metadata.get("io_ports").get("inputs"))
 
   def _create_dummy_tensor(model_info_input):
@@ -195,14 +192,13 @@ def export_model(model_name, model_path):
   print(f"jax and savedmodel similarity = {similarity}")
 
 
-def eval_poly_shape(model_name):
+def eval_poly_shape(model_name: str) -> None:
   """Exmaple how to evaluate the polymorphic shape."""
   model_name_list = list(map(lambda x: x.model.lower(), hub.list_models()))
   assert (
       model_name in model_name_list
   ), f"{model_name} is valid model name in onnx.hub."
-  model = _download_model(model_name)
-  model_info = hub.get_model_info(model_name)
+  model, model_info = _download_model(model_name)
   model_info_inputs = list(model_info.metadata.get("io_ports").get("inputs"))
 
   def _create_dummy_tensor(model_info_input):
@@ -214,13 +210,19 @@ def eval_poly_shape(model_name):
     return jax.random.normal(key, shape, dtype=jnp.float32)
 
   inputs = [_create_dummy_tensor(item) for item in model_info_inputs]
+  def add_batch_poly_shape(inpt):
+    shape = [str(i) for i in inpt.shape]
+    shape[0] = "batch"
+    return ",".join(shape)
+
+  polymorphic_shapes = jax.tree_map(add_batch_poly_shape, inputs)
   jax_model, params = call_onnx.call_onnx(model, inputs)
 
   def infer_func(inputs):
     return jax_model(params, inputs)
 
   out_spec, out_poly_shape = jax2tf.eval_polymorphic_shape(
-      infer_func, polymorphic_shapes=["n, 3, 224, 224"]
+      infer_func, polymorphic_shapes=polymorphic_shapes
   )(inputs)
   logging.info("out_spec = %s, out_poly_shape = %s", out_spec, out_poly_shape)
 
