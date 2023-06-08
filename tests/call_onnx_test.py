@@ -66,7 +66,7 @@ class TestCallOnnx(absltest.TestCase):
         output=[output_tensor],
     )
     model_proto = ModelProto(graph=graph_def, producer_name='onnx-example')
-    jax_func, model_params = call_onnx.call_onnx(model_proto, [x])
+    jax_func, model_params = call_onnx.call_onnx_model(model_proto, [x])
     results = jax_func(model_params, [x])
     expect = [np.array([2.0, 1.0, 3.0], dtype=np.float32)]
     np.testing.assert_array_equal(results, expect)

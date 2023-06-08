@@ -48,23 +48,34 @@ Handler = onnx_handler.Handler
 logger = logging.getLogger(__name__)
 
 
-def call_onnx(
+def call_onnx_model(
     model: onnx.ModelProto, inputs: Union[Sequence[Any], Dict[str, Any]]
 ) -> Tuple[Callable[..., Any], Any]:
   """Convert. ONNX model to jax_func with model parameters."""
 
-  def _asarray(proto):
-    return jnp.asarray(numpy_helper.to_array(proto).reshape(tuple(proto.dims)))
-
-  tensor_ref_dict = build_ref_dict(model)
   graph = model.graph
-  graph_helper = OnnxGraph(graph)
   if model.ir_version < 3:
     opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
   else:
     opset = model.opset_import
+  model_func, model_params = call_onnx_graph(graph, inputs, opset=opset)
+
+  return model_func, model_params
+
+
+def call_onnx_graph(
+    graph: onnx.GraphProto,
+    inputs: Union[Sequence[Any], Dict[str, Any]],
+    opset: ... = None,
+) -> Tuple[Callable[..., Any], Any]:
+  """Convert ONNX GraphProto to jax_func with model parameters."""
+  tensor_ref_dict = build_ref_dict(graph)
+  graph_helper = OnnxGraph(graph)
 
   # step 1: Trace those static info
+  def _asarray(proto):
+    return jnp.asarray(numpy_helper.to_array(proto).reshape(tuple(proto.dims)))
+
   model_params = {n.name: _asarray(n) for n in graph.initializer}
   jit_func_dict = {}
   onnx_node_dict = {}
@@ -141,10 +152,10 @@ def call_onnx(
   return model_func, model_params
 
 
-def build_ref_dict(model: onnx.ModelProto) -> Dict[str, int]:
+def build_ref_dict(graph: onnx.GraphProto) -> Dict[str, int]:
   """Initialize reference count dict."""
   ref_dict: dict[Any, Any] = {}
-  for node in model.graph.node:
+  for node in graph.node:
     inputs = node.input
     for input_ in inputs:
       if input_ in ref_dict:

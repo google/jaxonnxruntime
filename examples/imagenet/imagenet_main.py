@@ -140,7 +140,7 @@ def export_model(model_name: str, model_path: str) -> None:
   inputs = [_create_dummy_tensor(item) for item in model_info_inputs]
   input_names = [item["name"] for item in model_info_inputs]
   dict_inputs = {name: inp for name, inp in zip(input_names, inputs)}
-  jax_model, params = call_onnx.call_onnx(model, inputs)
+  jax_model, params = call_onnx.call_onnx_model(model, inputs)
   output_names = [n.name for n in model.graph.output]
 
   # Wrap the model params and function into a JaxModule.
@@ -216,7 +216,7 @@ def eval_poly_shape(model_name: str) -> None:
     return ",".join(shape)
 
   polymorphic_shapes = jax.tree_map(add_batch_poly_shape, inputs)
-  jax_model, params = call_onnx.call_onnx(model, inputs)
+  jax_model, params = call_onnx.call_onnx_model(model, inputs)
 
   def infer_func(inputs):
     return jax_model(params, inputs)

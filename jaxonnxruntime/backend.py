@@ -56,12 +56,12 @@ class BackendRep:
     Args:
       inputs: The input data for the model.
       **kwargs: Additional keyword arguments to pass to the underlying
-        `call_onnx` function.
+        `call_onnx_model` function.
 
     Returns:
       A tuple (Any, ...) of output data produced by the model.
     """
-    model_func, model_params = call_onnx.call_onnx(
+    model_func, model_params = call_onnx.call_onnx_model(
         self._model, inputs, **kwargs
     )
     return model_func(model_params=model_params, inputs=inputs)
