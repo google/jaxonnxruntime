@@ -63,6 +63,14 @@ class ReduceMean(handler.Handler):
     cls._prepare(node, inputs, onnx_reducemean)
     return onnx_reducemean
 
+  @classmethod
+  def version_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_18 ReduceMean op."""
+    cls._prepare(node, inputs, onnx_reducemean)
+    return onnx_reducemean
+
 
 @functools.partial(jit, static_argnames=('axes', 'keepdims'))
 def onnx_reducemean(*input_args, axes=None, keepdims=True):

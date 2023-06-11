@@ -64,6 +64,14 @@ class Equal(handler.Handler):
     cls._prepare(node, inputs, onnx_equal)
     return onnx_equal
 
+  @classmethod
+  def version_19(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_19 Equal op."""
+    cls._prepare(node, inputs, onnx_equal)
+    return onnx_equal
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_equal(*input_args):

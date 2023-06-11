@@ -66,6 +66,15 @@ class ReduceMax(handler.Handler):
     return onnx_reducemax
 
 
+  @classmethod
+  def version_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_18 ReduceMax op."""
+    cls._prepare(node, inputs, onnx_reducemax)
+    return onnx_reducemax
+
+
 @functools.partial(jit, static_argnames=('axes', 'keepdims'))
 def onnx_reducemax(*input_args, axes, keepdims=True):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceMax."""
