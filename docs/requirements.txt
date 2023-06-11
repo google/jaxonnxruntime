@@ -17,5 +17,3 @@ absl-py
 # The next packages are for notebooks.
 matplotlib
 scikit-learn
-# Must install itself for notebook execution and autodocs to work.
-.
