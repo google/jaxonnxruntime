@@ -12,8 +12,8 @@ jupytext==1.13.8
 # ReadTheDocs: https://stackoverflow.com/a/68008428
 docutils==0.16
 
+absl-py
+
 # The next packages are for notebooks.
 matplotlib
 scikit-learn
-# Must install itself for notebook execution and autodocs to work.
-.

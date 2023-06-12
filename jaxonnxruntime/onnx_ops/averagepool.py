@@ -64,6 +64,14 @@ class AveragePool(handler.Handler):
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
 
+  @classmethod
+  def version_19(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_19 AveragePool op."""
+    cls._prepare(node, inputs, onnx_averagepool)
+    return onnx_averagepool
+
 
 @functools.partial(
     jit,
