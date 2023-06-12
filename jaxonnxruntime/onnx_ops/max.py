@@ -55,6 +55,7 @@ class Max(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
+    node.attrs_dict["arg_num"] = len(node.inputs)
 
   @classmethod
   def version_13(
@@ -65,8 +66,11 @@ class Max(handler.Handler):
     return onnx_max
 
 
-@functools.partial(jit, static_argnames=())
-def onnx_max(*input_args):
+@functools.partial(jit, static_argnames=("arg_num",))
+def onnx_max(*input_args, arg_num):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Max for more details."""
-  data = jnp.array(input_args)
-  return jnp.max(data, axis=0)
+  assert len(input_args) == arg_num
+  res = input_args[0]
+  for i in range(arg_num):
+    res = jnp.maximum(res, input_args[i])
+  return res
