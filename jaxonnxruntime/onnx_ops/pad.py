@@ -69,6 +69,13 @@ class Pad(handler.Handler):
     cls._prepare(node, inputs, onnx_pad)
     return onnx_pad
 
+  @classmethod
+  def version_19(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_19 Pad op."""
+    cls._prepare(node, inputs, onnx_pad)
+    return onnx_pad
 
 @functools.partial(jit, static_argnames=('pads', 'constant_value', 'mode'))
 def onnx_pad(*input_args, pads, constant_value=0.0, mode='constant'):

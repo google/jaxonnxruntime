@@ -76,6 +76,14 @@ class Cast(handler.Handler):
     cls._prepare(node, inputs, onnx_cast)
     return onnx_cast
 
+  @classmethod
+  def version_19(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_19 Cast op."""
+    cls._prepare(node, inputs, onnx_cast)
+    return onnx_cast
+
 
 @functools.partial(jit, static_argnames=("to", "from_type"))
 def onnx_cast(x, *, to, from_type=None):
