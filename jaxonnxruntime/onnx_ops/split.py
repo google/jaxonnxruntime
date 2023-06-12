@@ -59,14 +59,6 @@ class Split(handler.Handler):
     cls._prepare(node, inputs, onnx_split)
     return onnx_split
 
-  @classmethod
-  def version_18(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
-    """ONNX version_18 Split op."""
-    cls._prepare(node, inputs, onnx_split)
-    return onnx_split
-
 
 @functools.partial(jit, static_argnames=('split', 'axis', 'num_output'))
 def onnx_split(*input_args, num_output, split=None, axis=0):

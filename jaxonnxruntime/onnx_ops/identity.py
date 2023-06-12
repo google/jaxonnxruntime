@@ -63,13 +63,6 @@ class Identity(handler.Handler):
     cls._prepare(node, inputs, onnx_identity)
     return onnx_identity
 
-  @classmethod
-  def version_19(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
-    """ONNX version_19 Identity op."""
-    cls._prepare(node, inputs, onnx_identity)
-    return onnx_identity
 
 @functools.partial(jit, static_argnames=())
 def onnx_identity(*input_args):

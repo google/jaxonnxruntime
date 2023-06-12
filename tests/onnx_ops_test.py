@@ -18,14 +18,12 @@ import collections
 from typing import Any
 
 from absl.testing import absltest
-import jax
 from jaxonnxruntime import config
 from jaxonnxruntime import runner
 from jaxonnxruntime.backend import Backend as JaxBackend  # pylint: disable=g-importing-member
 
 
 config.update('jaxort_only_allow_initializers_as_static_args', False)
-jax.config.update('jax_numpy_rank_promotion', 'allow')
 
 
 class Runner(runner.Runner):

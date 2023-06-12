@@ -62,14 +62,6 @@ class Shape(handler.Handler):
     cls._prepare(node, inputs, onnx_shape)
     return onnx_shape
 
-  @classmethod
-  def version_19(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
-    """ONNX version_19 Shape op."""
-    cls._prepare(node, inputs, onnx_shape)
-    return onnx_shape
-
 
 @functools.partial(jit, static_argnames=('start', 'end'))
 def onnx_shape(*input_args, start=None, end=None):
