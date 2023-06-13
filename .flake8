@@ -1,6 +1,0 @@
-# Example .flake8 file
-[flake8]
-max-line-length = 79
-ignore = E203, W503
-exclude = .git, __pycache__
-indent-size = 2

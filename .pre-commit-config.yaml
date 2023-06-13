@@ -19,6 +19,11 @@ repos:
   - id: check-toml
   - id: trailing-whitespace
     exclude: ^docs/.*\.md$
+- repo: https://github.com/PyCQA/pylint
+  rev: "v3.0.0a6"
+  hooks:
+  - id: pylint
+    files: \.py$  # Run Pylint only on Python files
 - repo: https://github.com/kynan/nbstripout
   rev: 0.6.1
   hooks:
