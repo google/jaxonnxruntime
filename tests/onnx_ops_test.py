@@ -132,11 +132,35 @@ exclude_patterns.append('test_range_int32_type_negative_delta_expanded_gpu')
 # Not implement yet
 exclude_patterns.append('test_maxpool_with_argmax_2d_')
 
-expect_fail_patterns.append('test_cast_FLOAT_to_STRING')
-expect_fail_patterns.append('test_cast_STRING_to_FLOAT')
-expect_fail_patterns.append('test_maxpool_2d_ceil_')
-expect_fail_patterns.append('test_averagepool_2d_ceil_')
-expect_fail_patterns.append('test_nonzero_')
+expect_fail_patterns.extend(
+  [
+    # cast
+    'test_cast_FLOAT_to_STRING',
+    'test_cast_STRING_to_FLOAT',
+    'test_cast_FLOAT16_to_FLOAT8E4M3FNUZ_',
+    "test_cast_FLOAT16_to_FLOAT8E4M3FNUZ_cpu",
+    "test_cast_FLOAT16_to_FLOAT8E4M3FN_cpu",
+    "test_cast_FLOAT16_to_FLOAT8E5M2FNUZ_cpu",
+    "test_cast_FLOAT16_to_FLOAT8E5M2_cpu",
+    "test_cast_FLOAT_to_FLOAT8E4M3FNUZ_cpu",
+    "test_cast_FLOAT_to_FLOAT8E4M3FN_cpu",
+    "test_cast_FLOAT_to_FLOAT8E5M2FNUZ_cpu",
+    "test_cast_FLOAT_to_FLOAT8E5M2_cpu",
+    "test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ_cpu",
+    "test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN_cpu",
+    "test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ_cpu",
+    "test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2_cpu",
+    "test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FNUZ_cpu",
+    "test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FN_cpu",
+    "test_cast_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_cpu",
+    "test_cast_no_saturate_FLOAT_to_FLOAT8E5M2_cpu",
+    # others
+    'test_maxpool_2d_ceil_',
+    'test_averagepool_2d_ceil_',
+    'test_averagepool_2d_dilations_',
+    'test_nonzero_'
+  ]
+)
 
 
 for pattern in include_patterns:

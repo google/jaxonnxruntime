@@ -47,27 +47,23 @@ class AveragePool(handler.Handler):
   """Implementation of the ONNX AveragePool operator."""
 
   @classmethod
-  def _prepare(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
-  ):
+  def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any],
+               onnx_jax_impl: Any):
     MaxPool._prepare(node, inputs, onnx_jax_impl)  # pylint: disable=protected-access
     node.attrs_dict["count_include_pad"] = node.attrs.get(
-        "count_include_pad", 0
-    )
+        "count_include_pad", 0)
     del node.attrs_dict["storage_order"]
 
   @classmethod
-  def version_11(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
+  def version_11(cls, node: onnx_node.OnnxNode,
+                 inputs: Sequence[Any]) -> Callable[..., Any]:
     """ONNX version_11 AveragePool op."""
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
 
   @classmethod
-  def version_19(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
+  def version_19(cls, node: onnx_node.OnnxNode,
+                 inputs: Sequence[Any]) -> Callable[..., Any]:
     """ONNX version_19 AveragePool op."""
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
@@ -97,7 +93,9 @@ def onnx_averagepool(
   assert len(input_args) == 1
   x = input_args[0]
   if ceil_mode != 0:
-    raise ValueError("ceil_mode = 1 is not implement yet.")
+    raise ValueError(
+        f"Jaxonnxruntime AveragePool only support ceil_mode = 0 but got {ceil_mode}."
+    )
 
   if count_include_pad == 0:
     one = jnp.ones_like(x, dtype=x.dtype)
@@ -105,16 +103,13 @@ def onnx_averagepool(
   else:
     wsizes = np.prod(kernel_shape)
 
-  return (
-      lax.reduce_window(
-          x,
-          jnp.array(0, dtype=x.dtype),
-          lax.add,
-          kernel_shape,
-          strides,
-          pads,
-          None,
-          dilations,
-      )
-      / wsizes
-  )
+  return (lax.reduce_window(
+      x,
+      jnp.array(0, dtype=x.dtype),
+      lax.add,
+      kernel_shape,
+      strides,
+      pads,
+      None,
+      dilations,
+  ) / wsizes)
