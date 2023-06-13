@@ -30,15 +30,13 @@
 import logging
 from typing import Any, Callable, Dict, Sequence, Type, Tuple, Union
 
-from jax import numpy as jnp
-
 from jaxonnxruntime import onnx_ops  # pylint: disable=unused-import
 from jaxonnxruntime.core import handler as onnx_handler
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
+from jaxonnxruntime.core import onnx_utils
 import onnx
 from onnx import defs
-from onnx import numpy_helper
 from onnx.helper import make_opsetid
 
 OnnxNode = onnx_node.OnnxNode
@@ -51,49 +49,39 @@ logger = logging.getLogger(__name__)
 def call_onnx_model(
     model: onnx.ModelProto, inputs: Union[Sequence[Any], Dict[str, Any]]
 ) -> Tuple[Callable[..., Any], Any]:
-  """Convert. ONNX model to jax_func with model parameters."""
-
+  """Convert ONNX.ModelProto to jax_func with model parameters."""
   graph = model.graph
   if model.ir_version < 3:
     opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
   else:
     opset = model.opset_import
-  model_func, model_params = call_onnx_graph(graph, inputs, opset=opset)
-
+  model_params = {
+      n.name: onnx_utils.valueinfoproto_asarray(n) for n in graph.initializer
+  }
+  input_names = onnx_utils.get_graph_input(graph)
+  tensor_dict = dict(
+      **onnx_utils.maybe_convert_to_dict(inputs, input_names), **model_params
+  )
+  model_func = call_onnx_graph(graph, tensor_dict, opset=opset)
+  del tensor_dict
   return model_func, model_params
 
 
 def call_onnx_graph(
     graph: onnx.GraphProto,
-    inputs: Union[Sequence[Any], Dict[str, Any]],
+    tensor_dict: Dict[str, Any],
     opset: ... = None,
-) -> Tuple[Callable[..., Any], Any]:
-  """Convert ONNX GraphProto to jax_func with model parameters."""
+) -> Callable[..., Any]:
+  """Convert ONNX.GraphProto to jax_func with ONNX.GraphProto.initializer as parameters."""
   tensor_ref_dict = build_ref_dict(graph)
   graph_helper = OnnxGraph(graph)
 
   # step 1: Trace those static info
-  def _asarray(proto):
-    return jnp.asarray(numpy_helper.to_array(proto).reshape(tuple(proto.dims)))
-
-  model_params = {n.name: _asarray(n) for n in graph.initializer}
   jit_func_dict = {}
   onnx_node_dict = {}
   opset = [make_opsetid(defs.ONNX_DOMAIN, defs.onnx_opset_version())]
   handlers = _get_all_handlers(opset)
   node_execute_order_list = graph_helper.topological_sort()
-
-  def _maybe_convert_to_dict(inputs):
-    if isinstance(inputs, dict):
-      return inputs
-    elif isinstance(inputs, Sequence):
-      graph_inputs = graph_helper.get_real_input()
-      assert len(inputs) == len(graph_inputs)
-      return dict(zip(graph_inputs, inputs))
-    else:
-      raise NotImplementedError('Please use inputs of type dict or Sequence!')
-
-  tensor_dict = dict(**_maybe_convert_to_dict(inputs), **model_params)
 
   logger.info('Start tracing the jax_func model to get some static info')
   for node_proto in node_execute_order_list:
@@ -113,10 +101,13 @@ def call_onnx_graph(
 
     for name, output in zip(node.outputs, outputs):
       tensor_dict[name] = output
-  del tensor_dict
+
+  input_names = onnx_utils.get_graph_input(graph)
 
   def model_func(model_params, inputs):
-    tensor_dict = dict(**_maybe_convert_to_dict(inputs), **model_params)
+    tensor_dict = dict(
+        **onnx_utils.maybe_convert_to_dict(inputs, input_names), **model_params
+    )
     ref_dict = {}
     for node_proto in node_execute_order_list:
       node = onnx_node_dict[node_proto.name]
@@ -149,20 +140,28 @@ def call_onnx_graph(
 
     return [tensor_dict[n.name] for n in graph.output]
 
-  return model_func, model_params
+  return model_func
 
 
 def build_ref_dict(graph: onnx.GraphProto) -> Dict[str, int]:
   """Initialize reference count dict."""
   ref_dict: dict[Any, Any] = {}
   for node in graph.node:
+    if onnx_utils.contain_subgraph(node):
+      for a in node.attribute:
+        if a.HasField('g'):
+          sub_ref_dict = build_ref_dict(a.g)
+          ref_dict.update(
+              {k: ref_dict.get(k, 0) + v for k, v in sub_ref_dict.items()}
+          )
     inputs = node.input
     for input_ in inputs:
       if input_ in ref_dict:
         ref_dict[input_] += 1
       else:
         ref_dict[input_] = 1
-
+  for o in graph.output:
+    ref_dict[o.name] = ref_dict[o.name] + 1 if o.name in ref_dict else 1
   return ref_dict
 
 
