@@ -38,7 +38,11 @@ def tensor_dtype_to_jnp_dtype(
   """Convert onnx.TensorProto.DataType to jnp.dtype."""
   if tensor_type is onnx.TensorProto.BFLOAT16:
     return jnp.bfloat16
-  return jnp.dtype(onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type])
+  if onnx.__version__ < '1.14.0':
+    np_type = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type]
+  else:
+    np_type = onnx.helper.tensor_dtype_to_np_dtype(tensor_type)
+  return jnp.dtype(np_type)
 
 
 def get_shape_and_dtype_from_val_info(

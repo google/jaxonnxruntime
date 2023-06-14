@@ -46,20 +46,28 @@ class Pad(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     node.attrs_dict['mode'] = node.attrs.get('mode', 'constant')
+
     if config.jaxort_only_allow_initializers_as_static_args:
-      if node.inputs[1] not in node.context_graph.initializer_dict:
-        raise ValueError(
-            f'{node.inputs[1]} is not constant but used as `pads`'
-            ' static argument during `jax.jit`. '
-            'the jitted function gives wrong results if its value changes'
-            'in another input.'
-        )
-    node.attrs_dict['pads'] = tuple(inputs[1].tolist())
+      for index in range(1, len(node.inputs)):
+        if node.inputs[index] not in node.context_graph.initializer_dict:
+          raise ValueError(
+              f'{node.inputs[index]} is not constant but used as `pads`'
+              ' static argument during `jax.jit`. '
+              'the jitted function gives wrong results if its value changes'
+              'in another input.'
+          )
+    if len(inputs) >= 2:
+      node.attrs_dict['pads'] = tuple(inputs[1].tolist())
 
     if len(inputs) >= 3:
       node.attrs_dict['constant_value'] = inputs[2].item()
     else:
       node.attrs_dict['constant_value'] = 0.0
+
+    if len(inputs) >= 4:
+      node.attrs_dict['axes'] = tuple(inputs[3].tolist())
+    else:
+      node.attrs_dict['axes'] = tuple(range(len(inputs[0].shape)))
 
   @classmethod
   def version_13(
@@ -77,21 +85,27 @@ class Pad(handler.Handler):
     cls._prepare(node, inputs, onnx_pad)
     return onnx_pad
 
-@functools.partial(jit, static_argnames=('pads', 'constant_value', 'mode'))
-def onnx_pad(*input_args, pads, constant_value=0.0, mode='constant'):
+@functools.partial(jit, static_argnames=('pads', 'constant_value', 'mode', 'axes'))
+def onnx_pad(*input_args, pads: Sequence[int], constant_value: Any, mode: str, axes: Sequence[int]):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Pad."""
   x = input_args[0]
   input_rank = x.ndim
-  if input_rank * 2 != jnp.size(pads):
+  axes = [axis if axis >= 0 else axis + input_rank for axis in axes]
+  num_axes = len(axes)
+  if num_axes * 2 != jnp.size(pads):
     raise ValueError(
-        'The number of elements in raw_pads should be 2 * input_rank'
-        f'pads = {pads}, input_rank = {input_rank}'
+        'The number of elements in raw_pads should be 2 * len(axis)'
+        f'pads = {pads}, axis = {axes}'
     )
 
   # re-order to np.pad accepted order ((x1_begin, x1_end), (x2_begin, x2_end))
-  pad_width = ()
-  for i in range(int(jnp.size(pads) / 2)):
-    pad_width += (((pads[i], pads[i + input_rank])),)
+  pad_width = []
+  for _ in range(input_rank):
+    pad_width += [[0, 0]]
+
+  for i in range(num_axes):
+    axis = axes[i]
+    pad_width[axis] = [pads[i], pads[i + num_axes]]
 
   if mode == 'constant':
     return jnp.pad(x, pad_width, mode, constant_values=constant_value)
