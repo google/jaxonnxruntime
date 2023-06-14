@@ -88,11 +88,12 @@ def call_onnx_graph(
     node = OnnxNode(node_proto, graph_helper)
     onnx_node_dict[node.name] = node
     try:
-      node_inputs = [tensor_dict[x] for x in node.inputs]
+      node_inputs = [tensor_dict[x] for x in node.inputs + node.subgraph_inputs]
     except Exception as e:
       raise ValueError(
-          f'failt to get input tensor for node inputs {node.inputs}, the'
-          f' node proto is {node.node_proto}'
+          'Fail to get the input tensor of node input names'
+          f'{node.inputs + node.subgraph_inputs}, the node proto is'
+          f'{node.node_proto}.'
       ) from e
     jit_func = _get_jit_func(node, node_inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
@@ -111,7 +112,7 @@ def call_onnx_graph(
     ref_dict = {}
     for node_proto in node_execute_order_list:
       node = onnx_node_dict[node_proto.name]
-      node_inputs = [tensor_dict[x] for x in node.inputs]
+      node_inputs = [tensor_dict[x] for x in node.inputs + node.subgraph_inputs]
       jit_func = jit_func_dict[node.name]
       outputs = jit_func(*node_inputs, **node.attrs_dict)
       outputs = outputs if isinstance(outputs, Sequence) else [outputs]
@@ -125,7 +126,7 @@ def call_onnx_graph(
       # node_output_shapes = [tensor_dict[x].shape for x in node.outputs]
       # logger.debug('\t%s  -> %s', node_input_shapes, node_output_shapes)
 
-      for input_ in node.inputs:
+      for input_ in node.inputs + node.subgraph_inputs:
         if input_ in ref_dict:
           ref_dict[input_] += 1
         else:

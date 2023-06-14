@@ -78,6 +78,7 @@ include_patterns.append('test_gather_')
 include_patterns.append('test_gemm_')
 include_patterns.append('test_globalaveragepool_')
 include_patterns.append('test_identity_')
+include_patterns.append('test_if_')
 include_patterns.append('test_leakyrelu_')
 include_patterns.append('test_less_')
 include_patterns.append('test_lessorequal_')
@@ -129,6 +130,12 @@ exclude_patterns.append('test_range_float_type_positive_delta_expanded_cpu')
 exclude_patterns.append('test_range_float_type_positive_delta_expanded_gpu')
 exclude_patterns.append('test_range_int32_type_negative_delta_expanded_cpu')
 exclude_patterns.append('test_range_int32_type_negative_delta_expanded_gpu')
+# The following four requires `SequenceConstruct` Op. Will add them in the
+# future.
+exclude_patterns.append('test_if_opt_cpu')
+exclude_patterns.append('test_if_seq_cpu')
+exclude_patterns.append('test_if_opt_gpu')
+exclude_patterns.append('test_if_seq_gpu')
 # Not implement yet
 exclude_patterns.append('test_maxpool_with_argmax_2d_')
 

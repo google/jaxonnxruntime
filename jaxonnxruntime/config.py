@@ -452,3 +452,14 @@ jaxort_nonzero_use_fully_padding = config.define_bool_state(
         ' need this walk-around.'
     ),
 )
+
+jaxort_if_op_reshape_output_for_llama = config.define_bool_state(
+    name='jaxort_if_op_reshape_output_for_llama',
+    default=False,
+    help=(
+        'The onnx If operator can have dynamic output shape, which cannot '
+        'be supported by jax.jit. We have to manually manipulate the output '
+        'shape if there is a mismatch between the outputs of else_branch and '
+        'then_branch, as is the case for LLaMA.'
+    ),
+)

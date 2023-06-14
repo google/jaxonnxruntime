@@ -28,6 +28,8 @@
 """Wrap the onnx.NodeProto as OnnxNode class."""
 from typing import Any
 import onnx
+from .onnx_utils import contain_subgraph
+from .onnx_utils import get_graph_input
 
 
 def convert_onnx(attr_proto: onnx.AttributeProto) -> Any:
@@ -77,6 +79,7 @@ class OnnxNode:
     attrs_dict (dict): A dict of the attributes for the node, it is for the jax
       onnx implementation keyword arguments.
     inputs (list): A list of the node's input names.
+    subgraph_inputs (list): A list of the input names of subgraphs.
     outputs (list): A list of the node's output names.
     node_proto (onnx.NodeProto): The underlying ONNX NodeProto object.
     context_graph (Any): The graph context that contains the node.
@@ -97,9 +100,20 @@ class OnnxNode:
     )
     self.attrs_dict: dict[str, Any] = {}
     self.inputs: list[str] = list(node.input)
+    self.subgraph_inputs: list[str] = []
     self.outputs: list[str] = list(node.output)
     self.node_proto: onnx.NodeProto = node
     self.context_graph: Any = context_graph
+
+    # For operators that involve control flow, OnnxNode is defined to be
+    # a self-contained operator, different from Onnx.NodeProto.
+    # The inputs to the subgraphs are added to the inputs to this parent
+    # control flow operator.
+    if contain_subgraph(node):
+      for a in node.attribute:
+        if a.HasField('g'):
+          subg_inputs = get_graph_input(a.g)
+          self.subgraph_inputs.extend(subg_inputs)
 
   @property
   def len_inputs(self) -> int:
