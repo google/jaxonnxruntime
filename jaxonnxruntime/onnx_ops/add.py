@@ -62,6 +62,14 @@ class Add(handler.Handler):
     cls._prepare(node, inputs, onnx_add)
     return onnx_add
 
+  @classmethod
+  def version_7(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_14 Add op."""
+    cls._prepare(node, inputs, onnx_add)
+    return onnx_add
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_add(*input_args):

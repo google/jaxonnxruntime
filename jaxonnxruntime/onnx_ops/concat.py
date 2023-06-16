@@ -62,6 +62,22 @@ class Concat(handler.Handler):
     cls._prepare(node, inputs, onnx_concat)
     return onnx_concat
 
+  @classmethod
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Concat op."""
+    cls._prepare(node, inputs, onnx_concat)
+    return onnx_concat
+
+  @classmethod
+  def version_4(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Concat op."""
+    cls._prepare(node, inputs, onnx_concat)
+    return onnx_concat
+
 
 @functools.partial(jit, static_argnames="axis")
 def onnx_concat(*input_args, axis=0):

@@ -61,6 +61,14 @@ class LRN(handler.Handler):
     cls._prepare(node, inputs, onnx_lrn)
     return onnx_lrn
 
+  @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 LRN op."""
+    cls._prepare(node, inputs, onnx_lrn)
+    return onnx_lrn
+
 
 @functools.partial(jit, static_argnames=("alpha", "beta", "bias", "size"))
 def onnx_lrn(*input_args, alpha, beta, bias, size):

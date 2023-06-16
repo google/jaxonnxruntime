@@ -64,6 +64,14 @@ class Relu(handler.Handler):
     cls._prepare(node, inputs, onnx_relu)
     return onnx_relu
 
+  @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_14 Relu op."""
+    cls._prepare(node, inputs, onnx_relu)
+    return onnx_relu
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_relu(*input_args):

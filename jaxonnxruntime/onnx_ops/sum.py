@@ -64,6 +64,14 @@ class Sum(handler.Handler):
     cls._prepare(node, inputs, onnx_sum)
     return onnx_sum
 
+  @classmethod
+  def version_8(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Sum op."""
+    cls._prepare(node, inputs, onnx_sum)
+    return onnx_sum
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_sum(*input_args):

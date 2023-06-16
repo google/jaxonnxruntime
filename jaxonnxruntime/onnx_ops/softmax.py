@@ -40,21 +40,43 @@ class Softmax(handler.Handler):
   """Implementation of the ONNX Softmax operator."""
 
   @classmethod
-  def _prepare(
+  def _prepare_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     node.attrs_dict['axis'] = node.attrs.get('axis', -1)
+
+  @classmethod
+  def _prepare_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    node.attrs_dict['axis'] = node.attrs.get('axis', 1)
 
   @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_13 Softmax op."""
-    cls._prepare(node, inputs, onnx_softmax)
+    cls._prepare_13(node, inputs, onnx_softmax)
+    return onnx_softmax
+
+  @classmethod
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Softmax op."""
+    cls._prepare_11(node, inputs, onnx_softmax)
+    return onnx_softmax
+
+  @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Softmax op."""
+    cls._prepare_11(node, inputs, onnx_softmax)
     return onnx_softmax
 
 
-@functools.partial(jit, static_argnames=('axis'))
+@functools.partial(jit, static_argnames=('axis', ))
 def onnx_softmax(*input_args, axis):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Softmax."""
   assert len(input_args) == 1
