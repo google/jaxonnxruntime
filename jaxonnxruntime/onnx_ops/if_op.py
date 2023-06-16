@@ -32,6 +32,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
+import jax
 from jax import jit
 from jax import numpy as jnp
 from jax.lax import cond
@@ -67,6 +68,7 @@ def flatten_subgraph(node, inputs):
   from jaxonnxruntime.call_onnx import call_onnx_graph  # pylint: disable=g-import-not-at-top
 
   inp_start = 1
+  subgraph_out_shape = None
   for a_name, a in node.attrs.items():
     if isinstance(a, onnx.GraphProto):
       input_names = onnx_utils.get_graph_input(a)
@@ -80,11 +82,48 @@ def flatten_subgraph(node, inputs):
           **params,
       )
       jax_func = call_onnx_graph(a, tensor_dict)
+
+      if not bypass_output_shape_check():
+        out_shape = [tensor_dict[o.name].shape for o in a.output]
+        if subgraph_out_shape is None:
+          subgraph_out_shape = out_shape
+        else:
+          same_shape = jax.tree_util.tree_map(
+              lambda x, y: x == y, subgraph_out_shape, out_shape
+          )
+          if not same_shape:
+            raise ValueError(
+                "The output shapes of else and then branches should be the"
+                " same, as requested by jax.lax.cond. Unless there is a global"
+                " configuration indicating manual manipulation of the shapes to"
+                " become the same.\nOnce add your manipulation to `onnx_if`"
+                " below, you can use jaxonnxruntime.config to disable this"
+                " check."
+            )
+
       del tensor_dict
       node.attrs_dict[a_name] = jax_func
       node.attrs_dict[f"{a_name}_params"] = params
       node.attrs_dict[f"{a_name}_input_num"] = len(input_names)
       inp_start = inp_end
+
+
+def bypass_output_shape_check():
+  """Check if a global config bans the output shape check.
+
+  If there is manual manipulation on the output shapes of else and then
+  branches, it is required to be flagged by a global config.
+  Without this config, we require the output shape of else and then branches
+  to be the same, which aligns with jax.lax.cond.
+
+  **Please add relevent global config to `config_list`.**
+
+  Returns:
+    bypass: Bool, whether to bypass the output shape check.
+  """
+  config_list = [config.jaxort_if_op_reshape_output_for_llama]
+  bypass = all(config_list)
+  return bypass
 
 
 @functools.partial(
