@@ -93,6 +93,7 @@ class Conv(handler.Handler):
     cls._prepare(node, inputs, onnx_conv)
     return onnx_conv
 
+
 @functools.partial(
     jit,
     static_argnames=("group", "kernel_shape", "pads", "strides", "dilations"),
