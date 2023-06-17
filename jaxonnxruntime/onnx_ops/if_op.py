@@ -62,6 +62,14 @@ class If(handler.Handler):
     cls._prepare(node, inputs, onnx_if)
     return onnx_if
 
+  @classmethod
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_16 If op."""
+    cls._prepare(node, inputs, onnx_if)
+    return onnx_if
+
 
 def flatten_subgraph(node, inputs):
   """Recursively construct the subgraphs for else and then branches."""

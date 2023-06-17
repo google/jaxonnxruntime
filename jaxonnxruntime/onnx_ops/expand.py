@@ -64,6 +64,14 @@ class Expand(handler.Handler):
     cls._prepare(node, inputs, onnx_expand)
     return onnx_expand
 
+  @classmethod
+  def version_8(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Expand op."""
+    cls._prepare(node, inputs, onnx_expand)
+    return onnx_expand
+
 
 @functools.partial(jit, static_argnames="shape")
 def onnx_expand(*input_args, shape):

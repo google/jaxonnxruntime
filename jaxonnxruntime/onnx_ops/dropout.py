@@ -72,6 +72,14 @@ class Dropout(handler.Handler):
     return onnx_dropout
 
   @classmethod
+  def version_10(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Dropout op."""
+    cls._prepare(node, inputs, onnx_dropout)
+    return onnx_dropout
+
+  @classmethod
   def version_7(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
