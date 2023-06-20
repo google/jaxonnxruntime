@@ -52,6 +52,22 @@ class Split(handler.Handler):
       node.attrs_dict['split'] = tuple(inputs[1].tolist())
 
   @classmethod
+  def version_2(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_2 Split op."""
+    cls._prepare(node, inputs, onnx_split)
+    return onnx_split
+
+  @classmethod
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_11 Split op."""
+    cls._prepare(node, inputs, onnx_split)
+    return onnx_split
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

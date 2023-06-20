@@ -69,6 +69,14 @@ class Cast(handler.Handler):
     node.attrs_dict["from_type"] = from_type
 
   @classmethod
+  def version_9(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_9 Cast op."""
+    cls._prepare(node, inputs, onnx_cast)
+    return onnx_cast
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

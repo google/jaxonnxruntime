@@ -47,6 +47,22 @@ class Gather(handler.Handler):
     node.attrs_dict["axis"] = node.attrs.get("axis", 0)
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 Gather op."""
+    cls._prepare(node, inputs, onnx_gather)
+    return onnx_gather
+
+  @classmethod
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_11 Gather op."""
+    cls._prepare(node, inputs, onnx_gather)
+    return onnx_gather
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

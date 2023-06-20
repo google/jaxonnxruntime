@@ -64,6 +64,14 @@ class NonZero(handler.Handler):
       )
 
   @classmethod
+  def version_9(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_9 NonZero op."""
+    cls._prepare(node, inputs, onnx_nonzero)
+    return onnx_nonzero
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

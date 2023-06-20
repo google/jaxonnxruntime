@@ -57,6 +57,14 @@ class Reshape(handler.Handler):
     node.attrs_dict['allowzero'] = node.attrs.get('allowzero', 0)
 
   @classmethod
+  def version_5(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_5 Reshape op."""
+    cls._prepare(node, inputs, onnx_reshape)
+    return onnx_reshape
+
+  @classmethod
   def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

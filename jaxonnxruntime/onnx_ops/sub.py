@@ -55,6 +55,14 @@ class Sub(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_7(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_7 Sub op."""
+    cls._prepare(node, inputs, onnx_sub)
+    return onnx_sub
+
+  @classmethod
   def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
