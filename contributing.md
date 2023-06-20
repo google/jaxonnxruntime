@@ -5,11 +5,10 @@
 The following is a set of guidelines, but not rules, for contributing to jaxonnxruntime.
 Use your best judgment, and feel free to propose changes to this document in a pull request.
 
-We follow most best best practices of google/flax project https://github.com/google/flax/blob/main/docs/contributing.md.
+We follow most of the best practices listed in the [contributing guidelines](https://github.com/google/flax/blob/main/docs/contributing.md) of the `google/flax` project .
+Here we only list the difference.
 
-Here we only list those difference.
-
----
+<!-- ---
 
 #### Table of Contents
 
@@ -18,7 +17,7 @@ Here we only list those difference.
   - [How to Contribute?](#how-to-contribute)
     - [Adding Support for New Operators](#adding-support-for-new-operators)
 
----
+--- -->
 
 ## How to Contribute?
 
