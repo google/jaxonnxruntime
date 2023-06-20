@@ -139,35 +139,35 @@ exclude_patterns.append('test_if_seq_gpu')
 # Not implement yet
 exclude_patterns.append('test_maxpool_with_argmax_2d_')
 
-expect_fail_patterns.extend(
-  [
+expect_fail_patterns.extend([
     # cast
     'test_cast_FLOAT_to_STRING',
     'test_cast_STRING_to_FLOAT',
     'test_cast_FLOAT16_to_FLOAT8E4M3FNUZ_',
-    "test_cast_FLOAT16_to_FLOAT8E4M3FNUZ_cpu",
-    "test_cast_FLOAT16_to_FLOAT8E4M3FN_cpu",
-    "test_cast_FLOAT16_to_FLOAT8E5M2FNUZ_cpu",
-    "test_cast_FLOAT16_to_FLOAT8E5M2_cpu",
-    "test_cast_FLOAT_to_FLOAT8E4M3FNUZ_cpu",
-    "test_cast_FLOAT_to_FLOAT8E4M3FN_cpu",
-    "test_cast_FLOAT_to_FLOAT8E5M2FNUZ_cpu",
-    "test_cast_FLOAT_to_FLOAT8E5M2_cpu",
-    "test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ_cpu",
-    "test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN_cpu",
-    "test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ_cpu",
-    "test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2_cpu",
-    "test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FNUZ_cpu",
-    "test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FN_cpu",
-    "test_cast_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_cpu",
-    "test_cast_no_saturate_FLOAT_to_FLOAT8E5M2_cpu",
+    'test_cast_FLOAT16_to_FLOAT8E4M3FNUZ_cpu',
+    'test_cast_FLOAT16_to_FLOAT8E4M3FN_cpu',
+    'test_cast_FLOAT16_to_FLOAT8E5M2FNUZ_cpu',
+    'test_cast_FLOAT16_to_FLOAT8E5M2_cpu',
+    'test_cast_FLOAT_to_FLOAT8E4M3FNUZ_cpu',
+    'test_cast_FLOAT_to_FLOAT8E4M3FN_cpu',
+    'test_cast_FLOAT_to_FLOAT8E5M2FNUZ_cpu',
+    'test_cast_FLOAT_to_FLOAT8E5M2_cpu',
+    'test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ_cpu',
+    'test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN_cpu',
+    'test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ_cpu',
+    'test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2_cpu',
+    'test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FNUZ_cpu',
+    'test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FN_cpu',
+    'test_cast_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_cpu',
+    'test_cast_no_saturate_FLOAT_to_FLOAT8E5M2_cpu',
     # others
     'test_maxpool_2d_ceil_',
     'test_averagepool_2d_ceil_',
     'test_averagepool_2d_dilations_',
-    'test_nonzero_'
-  ]
-)
+    'test_nonzero_',
+    # np.object is not valid type for jax.array
+    'test_equal_string_',
+])
 
 
 for pattern in include_patterns:

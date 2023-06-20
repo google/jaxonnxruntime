@@ -56,6 +56,14 @@ class Identity(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 Identity op."""
+    cls._prepare(node, inputs, onnx_identity)
+    return onnx_identity
+
+  @classmethod
   def version_16(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
