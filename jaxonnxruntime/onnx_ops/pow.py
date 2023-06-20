@@ -70,6 +70,14 @@ class Pow(handler.Handler):
     cls._prepare(node, inputs, onnx_pow)
     return onnx_pow
 
+  @classmethod
+  def version_12(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_15 Pow op."""
+    cls._prepare(node, inputs, onnx_pow)
+    return onnx_pow
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_pow(a, b):

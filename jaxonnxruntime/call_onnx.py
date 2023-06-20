@@ -79,7 +79,11 @@ def call_onnx_graph(
   # step 1: Trace those static info
   jit_func_dict = {}
   onnx_node_dict = {}
-  opset = [make_opsetid(defs.ONNX_DOMAIN, defs.onnx_opset_version())]
+  opset = (
+    [make_opsetid(defs.ONNX_DOMAIN, defs.onnx_opset_version())]
+    if opset is None
+    else opset
+  )
   handlers = _get_all_handlers(opset)
   node_execute_order_list = graph_helper.topological_sort()
 

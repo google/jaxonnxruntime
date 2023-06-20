@@ -66,6 +66,14 @@ class BatchNormalization(handler.Handler):
     cls._prepare(node, inputs, onnx_batchnormalization)
     return onnx_batchnormalization
 
+  @classmethod
+  def version_9(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_15 BatchNormalization op."""
+    cls._prepare(node, inputs, onnx_batchnormalization)
+    return onnx_batchnormalization
+
 
 @functools.partial(
     jit, static_argnames=('epsilon', 'momentum', 'training_mode')

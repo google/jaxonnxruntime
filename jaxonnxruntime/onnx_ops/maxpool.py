@@ -112,6 +112,14 @@ class MaxPool(handler.Handler):
     cls._prepare(node, inputs, onnx_maxpool)
     return onnx_maxpool
 
+  @classmethod
+  def version_8(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_12 MaxPool op."""
+    cls._prepare(node, inputs, onnx_maxpool)
+    return onnx_maxpool
+
 
 @functools.partial(
     jit,

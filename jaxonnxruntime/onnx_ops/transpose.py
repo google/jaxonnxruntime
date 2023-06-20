@@ -62,6 +62,14 @@ class Transpose(handler.Handler):
     cls._prepare(node, inputs, onnx_transpose)
     return onnx_transpose
 
+  @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Transpose op."""
+    cls._prepare(node, inputs, onnx_transpose)
+    return onnx_transpose
+
 
 @functools.partial(jit, static_argnames="perm")
 def onnx_transpose(*input_args, perm):

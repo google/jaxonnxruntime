@@ -64,6 +64,14 @@ class LessOrEqual(handler.Handler):
     cls._prepare(node, inputs, onnx_lessorequal)
     return onnx_lessorequal
 
+  @classmethod
+  def version_12(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_16 LessOrEqual op."""
+    cls._prepare(node, inputs, onnx_lessorequal)
+    return onnx_lessorequal
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_lessorequal(*input_args):

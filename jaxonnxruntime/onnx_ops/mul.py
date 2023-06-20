@@ -62,6 +62,14 @@ class Mul(handler.Handler):
     cls._prepare(node, inputs, onnx_mul)
     return onnx_mul
 
+  @classmethod
+  def version_7(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_14 Mul op."""
+    cls._prepare(node, inputs, onnx_mul)
+    return onnx_mul
+
 
 @functools.partial(jit, static_argnames=())
 def onnx_mul(*input_args):

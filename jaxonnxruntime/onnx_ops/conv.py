@@ -85,6 +85,14 @@ class Conv(handler.Handler):
     cls._prepare(node, inputs, onnx_conv)
     return onnx_conv
 
+  @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_11 Conv op."""
+    cls._prepare(node, inputs, onnx_conv)
+    return onnx_conv
+
 
 @functools.partial(
     jit,

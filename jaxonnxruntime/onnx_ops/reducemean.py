@@ -53,7 +53,15 @@ class ReduceMean(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
-    node.attrs_dict['keepdims'] = node.attrs.get('keepdims', True)
+
+    if len(inputs) >= 2:
+      node.attrs_dict['axes'] = tuple(inputs[1].tolist())
+      node.attrs_dict['axes'] = (
+          None if len(node.attrs_dict['axes']) == 0 else node.attrs_dict['axes']
+      )
+    node.attrs_dict['keepdims'] = (
+        True if node.attrs_dict['keepdims'] == 1 else False
+    )
 
   @classmethod
   def version_1(
@@ -89,8 +97,13 @@ class ReduceMean(handler.Handler):
 
 
 @functools.partial(jit, static_argnames=('axes', 'keepdims'))
-def onnx_reducemean(*input_args, axes=None, keepdims=True):
-  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceMean."""
-  assert len(input_args) == 1
+def onnx_reducemean(
+    *input_args, axes=None, keepdims=False, noop_with_empty_axes=None
+):
+  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceSum."""
+  assert len(input_args) == 1 or len(input_args) == 2
   data = input_args[0]
+  noop_with_empty_axes = 0 if not noop_with_empty_axes else noop_with_empty_axes
+  if noop_with_empty_axes != 0:
+    return data
   return jnp.mean(data, axis=axes, keepdims=keepdims)

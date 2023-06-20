@@ -53,6 +53,12 @@ class ReduceMax(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
+
+    if len(inputs) >= 2:
+      node.attrs_dict['axes'] = tuple(inputs[1].tolist())
+      node.attrs_dict['axes'] = (
+          None if len(node.attrs_dict['axes']) == 0 else node.attrs_dict['axes']
+      )
     node.attrs_dict['keepdims'] = (
         True if node.attrs_dict['keepdims'] == 1 else False
     )
@@ -65,7 +71,6 @@ class ReduceMax(handler.Handler):
     cls._prepare(node, inputs, onnx_reducemax)
     return onnx_reducemax
 
-
   @classmethod
   def version_18(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
@@ -76,8 +81,13 @@ class ReduceMax(handler.Handler):
 
 
 @functools.partial(jit, static_argnames=('axes', 'keepdims'))
-def onnx_reducemax(*input_args, axes, keepdims=True):
-  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceMax."""
-  assert len(input_args) == 1
-  x = input_args[0]
-  return jnp.max(x, axis=axes, keepdims=keepdims)
+def onnx_reducemax(
+    *input_args, axes=None, keepdims=False, noop_with_empty_axes=None
+):
+  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceSum."""
+  assert len(input_args) == 1 or len(input_args) == 2
+  data = input_args[0]
+  noop_with_empty_axes = 0 if not noop_with_empty_axes else noop_with_empty_axes
+  if noop_with_empty_axes != 0:
+    return data
+  return jnp.max(data, axis=axes, keepdims=keepdims)

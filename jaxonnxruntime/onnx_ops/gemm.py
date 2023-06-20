@@ -70,6 +70,14 @@ class Gemm(handler.Handler):
     cls._prepare(node, inputs, onnx_gemm)
     return onnx_gemm
 
+  @classmethod
+  def version_9(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Gemm op."""
+    cls._prepare(node, inputs, onnx_gemm)
+    return onnx_gemm
+
 
 @functools.partial(jit, static_argnames=('alpha', 'beta', 'transA', 'transB'))
 def onnx_gemm(
