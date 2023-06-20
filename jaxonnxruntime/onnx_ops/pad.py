@@ -85,8 +85,17 @@ class Pad(handler.Handler):
     cls._prepare(node, inputs, onnx_pad)
     return onnx_pad
 
-@functools.partial(jit, static_argnames=('pads', 'constant_value', 'mode', 'axes'))
-def onnx_pad(*input_args, pads: Sequence[int], constant_value: Any, mode: str, axes: Sequence[int]):
+
+@functools.partial(
+    jit, static_argnames=('pads', 'constant_value', 'mode', 'axes')
+)
+def onnx_pad(
+    *input_args,
+    pads: Sequence[int],
+    constant_value: Any,
+    mode: str,
+    axes: Sequence[int],
+):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Pad."""
   x = input_args[0]
   input_rank = x.ndim

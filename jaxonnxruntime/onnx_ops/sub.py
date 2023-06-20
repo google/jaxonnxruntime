@@ -63,15 +63,15 @@ class Sub(handler.Handler):
     return onnx_sub
 
   @classmethod
-  def version_14(
+  def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_14 Sub op."""
+    """ONNX version_13 Sub op."""
     cls._prepare(node, inputs, onnx_sub)
     return onnx_sub
 
   @classmethod
-  def version_13(
+  def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_14 Sub op."""

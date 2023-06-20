@@ -84,6 +84,6 @@ class NonZero(handler.Handler):
 def onnx_nonzero(*input_args, size):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#NonZero."""
   assert len(input_args) == 1
-  logging.warning("onnx_nonzero cann not support jax.jit mode.")
+  logging.warning("onnx_nonzero cannot support jax.jit mode.")
   (x,) = input_args
   return jnp.stack(jnp.nonzero(x, size=size))

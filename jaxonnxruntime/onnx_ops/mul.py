@@ -55,15 +55,15 @@ class Mul(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_14(
+  def version_7(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_14 Mul op."""
+    """ONNX version_7 Mul op."""
     cls._prepare(node, inputs, onnx_mul)
     return onnx_mul
 
   @classmethod
-  def version_7(
+  def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_14 Mul op."""

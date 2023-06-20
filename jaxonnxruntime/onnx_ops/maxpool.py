@@ -105,15 +105,15 @@ class MaxPool(handler.Handler):
       node.attrs_dict["pads"] = onnx_to_jax_pad_type[pad_str_type]
 
   @classmethod
-  def version_12(
+  def version_8(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_12 MaxPool op."""
+    """ONNX version_8 MaxPool op."""
     cls._prepare(node, inputs, onnx_maxpool)
     return onnx_maxpool
 
   @classmethod
-  def version_8(
+  def version_12(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_12 MaxPool op."""

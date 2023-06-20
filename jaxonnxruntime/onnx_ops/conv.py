@@ -78,15 +78,15 @@ class Conv(handler.Handler):
       node.attrs_dict["pads"] = onnx_to_jax_pad_type[pad_str_type]
 
   @classmethod
-  def version_11(
+  def version_1(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_11 Conv op."""
+    """ONNX version_1 Conv op."""
     cls._prepare(node, inputs, onnx_conv)
     return onnx_conv
 
   @classmethod
-  def version_1(
+  def version_11(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_11 Conv op."""

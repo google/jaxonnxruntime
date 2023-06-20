@@ -57,15 +57,15 @@ class LessOrEqual(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_16(
+  def version_12(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_16 LessOrEqual op."""
+    """ONNX version_12 LessOrEqual op."""
     cls._prepare(node, inputs, onnx_lessorequal)
     return onnx_lessorequal
 
   @classmethod
-  def version_12(
+  def version_16(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_16 LessOrEqual op."""

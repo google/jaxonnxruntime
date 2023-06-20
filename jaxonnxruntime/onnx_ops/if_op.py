@@ -55,15 +55,15 @@ class If(handler.Handler):
     flatten_subgraph(node, inputs)
 
   @classmethod
-  def version_16(
+  def version_11(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_16 If op."""
+    """ONNX version_11 If op."""
     cls._prepare(node, inputs, onnx_if)
     return onnx_if
 
   @classmethod
-  def version_11(
+  def version_16(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_16 If op."""

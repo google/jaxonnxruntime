@@ -56,18 +56,10 @@ class Dropout(handler.Handler):
     node.attrs_dict["training_mode"] = False if len(inputs) < 3 else inputs[2]
 
   @classmethod
-  def version_13(
+  def version_7(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Dropout op."""
-    cls._prepare(node, inputs, onnx_dropout)
-    return onnx_dropout
-
-  @classmethod
-  def version_12(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
-    """ONNX version_13 Dropout op."""
+    """ONNX version_7 Dropout op."""
     cls._prepare(node, inputs, onnx_dropout)
     return onnx_dropout
 
@@ -75,12 +67,20 @@ class Dropout(handler.Handler):
   def version_10(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Dropout op."""
+    """ONNX version_10 Dropout op."""
     cls._prepare(node, inputs, onnx_dropout)
     return onnx_dropout
 
   @classmethod
-  def version_7(
+  def version_12(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_12 Dropout op."""
+    cls._prepare(node, inputs, onnx_dropout)
+    return onnx_dropout
+
+  @classmethod
+  def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_13 Dropout op."""

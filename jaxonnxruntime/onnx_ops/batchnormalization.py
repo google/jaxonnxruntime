@@ -59,15 +59,15 @@ class BatchNormalization(handler.Handler):
     return onnx_batchnormalization
 
   @classmethod
-  def version_15(
+  def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_15 BatchNormalization op."""
+    """ONNX version_9 BatchNormalization op."""
     cls._prepare(node, inputs, onnx_batchnormalization)
     return onnx_batchnormalization
 
   @classmethod
-  def version_9(
+  def version_15(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_15 BatchNormalization op."""

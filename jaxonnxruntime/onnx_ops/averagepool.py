@@ -57,7 +57,7 @@ class AveragePool(handler.Handler):
   @classmethod
   def version_7(cls, node: onnx_node.OnnxNode,
                  inputs: Sequence[Any]) -> Callable[..., Any]:
-    """ONNX version_11 AveragePool op."""
+    """ONNX version_7 AveragePool op."""
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
 

@@ -63,15 +63,15 @@ class Div(handler.Handler):
     return onnx_div
 
   @classmethod
-  def version_14(
+  def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_14 Div op."""
+    """ONNX version_13 Div op."""
     cls._prepare(node, inputs, onnx_div)
     return onnx_div
 
   @classmethod
-  def version_13(
+  def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_14 Div op."""

@@ -50,10 +50,10 @@ class Unsqueeze(handler.Handler):
       node.attrs_dict['axis'] = tuple(inputs[1].tolist())
 
   @classmethod
-  def version_13(
+  def version_1(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Unsqueeze op."""
+    """ONNX version_1 Unsqueeze op."""
     cls._prepare(node, inputs, onnx_unsqueeze)
     return onnx_unsqueeze
 
@@ -61,12 +61,12 @@ class Unsqueeze(handler.Handler):
   def version_11(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Unsqueeze op."""
+    """ONNX version_11 Unsqueeze op."""
     cls._prepare(node, inputs, onnx_unsqueeze)
     return onnx_unsqueeze
 
   @classmethod
-  def version_1(
+  def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_13 Unsqueeze op."""

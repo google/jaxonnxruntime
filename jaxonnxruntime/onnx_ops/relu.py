@@ -57,15 +57,15 @@ class Relu(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_14(
+  def version_6(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_14 Relu op."""
+    """ONNX version_6 Relu op."""
     cls._prepare(node, inputs, onnx_relu)
     return onnx_relu
 
   @classmethod
-  def version_6(
+  def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_14 Relu op."""

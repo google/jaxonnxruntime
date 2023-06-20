@@ -63,15 +63,15 @@ class Pow(handler.Handler):
     return onnx_pow
 
   @classmethod
-  def version_15(
+  def version_12(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_15 Pow op."""
+    """ONNX version_12 Pow op."""
     cls._prepare(node, inputs, onnx_pow)
     return onnx_pow
 
   @classmethod
-  def version_12(
+  def version_15(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_15 Pow op."""
