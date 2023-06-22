@@ -63,6 +63,14 @@ class Shape(handler.Handler):
     return onnx_shape
 
   @classmethod
+  def version_13(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Shape op."""
+    cls._prepare(node, inputs, onnx_shape)
+    return onnx_shape
+
+  @classmethod
   def version_15(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

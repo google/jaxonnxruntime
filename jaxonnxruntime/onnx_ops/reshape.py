@@ -65,6 +65,14 @@ class Reshape(handler.Handler):
     return onnx_reshape
 
   @classmethod
+  def version_13(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_13 Reshape op."""
+    cls._prepare(node, inputs, onnx_reshape)
+    return onnx_reshape
+
+  @classmethod
   def version_14(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

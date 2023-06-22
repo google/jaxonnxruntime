@@ -57,6 +57,14 @@ class Where(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_9(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_9 Where op."""
+    cls._prepare(node, inputs, onnx_where)
+    return onnx_where
+
+  @classmethod
   def version_16(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
