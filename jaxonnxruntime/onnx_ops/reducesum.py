@@ -29,7 +29,6 @@
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 from jax import jit
 from jax import numpy as jnp
@@ -45,22 +44,15 @@ class ReduceSum(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
-
+    node.attrs_dict['axes'] = node.attrs.get('axes')
     if len(inputs) >= 2:
       node.attrs_dict['axes'] = tuple(inputs[1].tolist())
       node.attrs_dict['axes'] = (
           None if len(node.attrs_dict['axes']) == 0 else node.attrs_dict['axes']
       )
-    node.attrs_dict['keepdims'] = (
-        True if node.attrs_dict['keepdims'] == 1 else False
+    node.attrs_dict['keepdims'] = node.attrs.get('keepdims', 1)
+    node.attrs_dict['noop_with_empty_axes'] = node.attrs.get(
+        'noop_with_empty_axes', 0
     )
 
   @classmethod
@@ -76,12 +68,14 @@ class ReduceSum(handler.Handler):
     jit, static_argnames=('axes', 'keepdims', 'noop_with_empty_axes')
 )
 def onnx_reducesum(
-    *input_args, axes=None, keepdims=False, noop_with_empty_axes=None
+    *input_args,
+    axes=None,
+    keepdims=1,
+    noop_with_empty_axes=0,
 ):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ReduceSum."""
   assert len(input_args) == 1 or len(input_args) == 2
   data = input_args[0]
-  noop_with_empty_axes = 0 if not noop_with_empty_axes else noop_with_empty_axes
-  if noop_with_empty_axes != 0:
+  if axes is None and noop_with_empty_axes > 0:
     return data
-  return jnp.sum(data, axis=axes, keepdims=keepdims)
+  return jnp.sum(data, axis=axes, keepdims=keepdims > 0)

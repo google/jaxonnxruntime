@@ -117,8 +117,18 @@ include_patterns.append('test_where_')
 # bfloat16.
 exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
 # Not implement yet
-exclude_patterns.append('test_gather_elements_')
-exclude_patterns.append('test_reduce_sum_square_')
+exclude_patterns.append('test_gather_elements_')  # Op GatherElements
+exclude_patterns.append('test_reduce_sum_square_')  # Op ReduceSumSquare
+exclude_patterns.append('test_leakyrelu_default_expanded_cpu')  # Op CastLike
+exclude_patterns.append('test_leakyrelu_example_expanded_cpu')  # Op CastLlike
+exclude_patterns.append('test_leakyrelu_expanded_cpu')  # Op CastLike
+exclude_patterns.append('test_relu_expanded_ver18_cpu')  # Op CastLike
+exclude_patterns.append('test_split_to_sequence_1_cpu')  # Op SplitToSequence
+exclude_patterns.append('test_split_to_sequence_2_cpu')  # Op SplitToSequence
+exclude_patterns.append(
+    'test_split_to_sequence_nokeepdims_cpu'
+)  # Op SplitToSequence
+
 # Need more debug
 exclude_patterns.append('test_softmax_axis_0_expanded_cpu')
 exclude_patterns.append('test_softmax_axis_1_expanded_cpu')
