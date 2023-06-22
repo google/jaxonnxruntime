@@ -52,11 +52,39 @@ class Split(handler.Handler):
       node.attrs_dict['split'] = tuple(inputs[1].tolist())
 
   @classmethod
+  def _prepare_2(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    cls._prepare(node, inputs, onnx_split)
+    if len(inputs) < 2:
+      node.attrs_dict['split'] = tuple(
+          [inputs[0].shape[node.attrs_dict['axis']] // node.len_outputs]
+          * node.len_outputs
+      )
+
+  @classmethod
+  def _prepare_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    cls._prepare(node, inputs, onnx_split)
+    if len(inputs) < 2:
+      node.attrs_dict['split'] = tuple(
+          [
+              inputs[0].shape[node.attrs_dict['axis']] // node.len_outputs
+              + int(
+                  inputs[0].shape[node.attrs_dict['axis']] % node.len_outputs
+                  > 0
+              )
+          ]
+          * node.len_outputs
+      )
+
+  @classmethod
   def version_2(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_2 Split op."""
-    cls._prepare(node, inputs, onnx_split)
+    cls._prepare_2(node, inputs, onnx_split)
     return onnx_split
 
   @classmethod
@@ -64,7 +92,7 @@ class Split(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_11 Split op."""
-    cls._prepare(node, inputs, onnx_split)
+    cls._prepare_2(node, inputs, onnx_split)
     return onnx_split
 
   @classmethod
@@ -72,7 +100,7 @@ class Split(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_13 Split op."""
-    cls._prepare(node, inputs, onnx_split)
+    cls._prepare_2(node, inputs, onnx_split)
     return onnx_split
 
   @classmethod
@@ -80,7 +108,7 @@ class Split(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_18 Split op."""
-    cls._prepare(node, inputs, onnx_split)
+    cls._prepare_18(node, inputs, onnx_split)
     return onnx_split
 
 
@@ -89,8 +117,8 @@ def onnx_split(*input_args, num_output, split=None, axis=0):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Split for more details."""
 
   x = input_args[0]
-  if split is None:
-    split = [x.shape[axis] // num_output] * num_output
+  # if split is None:
+  #   split = [x.shape[axis] / num_output] * num_output
   starts = []
   ends = []
   starts.append([0] * x.ndim)

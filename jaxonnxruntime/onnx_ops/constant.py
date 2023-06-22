@@ -75,7 +75,7 @@ class Constant(handler.Handler):
           node.attrs_dict['value'] = jnp.array(
               node.attrs[item], dtype=attr_to_dtype[item]
           )
-        matched = matched + 1
+          matched = matched + 1
 
     assert (
         matched == 1
