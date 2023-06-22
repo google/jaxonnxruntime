@@ -26,15 +26,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Define ONNX Cast operator."""
+
 from collections.abc import Callable, Sequence
 import functools
-from typing import Any
-from jax import jit
+from typing import Any, Optional
+
+import jax
+from jax import numpy as jnp
 from jaxonnxruntime import config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
+
 import onnx
+
 
 register_op = handler.register_op
 Handler = handler.Handler
@@ -93,8 +98,13 @@ class Cast(handler.Handler):
     return onnx_cast
 
 
-@functools.partial(jit, static_argnames=("to", "from_type"))
-def onnx_cast(x, *, to, from_type=None):
+@functools.partial(jax.jit, static_argnames=("to", "from_type"))
+def onnx_cast(
+    x: jax.Array,
+    *,
+    to: onnx.TensorProto.DataType,
+    from_type: Optional[jnp.dtype],
+) -> jax.Array:
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Cast for more details."""
   if from_type is onnx.TensorProto.STRING or to is onnx.TensorProto.STRING:
     raise NotImplementedError(
