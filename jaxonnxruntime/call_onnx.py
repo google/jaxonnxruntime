@@ -79,11 +79,8 @@ def call_onnx_graph(
   # step 1: Trace those static info
   jit_func_dict = {}
   onnx_node_dict = {}
-  opset = (
-    [make_opsetid(defs.ONNX_DOMAIN, defs.onnx_opset_version())]
-    if opset is None
-    else opset
-  )
+  if opset is None:
+    opset = [make_opsetid(defs.ONNX_DOMAIN, defs.onnx_opset_version())]
   handlers = _get_all_handlers(opset)
   node_execute_order_list = graph_helper.topological_sort()
 
@@ -203,6 +200,10 @@ def _get_all_handlers(
 
     domain = handler.DOMAIN
     opset_dict = dict([(o.domain, o.version) for o in opset])
+    if handler.DOMAIN not in opset_dict:
+      raise ValueError(
+          f'handler.DOMAIN {handler.DOMAIN} is not in opset_dict {opset_dict}'
+      )
     version = opset_dict[handler.DOMAIN]
     since_version = handler.get_since_version(version)
     handler.SINCE_VERSION = since_version

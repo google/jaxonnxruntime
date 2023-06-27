@@ -26,10 +26,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Defines a Handler class and a decorator to register ONNX ops."""
-import logging
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+import inspect
+import logging
+from typing import Any
+
 from onnx import defs
+
 
 logger = logging.getLogger(__name__)
 
@@ -70,14 +74,22 @@ class Handler:
 
   @classmethod
   def handle(cls, node: OnnxNode, inputs: Sequence[Any], **kwargs) -> Any:
+    """Return the jax class version member depending on OnnxNode verison."""
     ver_handle = getattr(cls, "version_{}".format(cls.SINCE_VERSION), None)
     if ver_handle:
       return ver_handle(node, inputs, **kwargs)  # pylint: disable=not-callable
 
+    # Get all the methods that start with "version_"
+    class_methods = inspect.getmembers(cls, predicate=inspect.ismethod)
+    version_methods = [
+        method_name
+        for method_name, _ in class_methods
+        if method_name.startswith("version_")
+    ]
+
     raise NotImplementedError(
-        "{} version {} is not implemented.".format(
-            node.op_type, cls.SINCE_VERSION
-        )
+        f"{node.op_type} version {cls.SINCE_VERSION} is not implemented."
+        f" Only have those versions: {version_methods}."
     )
 
   @classmethod

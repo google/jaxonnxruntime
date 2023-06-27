@@ -14,6 +14,11 @@ case $flag in
   --help)
   echo "Usage:"
   echo "  --with-cov: Also generate pytest coverage."
+  echo "  --no-doctest: disable doctest pytest."
+  echo "  --no-pytest: disable pytest."
+  echo "  --no-mypy: disable mypy check."
+  echo "  --use-venv: use python virtual env."
+
   exit
   ;;
   --no-doctest)
@@ -77,7 +82,7 @@ if $RUN_DOCTEST; then
   # test build html
   sphinx-build -M html docs docs/_build -T
   # test docstrings
-  pytest -n auto jaxonnxruntime --doctest-modules --suppress-no-test-exit-code
+  pytest -n auto jaxonnxruntime --doctest-modules --suppress-no-test-exit-code --ignore=jaxonnxruntime/experimental/ --ignore=jaxonnxruntime/examples
 fi
 
 # check that jaxonnxruntime is running on editable mode
