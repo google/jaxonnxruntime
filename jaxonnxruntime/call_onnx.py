@@ -51,7 +51,20 @@ def call_onnx_model(
     inputs: Union[Sequence[Any], Dict[str, Any]],
     rename_tensors: bool = False,
 ) -> Tuple[Callable[..., Any], Any]:
-  """Convert ONNX.ModelProto to jax_func with model parameters."""
+  """Convert an ONNX.ModelProto to a JAX function with model parameters and sample input.
+
+  Args:
+    model: The ONNX model to convert.
+    inputs: The sample input(s) for the model. It can be either a sequence of
+      inputs or a dictionary mapping input names to values.
+    rename_tensors: Indicates whether to rename all onnx.TensorProto name with
+      unique id `tensor_{id}`. Default is False.
+
+  Returns:
+    model_func, model_params: A tuple containing the JAX function  and the
+    model_params as PyTree.
+  """
+
   graph = model.graph
   if rename_tensors:
     graph = onnx_utils.sanitize_tensor_names_in_graph(graph)
