@@ -35,10 +35,6 @@ import onnx
 from onnx import numpy_helper
 
 
-jax.config.update('jax_enable_x64', True)
-jax.config.update('jax_numpy_rank_promotion', 'warn')
-
-
 class TestItem:
 
   def __init__(
