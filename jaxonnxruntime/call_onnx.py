@@ -47,10 +47,14 @@ logger = logging.getLogger(__name__)
 
 
 def call_onnx_model(
-    model: onnx.ModelProto, inputs: Union[Sequence[Any], Dict[str, Any]]
+    model: onnx.ModelProto,
+    inputs: Union[Sequence[Any], Dict[str, Any]],
+    rename_tensors: bool = False,
 ) -> Tuple[Callable[..., Any], Any]:
   """Convert ONNX.ModelProto to jax_func with model parameters."""
   graph = model.graph
+  if rename_tensors:
+    graph = onnx_utils.sanitize_tensor_names_in_graph(graph)
   if model.ir_version < 3:
     opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
   else:

@@ -38,7 +38,7 @@ def tensor_dtype_to_jnp_dtype(
   """Convert onnx.TensorProto.DataType to jnp.dtype."""
   if tensor_type is onnx.TensorProto.BFLOAT16:
     return jnp.bfloat16
-  if onnx.__version__ < '1.14.0':
+  if onnx.__version__ < "1.14.0":
     np_type = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type]
   else:
     np_type = onnx.helper.tensor_dtype_to_np_dtype(tensor_type)
@@ -101,3 +101,56 @@ def maybe_convert_to_dict(
     return dict(zip(input_names, inputs))
   else:
     raise NotImplementedError("Please use inputs of type dict or Sequence!")
+
+
+def sanitize_tensor_names_in_graph(
+    graph: onnx.GraphProto,
+) -> onnx.GraphProto:
+  """Format the names of all tensors in an onnx.GraphProto.
+
+  Each tensors will have a unique name in the format 'tensor_{idx}'.
+  Args:
+    graph: the onnx.GraphProto to be processed.
+
+  Returns:
+    graph: the graph within which tensor names have been formatted.
+  """
+
+  def _unique_tensor_name_generator():
+    idx = 0
+    while True:
+      yield f"tensor_{str(idx)}"
+      idx += 1
+
+  unique_name_gen = _unique_tensor_name_generator()
+  name_map = {}
+
+  def _sanitize_tensor_names_in_graph(graph):
+    for nd in graph.node:
+      for i in range(len(nd.input)):
+        if nd.input[i] not in name_map:
+          name_map[nd.input[i]] = next(unique_name_gen)
+        nd.input[i] = name_map[nd.input[i]]
+      for i in range(len(nd.output)):
+        if nd.output[i] not in name_map:
+          name_map[nd.output[i]] = next(unique_name_gen)
+        nd.output[i] = name_map[nd.output[i]]
+      if contain_subgraph(nd):
+        for attr_proto in nd.attribute:
+          if attr_proto.HasField("g"):
+            _sanitize_tensor_names_in_graph(attr_proto.g)
+    for proto in graph.initializer:
+      if proto.name not in name_map:
+        name_map[proto.name] = next(unique_name_gen)
+      proto.name = name_map[proto.name]
+    for proto in graph.input:
+      if proto.name not in name_map:
+        name_map[proto.name] = next(unique_name_gen)
+      proto.name = name_map[proto.name]
+    for proto in graph.output:
+      if proto.name not in name_map:
+        name_map[proto.name] = next(unique_name_gen)
+      proto.name = name_map[proto.name]
+
+  _sanitize_tensor_names_in_graph(graph)
+  return graph
