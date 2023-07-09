@@ -31,7 +31,9 @@ config.update('jaxort_only_allow_initializers_as_static_args', False)
 
 class Runner(runner.Runner):
 
-  def __init__(self, backend: JaxBackend, parent_module: Any = None) -> None:
+  def __init__(
+      self, backend: type(JaxBackend), parent_module: Any = None
+  ) -> None:
     self.backend = backend
     self._parent_module = parent_module
     self._include_patterns = set()  # type: ignore[var-annotated]
