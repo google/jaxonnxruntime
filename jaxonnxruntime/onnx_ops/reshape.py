@@ -53,7 +53,11 @@ class Reshape(handler.Handler):
             'the jitted function gives wrong results if its value changes '
             'in another input.'
         )
-    node.attrs_dict['shape'] = tuple(inputs[1].tolist())
+      node.attrs_dict['shape'] = tuple(
+          node.context_graph.initializer_dict[node.inputs[1]].tolist()
+      )
+    else:
+      node.attrs_dict['shape'] = tuple(inputs[1].tolist())
     node.attrs_dict['allowzero'] = node.attrs.get('allowzero', 0)
 
   @classmethod

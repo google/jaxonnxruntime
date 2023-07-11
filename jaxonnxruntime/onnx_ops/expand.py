@@ -54,7 +54,11 @@ class Expand(handler.Handler):
             "`shape` when `jax.jit` the `Expand` operator. "
             "The jitted function gives wrong results if its value changes."
         )
-    node.attrs_dict["shape"] = tuple(inputs[1].tolist())
+      node.attrs_dict["shape"] = tuple(
+          node.context_graph.initializer_dict[node.inputs[1]].tolist()
+      )
+    else:
+      node.attrs_dict["shape"] = tuple(inputs[1].tolist())
 
   @classmethod
   def version_8(

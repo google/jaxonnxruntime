@@ -60,16 +60,17 @@ class Cast(handler.Handler):
       from_type = onnx_utils.tensor_dtype_to_jnp_dtype(
           tensor_proto.type.tensor_type.elem_type
       )
-    elif node.context_graph.initializer_dict.get(node.inputs[0]) is not None:
-      tensor_proto = node.context_graph.initializer_dict.get(node.inputs[0])
-      from_type = onnx_utils.tensor_dtype_to_jnp_dtype(tensor_proto.data_type)
-    else:
-      if config.jaxort_only_allow_initializers_as_static_args:
+    elif config.jaxort_only_allow_initializers_as_static_args:
+      if node.context_graph.initializer_dict.get(node.inputs[0]) is not None:
+        tensor_proto = node.context_graph.initializer_dict.get(node.inputs[0])
+        from_type = onnx_utils.tensor_dtype_to_jnp_dtype(tensor_proto.data_type)
+      else:
         raise ValueError(
-            f"{node.inputs[0]} is not constant but used as a static argument "
-            "when `jax.jit` the `Cast` operator. "
-            "The jitted function gives wrong results if its value changes."
+            "`config.jaxort_only_allow_initializers_as_static_args = True but "
+            f"{node.inputs[0]} tensor is not constant. We can not use it"
+            "a static argument of the `Cast` operator. "
         )
+    else:
       from_type = inputs[0].dtype
     node.attrs_dict["from_type"] = from_type
 

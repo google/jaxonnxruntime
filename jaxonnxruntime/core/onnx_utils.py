@@ -27,6 +27,7 @@
 # limitations under the License.
 """onnx utility functions collection."""
 from typing import Any, Dict, Optional, Sequence, Union
+import jax
 from jax import numpy as jnp
 import onnx
 from onnx import numpy_helper
@@ -82,7 +83,7 @@ def get_graph_input(graph: onnx.GraphProto) -> list[str]:
   return unique_real_input
 
 
-def valueinfoproto_asarray(proto: Any):
+def valueinfoproto_asarray(proto: Any) -> jax.Array:
   """Convert onnx.ValueInfoProto to jaxlib.xla_extension.ArrayImpl."""
   return jnp.asarray(numpy_helper.to_array(proto).reshape(tuple(proto.dims)))
 

@@ -47,18 +47,22 @@ class Range(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
+    effective_inputs = []
     if config.jaxort_only_allow_initializers_as_static_args:
-      for inp in node.inputs[1:]:
+      for inp in node.inputs[:]:
         if inp not in node.context_graph.initializer_dict:
           raise ValueError(
               f"{inp} is not constant but used as a static argument "
               "when `jax.jit` the `Range` operator. "
               "The jitted function gives wrong results if its value changes."
           )
-    node.attrs_dict["start"] = inputs[0].item()
-    node.attrs_dict["limit"] = inputs[1].item()
-    node.attrs_dict["delta"] = inputs[2].item()
-    node.attrs_dict["dtype"] = inputs[0].dtype
+        effective_inputs.append(node.context_graph.initializer_dict[inp])
+    else:
+      effective_inputs = inputs
+    node.attrs_dict["start"] = effective_inputs[0].item()
+    node.attrs_dict["limit"] = effective_inputs[1].item()
+    node.attrs_dict["delta"] = effective_inputs[2].item()
+    node.attrs_dict["dtype"] = effective_inputs[0].dtype
 
   @classmethod
   def version_11(
