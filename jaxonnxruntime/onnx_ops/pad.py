@@ -42,7 +42,16 @@ class Pad(handler.Handler):
   """Implementation of the ONNX Pad operator."""
 
   @classmethod
-  def _prepare(
+  def _prepare_2(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    node.attrs_dict['mode'] = node.attrs.get('mode', 'constant')
+    node.attrs_dict['pads'] = tuple(node.attrs.get('pads'))
+    node.attrs_dict['constant_value'] = node.attrs.get('value', 0.0)
+    node.attrs_dict['axes'] = tuple(range(len(inputs[0].shape)))
+
+  @classmethod
+  def _prepare_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     node.attrs_dict['mode'] = node.attrs.get('mode', 'constant')
@@ -70,11 +79,25 @@ class Pad(handler.Handler):
       node.attrs_dict['axes'] = tuple(range(len(inputs[0].shape)))
 
   @classmethod
+  def _prepare_19(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    cls._prepare_13(node, inputs, onnx_jax_impl)
+
+  @classmethod
+  def version_2(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_2 Pad op."""
+    cls._prepare_2(node, inputs, onnx_pad)
+    return onnx_pad
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_13 Pad op."""
-    cls._prepare(node, inputs, onnx_pad)
+    cls._prepare_13(node, inputs, onnx_pad)
     return onnx_pad
 
   @classmethod
@@ -82,7 +105,7 @@ class Pad(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_19 Pad op."""
-    cls._prepare(node, inputs, onnx_pad)
+    cls._prepare_19(node, inputs, onnx_pad)
     return onnx_pad
 
 

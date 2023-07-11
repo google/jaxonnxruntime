@@ -58,6 +58,14 @@ class LeakyRelu(handler.Handler):
     node.attrs_dict["alpha"] = node.attrs.get("alpha", 0.01)
 
   @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 LeakyRelu op."""
+    cls._prepare(node, inputs, onnx_leakyrelu)
+    return onnx_leakyrelu
+
+  @classmethod
   def version_16(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

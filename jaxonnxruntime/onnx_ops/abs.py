@@ -63,6 +63,14 @@ class Abs(handler.Handler):
     return onnx_abs
 
   @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 Abs op."""
+    cls._prepare(node, inputs, onnx_abs)
+    return onnx_abs
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

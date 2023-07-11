@@ -55,6 +55,14 @@ class MatMul(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 MatMul op."""
+    cls._prepare(node, inputs, onnx_matmul)
+    return onnx_matmul
+
+  @classmethod
   def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

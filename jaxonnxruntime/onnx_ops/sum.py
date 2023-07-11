@@ -57,6 +57,14 @@ class Sum(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 Sum op."""
+    cls._prepare(node, inputs, onnx_sum)
+    return onnx_sum
+
+  @classmethod
   def version_8(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
