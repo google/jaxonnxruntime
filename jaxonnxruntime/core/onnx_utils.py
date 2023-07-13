@@ -46,12 +46,27 @@ def tensor_dtype_to_jnp_dtype(
   return jnp.dtype(np_type)
 
 
+def get_elem_type_from_type_proto(type_proto: onnx.TypeProto):
+  if type_proto.HasField("optional_type"):
+    return get_elem_type_from_type_proto(type_proto.optional_type.elem_type)
+  if type_proto.HasField("sequence_type"):
+    return get_elem_type_from_type_proto(type_proto.sequence_type.elem_type)
+
+  if type_proto.HasField("tensor_type"):
+    return type_proto.tensor_type.elem_type
+
+  raise ValueError(
+      f"currently only support Tensor type TypeProto but got {type_proto}"
+  )
+
+
 def get_shape_and_dtype_from_val_info(
     value_info: onnx.ValueInfoProto,
 ) -> tuple[list[int], jnp.dtype]:
   """Get jax numpy shape and dtype from onnx.ValueInfoProto."""
   type_proto = value_info.type
-  dtype = tensor_dtype_to_jnp_dtype(type_proto.tensor_type.elem_type)
+  elem_type = get_elem_type_from_type_proto(type_proto)
+  dtype = tensor_dtype_to_jnp_dtype(elem_type)
   shape = [dim.dim_value for dim in type_proto.tensor_type.shape.dim]
 
   return shape, dtype

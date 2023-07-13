@@ -28,16 +28,20 @@
 """Convert ONNX model into jax function."""
 
 import logging
-from typing import Any, Callable, Dict, Sequence, Type, Tuple, Union
+from typing import Any, Callable, Dict, Sequence, Tuple, Type, Union
 
+import jax
+from jaxonnxruntime import config
 from jaxonnxruntime import onnx_ops  # pylint: disable=unused-import
 from jaxonnxruntime.core import handler as onnx_handler
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
+
 import onnx
 from onnx import defs
 from onnx.helper import make_opsetid
+
 
 OnnxNode = onnx_node.OnnxNode
 OnnxGraph = onnx_graph.OnnxGraph
@@ -115,7 +119,11 @@ def call_onnx_graph(
       ) from e
     jit_func = _get_jit_func(node, node_inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
-    outputs = jit_func(*node_inputs, **node.attrs_dict)
+
+    if config.jaxort_experimental_support_abtract_input_shape:
+      outputs = jax.eval_shape(jit_func, *node_inputs, **node.attrs_dict)
+    else:
+      outputs = jit_func(*node_inputs, **node.attrs_dict)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]
 
     for name, output in zip(node.outputs, outputs):
@@ -229,7 +237,12 @@ def _get_all_handlers(
   return handlers
 
 
-def _get_jit_func(node, inputs, handlers, **kwargs):
+def _get_jit_func(
+    node: OnnxNode,
+    inputs: list[Any],
+    handlers: Dict[str, Dict[str, type[Handler]]],
+    **kwargs,
+):
   """Get the JAX node implementation."""
   handler = (
       handlers[node.domain].get(node.op_type, None)

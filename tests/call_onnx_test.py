@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from absl.testing import absltest
+import jax
 from jaxonnxruntime import call_onnx
+from jaxonnxruntime import config_class
 import numpy as np
 
 import onnx
@@ -70,6 +72,15 @@ class TestCallOnnx(absltest.TestCase):
     results = jax_func(model_params, [x])
     expect = [np.array([2.0, 1.0, 3.0], dtype=np.float32)]
     np.testing.assert_array_equal(results, expect)
+
+    with config_class.jaxort_experimental_support_abtract_input_shape(True):
+      x = np.array([-2.0, -8.0, 3.0], dtype=np.float32)
+      jax_func, model_params = call_onnx.call_onnx_model(
+          model_proto, [jax.ShapeDtypeStruct(x.shape, x.dtype)]
+      )
+      results = jax_func(model_params, [x])
+      expect = [np.array([2.0, 8.0, 3.0], dtype=np.float32)]
+      np.testing.assert_array_equal(results, expect)
 
 
 if __name__ == '__main__':
