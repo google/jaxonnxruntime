@@ -44,7 +44,7 @@ import inspect
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -72,24 +72,28 @@ template_version_func = """
 
 template_tail = """
 
-@functools.partial(jit, static_argnames=())
+@functools.partial(jax.jit, static_argnames=())
 def onnx_{op_name_lower}(*input_args):
   \"\"\"https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#{op_name} for more details.\"\"\"
   # TODO({username}): add the implementation here.
-  # Then update the onnx_ops_teset.py to include it,
-  # `include_patterns.append('test_{op_name_lower}_')`.
   return input_args
 """
 
-root_dir = os.path.dirname(os.path.realpath(onnx_ops.__file__))
-op_schema_set = {
-    str(op_schema.name) for op_schema in onnx.defs.get_all_schemas()
-}
+onnx_ops_root_dir = os.path.dirname(os.path.realpath(onnx_ops.__file__))
+
+
+def get_schema_dict():
+  res_dict = {}
+  for schema in onnx.defs.get_all_schemas_with_history():
+    if schema.name not in res_dict:
+      res_dict[schema.name] = []
+    res_dict[schema.name].append(schema)
+  return res_dict
 
 
 def update_onnx_ops_init_file(op_name):
   """Update onnx_ops/__init_.py with the created op."""
-  init_py_file = os.path.join(root_dir, '__init__.py')
+  init_py_file = os.path.join(onnx_ops_root_dir, '__init__.py')
   with open(init_py_file, 'r') as f:
     existing_imports = f.read()
 
@@ -103,7 +107,7 @@ def update_onnx_ops_init_file(op_name):
   onnx_op_imports = existing_imports[len(initial_imports) :]
 
   # Add the new import statement.
-  onnx_op_imports += f'\nfrom . import {op_name.lower()}'
+  onnx_op_imports += new_import
 
   # Replace and sort the ONNX op imports.
   pattern = r'from \. import .*'
@@ -116,15 +120,52 @@ def update_onnx_ops_init_file(op_name):
     f.write('\n')
 
 
+def update_onnx_ops_test_file(op_name):
+  """enable those tests under test/onnx_ops_test.py with the created op."""
+  py_file = os.path.join(
+      os.path.realpath(onnx_ops_root_dir), '../tests/onnx_ops_test.py'
+  )
+  with open(py_file, 'r') as f:
+    source_code = f.read()
+
+  lines = source_code.splitlines()
+  start, end = None, None
+  include_patterns_lines = []
+  for i, line in enumerate(lines):
+    if 'include_patterns.append' in line:
+      include_patterns_lines.append(line)
+      if not start:
+        start = i
+      end = i + 1
+  logging.info('start = %s ,end = %s', start, end)
+  if f'test_{op_name.lower()}_' not in include_patterns_lines:
+    include_patterns_lines.append(
+        f"include_patterns.append('test_{op_name.lower()}_')"
+    )
+  else:
+    logging.info('Already have test %s in onnx_models_test.py.', op_name)
+    return
+
+  include_patterns_lines = sorted(include_patterns_lines)
+
+  modified_code = '\n'.join(
+      lines[0:start] + include_patterns_lines + lines[end:]
+  )
+
+  with open(py_file, 'w') as f:
+    f.write(modified_code)
+
+
 def main(args):
   # get the version list for the ONNX operator
   op_name = args.op_name
-  if str(op_name) not in op_schema_set:
+  op_schema_dict = get_schema_dict()
+  if str(op_name) not in op_schema_dict:
     raise ValueError(
-        f'ONNX {op_name} is not ONNX op list {sorted(op_schema_set)}?.'
+        f'ONNX {op_name} is not ONNX op list {sorted(op_schema_dict.keys())}?.'
     )
-  schema = onnx.defs.get_schema(op_name)
-  versions = [schema.since_version] if schema else []
+  schemas = op_schema_dict[str(op_name)]
+  versions = [schema.since_version for schema in schemas]
   username = os.environ['USER']
 
   # Render the template and create new op file under onnx_ops folder.
@@ -141,12 +182,18 @@ def main(args):
       username=username,
   )
   logging.info('Genereate new code=\n%s', code)
-  op_def_path = os.path.join(root_dir, f'{op_name.lower()}.py')
-  with open(op_def_path, 'w') as f:
-    f.write(code)
+  op_def_path = os.path.join(onnx_ops_root_dir, f'{op_name.lower()}.py')
+  if os.path.exists(op_def_path):
+    logging.error(
+        'file %s already exists. Please delete it first.', op_def_path
+    )
+  else:
+    with open(op_def_path, 'w') as f:
+      f.write(code)
 
   # Update the onnx_ops/__init__.py by adding this new op.
   update_onnx_ops_init_file(op_name)
+  update_onnx_ops_test_file(op_name)
 
 
 if __name__ == '__main__':
