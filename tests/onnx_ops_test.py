@@ -64,15 +64,28 @@ include_patterns = []
 exclude_patterns = []
 
 include_patterns.append('test_abs_')
+include_patterns.append('test_acos_')
+include_patterns.append('test_acosh_')
 include_patterns.append('test_add_')
+include_patterns.append('test_and_')
+include_patterns.append('test_argmax_')
+include_patterns.append('test_argmin_')
+include_patterns.append('test_asin_')
+include_patterns.append('test_asinh_')
+include_patterns.append('test_atan_')
+include_patterns.append('test_atanh_')
 include_patterns.append('test_averagepool_')
 include_patterns.append('test_batchnormalization_')
+include_patterns.append('test_bitshift_')
 include_patterns.append('test_cast_')
+include_patterns.append('test_castlike_')
 include_patterns.append('test_ceil_')
 include_patterns.append('test_concat_')
 include_patterns.append('test_constant_')
 include_patterns.append('test_constantofshape_')
 include_patterns.append('test_conv_')
+include_patterns.append('test_cos_')
+include_patterns.append('test_cosh_')
 include_patterns.append('test_div_')
 include_patterns.append('test_dropout_')
 include_patterns.append('test_equal_')
@@ -87,15 +100,19 @@ include_patterns.append('test_if_')
 include_patterns.append('test_leakyrelu_')
 include_patterns.append('test_less_')
 include_patterns.append('test_lessorequal_')
+include_patterns.append('test_log_')
+include_patterns.append('test_logsoftmax_')
 include_patterns.append('test_lrn_')
 include_patterns.append('test_matmul_')
 include_patterns.append('test_max_')
 include_patterns.append('test_maxpool_')
+include_patterns.append('test_min_')
 include_patterns.append('test_mul_')
 include_patterns.append('test_neg_')
 include_patterns.append('test_onehot_')
 include_patterns.append('test_or_')
 include_patterns.append('test_pow_')
+include_patterns.append('test_prelu_')
 include_patterns.append('test_range_')
 include_patterns.append('test_reciprocal_')
 include_patterns.append('test_reduce_max_')
@@ -103,10 +120,14 @@ include_patterns.append('test_reduce_mean_')
 include_patterns.append('test_reduce_sum_')
 include_patterns.append('test_relu_')
 include_patterns.append('test_reshape_')
+include_patterns.append('test_selu_')
 include_patterns.append('test_shape_')
 include_patterns.append('test_sigmoid_')
+include_patterns.append('test_sin_')
+include_patterns.append('test_sinh_')
 include_patterns.append('test_slice_')
 include_patterns.append('test_softmax_')
+include_patterns.append('test_softplus_')
 include_patterns.append('test_split_')
 include_patterns.append('test_sqrt_')
 include_patterns.append('test_sub_')
@@ -121,6 +142,7 @@ include_patterns.append('test_where_')
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.
 exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
+exclude_patterns.append('test_castlike_FLOAT_to_BFLOAT16')
 # Not implement yet
 exclude_patterns.append('test_gather_elements_')  # Op GatherElements
 exclude_patterns.append('test_reduce_sum_square_')  # Op ReduceSumSquare
@@ -175,6 +197,27 @@ expect_fail_patterns.extend([
     'test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FN_cpu',
     'test_cast_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_cpu',
     'test_cast_no_saturate_FLOAT_to_FLOAT8E5M2_cpu',
+    # castlike
+    'test_castlike_FLOAT_to_STRING',
+    'test_castlike_STRING_to_FLOAT',
+    'test_castlike_FLOAT16_to_FLOAT8E4M3FNUZ_',
+    'test_castlike_FLOAT16_to_FLOAT8E4M3FNUZ_',
+    'test_castlike_FLOAT16_to_FLOAT8E4M3FN_',
+    'test_castlike_FLOAT16_to_FLOAT8E5M2FNUZ_',
+    'test_castlike_FLOAT16_to_FLOAT8E5M2_',
+    'test_castlike_FLOAT_to_FLOAT8E4M3FNUZ_',
+    'test_castlike_FLOAT_to_FLOAT8E4M3FN_',
+    'test_castlike_FLOAT_to_FLOAT8E5M2FNUZ_',
+    'test_castlike_FLOAT_to_FLOAT8E5M2_',
+    'test_castlike_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ_',
+    'test_castlike_no_saturate_FLOAT16_to_FLOAT8E4M3FN_',
+    'test_castlike_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ_',
+    'test_castlike_no_saturate_FLOAT16_to_FLOAT8E5M2_',
+    'test_castlike_no_saturate_FLOAT_to_FLOAT8E4M3FNUZ_',
+    'test_castlike_no_saturate_FLOAT_to_FLOAT8E4M3FN_',
+    'test_castlike_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_',
+    'test_castlike_no_saturate_FLOAT_to_FLOAT8E5M2_',
+    'test_castlike_.*_expanded_',
     # others
     'test_maxpool_2d_ceil_',
     'test_averagepool_2d_ceil_',

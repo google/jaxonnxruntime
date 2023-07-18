@@ -12,20 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""Define ONNX Sigmoid operator."""
+"""Define ONNX Asinh operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
@@ -33,15 +20,15 @@ import functools
 import inspect
 from typing import Any
 
-import jax
 from jax import jit
+from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Sigmoid")
-class Sigmoid(handler.Handler):
-  """Implementation of the ONNX Sigmoid operator."""
+@handler.register_op("Asinh")
+class Asinh(handler.Handler):
+  """Implementation of the ONNX Asinh operator."""
 
   @classmethod
   def _prepare(
@@ -57,24 +44,17 @@ class Sigmoid(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
-  def version_13(
+  def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Sigmoid op."""
-    cls._prepare(node, inputs, onnx_sigmoid)
-    return onnx_sigmoid
-
-  @classmethod
-  def version_6(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
-    """ONNX version_6 Sigmoid op."""
-    cls._prepare(node, inputs, onnx_sigmoid)
-    return onnx_sigmoid
+    """ONNX version_9 Asinh op."""
+    cls._prepare(node, inputs, onnx_asinh)
+    return onnx_asinh
 
 
 @functools.partial(jit, static_argnames=())
-def onnx_sigmoid(*input_args):
-  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Sigmoid for more details."""
+def onnx_asinh(*input_args):
+  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Asinh for more details."""
   assert len(input_args) == 1
-  return jax.nn.sigmoid(input_args[0])
+  data = input_args[0]
+  return jnp.arcsinh(data)

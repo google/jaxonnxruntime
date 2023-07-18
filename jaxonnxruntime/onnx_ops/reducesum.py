@@ -56,6 +56,14 @@ class ReduceSum(handler.Handler):
     )
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 ReduceSum op."""
+    cls._prepare(node, inputs, onnx_reducesum)
+    return onnx_reducesum
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

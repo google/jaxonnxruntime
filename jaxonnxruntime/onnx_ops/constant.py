@@ -82,6 +82,14 @@ class Constant(handler.Handler):
     ), f'Should only provide one of value attributes, but get {matched}'
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 Constant op."""
+    cls._prepare(node, inputs, onnx_constant)
+    return onnx_constant
+
+  @classmethod
   def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
