@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Max operator."""
+
+"""Define ONNX PRelu operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
@@ -25,9 +26,9 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Max")
-class Max(handler.Handler):
-  """Implementation of the ONNX Max operator."""
+@handler.register_op("PRelu")
+class PRelu(handler.Handler):
+  """Implementation of the ONNX PRelu operator."""
 
   @classmethod
   def _prepare(
@@ -41,30 +42,27 @@ class Max(handler.Handler):
     ]
     for name in kwparams:
       node.attrs_dict[name] = node.attrs.get(name, None)
-    node.attrs_dict["arg_num"] = len(node.inputs)
 
   @classmethod
   def version_6(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_6 Max op."""
-    cls._prepare(node, inputs, onnx_max)
-    return onnx_max
+    """ONNX version_6 PRelu op."""
+    cls._prepare(node, inputs, onnx_prelu)
+    return onnx_prelu
 
   @classmethod
-  def version_13(
+  def version_16(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Max op."""
-    cls._prepare(node, inputs, onnx_max)
-    return onnx_max
+    """ONNX version_16 PRelu op."""
+    cls._prepare(node, inputs, onnx_prelu)
+    return onnx_prelu
 
 
-@functools.partial(jit, static_argnames=("arg_num",))
-def onnx_max(*input_args, arg_num):
-  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Max for more details."""
-  assert len(input_args) == arg_num
-  res = input_args[0]
-  for i in range(arg_num):
-    res = jnp.maximum(res, input_args[i])
-  return res
+@functools.partial(jit, static_argnames=())
+def onnx_prelu(*input_args):
+  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#PRelu for more details."""
+  assert len(input_args) == 2
+  data, slope = input_args
+  return jnp.where(data >= 0, data, slope * data)

@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Define ONNX Max operator."""
+
+"""Define ONNX ArgMax operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 
 from jax import jit
@@ -25,46 +25,40 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Max")
-class Max(handler.Handler):
-  """Implementation of the ONNX Max operator."""
+@handler.register_op('ArgMax')
+class ArgMax(handler.Handler):
+  """Implementation of the ONNX ArgMax operator."""
 
   @classmethod
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
-    node.attrs_dict["arg_num"] = len(node.inputs)
-
-  @classmethod
-  def version_6(
-      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
-  ) -> Callable[..., Any]:
-    """ONNX version_6 Max op."""
-    cls._prepare(node, inputs, onnx_max)
-    return onnx_max
+    node.attrs_dict['axis'] = node.attrs.get('axis', 0)
+    node.attrs_dict['keepdims'] = node.attrs.get('keepdims', 1)
+    node.attrs_dict['select_last_index'] = node.attrs.get(
+        'select_last_index', 0
+    )
 
   @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_13 Max op."""
-    cls._prepare(node, inputs, onnx_max)
-    return onnx_max
+    """ONNX version_13 ArgMax op."""
+    cls._prepare(node, inputs, onnx_argmax)
+    return onnx_argmax
 
 
-@functools.partial(jit, static_argnames=("arg_num",))
-def onnx_max(*input_args, arg_num):
-  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Max for more details."""
-  assert len(input_args) == arg_num
-  res = input_args[0]
-  for i in range(arg_num):
-    res = jnp.maximum(res, input_args[i])
-  return res
+@functools.partial(
+    jit, static_argnames=('axis', 'keepdims', 'select_last_index')
+)
+def onnx_argmax(data, *, axis, keepdims, select_last_index):
+  """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ArgMax for more details."""
+  keepdims = False if keepdims == 0 else True
+  if select_last_index == 0:
+    return jnp.argmax(data, axis=axis, keepdims=keepdims)
+  data = jnp.flip(data, axis)
+  result = jnp.argmax(data, axis=axis)
+  result = data.shape[axis] - result - 1
+  if keepdims:
+    result = jnp.expand_dims(result, axis)
+  return result

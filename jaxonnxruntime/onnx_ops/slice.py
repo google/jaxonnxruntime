@@ -40,6 +40,14 @@ class Slice(handler.Handler):
       node.attrs_dict['steps'] = None
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 Slice op."""
+    cls._prepare(node, inputs, onnx_slice)
+    return onnx_slice
+
+  @classmethod
   def version_10(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

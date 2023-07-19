@@ -41,6 +41,14 @@ class Gemm(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 Gemm op."""
+    cls._prepare(node, inputs, onnx_gemm)
+    return onnx_gemm
+
+  @classmethod
   def version_7(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
