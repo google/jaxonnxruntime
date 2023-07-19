@@ -80,6 +80,7 @@ include_patterns.append('test_bitshift_')
 include_patterns.append('test_cast_')
 include_patterns.append('test_castlike_')
 include_patterns.append('test_ceil_')
+include_patterns.append('test_clip_')
 include_patterns.append('test_concat_')
 include_patterns.append('test_constant_')
 include_patterns.append('test_constantofshape_')
@@ -88,11 +89,14 @@ include_patterns.append('test_cos_')
 include_patterns.append('test_cosh_')
 include_patterns.append('test_div_')
 include_patterns.append('test_dropout_')
+include_patterns.append('test_einsum_')
 include_patterns.append('test_equal_')
+include_patterns.append('test_erf_')
 include_patterns.append('test_exp_')
 include_patterns.append('test_expand_')
 include_patterns.append('test_flatten_')
 include_patterns.append('test_gather_')
+include_patterns.append('test_gather_elements_')
 include_patterns.append('test_gemm_')
 include_patterns.append('test_globalaveragepool_')
 include_patterns.append('test_identity_')
@@ -134,7 +138,9 @@ include_patterns.append('test_sub_')
 include_patterns.append('test_sum_')
 include_patterns.append('test_squeeze_')
 include_patterns.append('test_tanh_')
+include_patterns.append('test_top_k_')
 include_patterns.append('test_transpose_')
+include_patterns.append('test_tri')
 include_patterns.append('test_unsqueeze_')
 include_patterns.append('test_where_')
 
@@ -155,7 +161,19 @@ exclude_patterns.append('test_split_to_sequence_2_cpu')  # Op SplitToSequence
 exclude_patterns.append(
     'test_split_to_sequence_nokeepdims_cpu'
 )  # Op SplitToSequence
-
+# Clip: In ONNX's def, the Clip op's input `min` and `max` are optional.
+# The input name list would be ['data', 'min', 'max'].
+# In the test cases below, when `min` is not given, its name is set to
+# be an empty string. But this is not compatible with jaxonnxruntime,
+# as we don't handle placeholder as input names if the actual input data is
+# missing. There will be a mismatch between the length of input name list and
+# input data list. Therefore, we only include test cases with all three inputs,
+# and with the first two inputs. Test cases with input name list
+# ['data', '', 'max'] are excluded.
+exclude_patterns.append('test_clip_default_inbounds_')
+exclude_patterns.append('test_clip_default_int8_inbounds_')
+exclude_patterns.append('test_clip_default_int8_max_')
+exclude_patterns.append('test_clip_default_max_')
 # Need more debug
 exclude_patterns.append('test_softmax_axis_0_expanded_cpu')
 exclude_patterns.append('test_softmax_axis_1_expanded_cpu')

@@ -36,6 +36,7 @@ from . import bitshift as bitshift
 from . import cast as cast
 from . import castlike as castlike
 from . import ceil as ceil
+from . import clip as clip
 from . import concat as concat
 from . import constant as constant
 from . import constantofshape as constantofshape
@@ -44,11 +45,14 @@ from . import cos as cos
 from . import cosh as cosh
 from . import div as div
 from . import dropout as dropout
+from . import einsum as einsum
 from . import equal as equal
+from . import erf as erf
 from . import exp as exp
 from . import expand as expand
 from . import flatten as flatten
 from . import gather as gather
+from . import gatherelements as gatherelements
 from . import gemm as gemm
 from . import globalaveragepool as globalaveragepool
 from . import identity as identity
@@ -92,6 +96,8 @@ from . import squeeze as squeeze
 from . import sub as sub
 from . import sum as sum
 from . import tanh as tanh
+from . import topk as topk
 from . import transpose as transpose
+from . import trilu as trilu
 from . import unsqueeze as unsqueeze
 from . import where as where
