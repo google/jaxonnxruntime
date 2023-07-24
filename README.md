@@ -18,6 +18,14 @@ More specifically, this tool chain has the abilities:
 
 ## Contributions and Discussions
 
+We believe that collaboration is the key to building remarkable software, and we wholeheartedly welcome contributions from developers like you.
+You can make a real impact and help shape the future of our project with contributions such as
+[implementing new operators](https://github.com/google/jaxonnxruntime/blob/main/docs/adding_a_new_op.rst) and increasing support for more ML models.
+
+Our contributors will have a chance to earn [Google Open Source Peer Bonus](https://opensource.google/documentation/reference/growing/peer-bonus), so that your valuable contributions won't go unnoticed.
+Your hard work will be rewarded both by the community and by Google.
+Together, let's create an amazing library and foster a supportive environment for open-source enthusiasts.
+
 Thank you for taking the time to contribute! Please see [the contribution guidelines](https://github.com/google/jaxonnxruntime/blob/main/contributing.md).
 
 ## License
