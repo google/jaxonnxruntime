@@ -68,7 +68,8 @@ class Pad(handler.Handler):
     if len(inputs) >= 2:
       node.attrs_dict['pads'] = tuple(inputs[1].tolist())
 
-    if len(inputs) >= 3:
+    if len(inputs) >= 3 and inputs[2]:
+      import pdb; pdb.set_trace()
       node.attrs_dict['constant_value'] = inputs[2].item()
     else:
       node.attrs_dict['constant_value'] = 0.0
@@ -77,6 +78,13 @@ class Pad(handler.Handler):
       node.attrs_dict['axes'] = tuple(inputs[3].tolist())
     else:
       node.attrs_dict['axes'] = tuple(range(len(inputs[0].shape)))
+
+  @classmethod
+  def _prepare_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    cls._prepare_13(node, inputs, onnx_jax_impl)
+
 
   @classmethod
   def _prepare_19(
@@ -98,6 +106,14 @@ class Pad(handler.Handler):
   ) -> Callable[..., Any]:
     """ONNX version_13 Pad op."""
     cls._prepare_13(node, inputs, onnx_pad)
+    return onnx_pad
+
+  @classmethod
+  def version_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_18 Pad op."""
+    cls._prepare_18(node, inputs, onnx_pad)
     return onnx_pad
 
   @classmethod

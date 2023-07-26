@@ -114,14 +114,17 @@ def call_onnx_graph(
   for node_proto in node_execute_order_list:
     node = OnnxNode(node_proto, graph_helper)
     onnx_node_dict[node.name] = node
-    try:
-      node_inputs = [tensor_dict[x] for x in node.inputs + node.subgraph_inputs]
-    except Exception as e:
-      raise ValueError(
-          'Fail to get the input tensor of node input names'
-          f'{node.inputs + node.subgraph_inputs}, the node proto is'
-          f'{node.node_proto}.'
-      ) from e
+    for x in node.inputs + node.subgraph_inputs:
+      if x and not x in tensor_dict:
+        import pdb; pdb.set_trace()
+        raise ValueError(
+            f'Fail to get the input tensor {x} of node input names'
+            f'{node.inputs + node.subgraph_inputs}, the node proto is'
+            f'{node.node_proto}.'
+            f'tensor_dict keys = {tensor_dict.keys()}'
+        )
+
+    node_inputs = [tensor_dict[x] if x else None for x in node.inputs + node.subgraph_inputs]
     jit_func = _get_jit_func(node, node_inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
 
@@ -143,7 +146,7 @@ def call_onnx_graph(
     ref_dict = {}
     for node_proto in node_execute_order_list:
       node = onnx_node_dict[node_proto.name]
-      node_inputs = [tensor_dict[x] for x in node.inputs + node.subgraph_inputs]
+      node_inputs = [tensor_dict[x] if x else None for x in node.inputs + node.subgraph_inputs]
       jit_func = jit_func_dict[node.name]
       outputs = jit_func(*node_inputs, **node.attrs_dict)
       outputs = outputs if isinstance(outputs, Sequence) else [outputs]
@@ -167,6 +170,8 @@ def call_onnx_graph(
         if tensor_ref_dict[k] == v:
           remove_keys.append(k)
       for rm_k in remove_keys:
+        if not rm_k:
+          continue
         del ref_dict[rm_k]
         del tensor_dict[rm_k]
 
