@@ -76,6 +76,11 @@ def call_onnx_model(
     opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
   else:
     opset = model.opset_import
+
+  for s in opset:
+    if s.domain != "":
+      raise NotImplementedError(f"Only support ONNX standard opset \"\" currently. But get {s.domain=}")
+
   model_params = {
       n.name: onnx_utils.valueinfoproto_asarray(n) for n in graph.initializer
   }
