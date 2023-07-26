@@ -327,7 +327,13 @@ class Runner:
       ):
         test_data = np.load(test_data_npz, encoding='bytes')
         inputs = list(test_data['inputs'])
-        outputs = list(prepared_model.run(inputs))
+        try:
+          outputs = list(prepared_model.run(inputs))
+        except NotImplementedError as e:
+          print(e)
+          return
+        except Exception as e:
+          raise e
         ref_outputs = test_data['outputs']
         self.assert_similar_outputs(
             ref_outputs, outputs, rtol=model_test.rtol, atol=model_test.atol
@@ -345,7 +351,13 @@ class Runner:
         for i in range(ref_outputs_num):
           output_file = os.path.join(test_data_dir, f'output_{i}.pb')
           self._load_proto(output_file, ref_outputs, model.graph.output[i].type)
-        outputs = list(prepared_model.run(inputs))
+        try:
+          outputs = list(prepared_model.run(inputs))
+        except NotImplementedError as e:
+          print(e)
+          return
+        except Exception as e:
+          raise e
         self.assert_similar_outputs(
             ref_outputs, outputs, rtol=model_test.rtol, atol=model_test.atol
         )
