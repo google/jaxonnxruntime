@@ -44,6 +44,14 @@ class Log(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 Log op."""
+    cls._prepare(node, inputs, onnx_log)
+    return onnx_log
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

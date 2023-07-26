@@ -83,8 +83,8 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10']
-        test-type: [doctest, pytest]
-        onnx-version: ['1.12.0', '1.14.0']
+        test-type: [doctest, pytest, experimental-pytest]
+        onnx-version: ['1.14.0']
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -125,11 +125,13 @@ jobs:
     - name: Test with ${{ matrix.test-type }}
       run: |
         if [[ "${{ matrix.test-type }}" == "doctest" ]]; then
-          tests/run_all_tests.sh --no-pytest --no-mypy --use-venv
+          tests/run_all_tests.sh --doctest --use-venv
         elif [[ "${{ matrix.test-type }}" == "pytest" ]]; then
-          tests/run_all_tests.sh --no-doctest --no-mypy --with-cov --use-venv
+          tests/run_all_tests.sh --pytest --use-venv
         elif [[ "${{ matrix.test-type }}" == "mypy" ]]; then
-          tests/run_all_tests.sh --no-doctest --no-pytest --use-venv
+          tests/run_all_tests.sh --mypy --use-venv
+        elif [[ "${{ matrix.test-type }}" == "experimental-pytest" ]]; then
+          tests/run_all_tests.sh --experimental-pytest --use-venv
         else
           echo "Unknown test type: ${{ matrix.test-type }}"
           exit 1

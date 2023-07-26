@@ -79,6 +79,12 @@ class Pad(handler.Handler):
       node.attrs_dict['axes'] = tuple(range(len(inputs[0].shape)))
 
   @classmethod
+  def _prepare_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    cls._prepare_13(node, inputs, onnx_jax_impl)
+
+  @classmethod
   def _prepare_19(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
@@ -108,6 +114,13 @@ class Pad(handler.Handler):
     cls._prepare_19(node, inputs, onnx_pad)
     return onnx_pad
 
+  @classmethod
+  def version_18(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_19 Pad op."""
+    cls._prepare_18(node, inputs, onnx_pad)
+    return onnx_pad
 
 @functools.partial(
     jit, static_argnames=('pads', 'constant_value', 'mode', 'axes')

@@ -1,9 +1,10 @@
 #!/bin/bash
 
 PYTEST_OPTS=
-RUN_DOCTEST=true
-RUN_MYPY=true
-RUN_PYTEST=true
+RUN_DOCTEST=false
+RUN_MYPY=false
+RUN_PYTEST=false
+RUN_EXPERIMENTAL_PYTEST=false
 GH_VENV=false
 
 for flag in "$@"; do
@@ -14,21 +15,25 @@ case $flag in
   --help)
   echo "Usage:"
   echo "  --with-cov: Also generate pytest coverage."
-  echo "  --no-doctest: disable doctest pytest."
-  echo "  --no-pytest: disable pytest."
-  echo "  --no-mypy: disable mypy check."
+  echo "  --doctest: enable doctest pytest."
+  echo "  --pytest: enable pytest."
+  echo "  --experimental-pytest:  enable experimental test."
+  echo "  --mypy: enable mypy check."
   echo "  --use-venv: use python virtual env."
 
   exit
   ;;
-  --no-doctest)
-  RUN_DOCTEST=false
+  --doctest)
+  RUN_DOCTEST=true
   ;;
-  --no-pytest)
-  RUN_PYTEST=false
+  --pytest)
+  RUN_PYTEST=true
   ;;
-  --no-mypy)
-  RUN_MYPY=false
+  --experimental-pytest)
+  RUN_EXPERIMENTAL_PYTEST=true
+  ;;
+  --mypy)
+  RUN_MYPY=true
   ;;
   --use-venv)
   GH_VENV=true
@@ -97,6 +102,13 @@ if $RUN_PYTEST; then
   # Run battery of core Jaxonnxruntime API tests.
   echo "pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE"
   pytest -n auto tests $PYTEST_OPTS $PYTEST_IGNORE
+fi
+
+if $RUN_EXPERIMENTAL_PYTEST; then
+  echo "=== RUNNING EXPERIMENTAL_PYTESTS ==="
+  PYTEST_IGNORE=""
+  echo "pytest -n auto experimental $PYTEST_OPTS $PYTEST_IGNORE"
+  pytest -n auto experimental $PYTEST_OPTS $PYTEST_IGNORE
 fi
 
 if $RUN_MYPY; then

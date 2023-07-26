@@ -226,9 +226,12 @@ def _get_all_handlers(
     domain = handler.DOMAIN
     opset_dict = dict([(o.domain, o.version) for o in opset])
     if handler.DOMAIN not in opset_dict:
-      raise ValueError(
-          f'handler.DOMAIN {handler.DOMAIN} is not in opset_dict {opset_dict}'
+      logging.info(
+          'handler.DOMAIN %s is not in opset_dict %s, skip it.',
+          domain,
+          opset_dict,
       )
+      continue
     version = opset_dict[handler.DOMAIN]
     since_version = handler.get_since_version(version)
     handler.SINCE_VERSION = since_version
