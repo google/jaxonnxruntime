@@ -88,7 +88,7 @@ def onnx_flatten(*input_args, axis):
   assert len(input_args) == 1
   x = input_args[0]
   dim = len(x.shape)
-  assert axis < dim and axis >= -dim, f"axis should with [{-dim}, {dim}]"
+  assert axis <= dim and axis >= -dim, f"axis should with [{-dim}, {dim}]"
   new_shape = (
       (1, -1) if axis == 0 else (-1, np.prod(x.shape[axis:]).astype(int))
   )
