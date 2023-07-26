@@ -55,6 +55,13 @@ class AveragePool(handler.Handler):
     del node.attrs_dict["storage_order"]
 
   @classmethod
+  def version_1(cls, node: onnx_node.OnnxNode,
+                 inputs: Sequence[Any]) -> Callable[..., Any]:
+    """ONNX version_1 AveragePool op."""
+    cls._prepare(node, inputs, onnx_averagepool)
+    return onnx_averagepool
+
+  @classmethod
   def version_7(cls, node: onnx_node.OnnxNode,
                  inputs: Sequence[Any]) -> Callable[..., Any]:
     """ONNX version_7 AveragePool op."""

@@ -55,6 +55,14 @@ class Pow(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 Pow op."""
+    cls._prepare(node, inputs, onnx_pow)
+    return onnx_pow
+
+  @classmethod
   def version_7(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

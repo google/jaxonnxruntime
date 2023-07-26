@@ -57,6 +57,14 @@ class Ceil(handler.Handler):
       node.attrs_dict[name] = node.attrs.get(name, None)
 
   @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 Ceil op."""
+    cls._prepare(node, inputs, onnx_ceil)
+    return onnx_ceil
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:

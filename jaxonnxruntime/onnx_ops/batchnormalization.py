@@ -51,6 +51,14 @@ class BatchNormalization(handler.Handler):
     node.attrs_dict['training_mode'] = node.attrs.get('training_mode', 0)
 
   @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 BatchNormalization op."""
+    cls._prepare(node, inputs, onnx_batchnormalization)
+    return onnx_batchnormalization
+
+  @classmethod
   def version_7(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
