@@ -69,7 +69,6 @@ class Pad(handler.Handler):
       node.attrs_dict['pads'] = tuple(inputs[1].tolist())
 
     if len(inputs) >= 3 and inputs[2]:
-      import pdb; pdb.set_trace()
       node.attrs_dict['constant_value'] = inputs[2].item()
     else:
       node.attrs_dict['constant_value'] = 0.0

@@ -116,7 +116,6 @@ def call_onnx_graph(
     onnx_node_dict[node.name] = node
     for x in node.inputs + node.subgraph_inputs:
       if x and not x in tensor_dict:
-        import pdb; pdb.set_trace()
         raise ValueError(
             f'Fail to get the input tensor {x} of node input names'
             f'{node.inputs + node.subgraph_inputs}, the node proto is'

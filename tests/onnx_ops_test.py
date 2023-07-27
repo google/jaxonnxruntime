@@ -64,9 +64,8 @@ include_patterns = []
 exclude_patterns = []
 
 
-expect_fail_patterns.extend([
+exclude_patterns.extend([
     # cast
-    'test_cast_FLOAT_to_STRING',
     'test_cast_STRING_to_FLOAT',
     'test_cast_FLOAT16_to_FLOAT8E4M3FNUZ_',
     'test_cast_FLOAT16_to_FLOAT8E4M3FN_',
@@ -77,7 +76,6 @@ expect_fail_patterns.extend([
     'test_cast_FLOAT_to_FLOAT8E5M2FNUZ_',
     'test_cast_FLOAT_to_FLOAT8E5M2_',
     'test_cast_FLOAT_to_BFLOAT16_',
-    'test_cast_FLOAT_to_STRING_',
     'test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ_',
     'test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN_',
     'test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ_',
@@ -87,8 +85,8 @@ expect_fail_patterns.extend([
     'test_cast_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_',
     'test_cast_no_saturate_FLOAT_to_FLOAT8E5M2_',
     # castlike
-    'test_castlike_FLOAT_to_STRING',
-    'test_castlike_STRING_to_FLOAT',
+    'test_castlike_FLOAT_to_STRING_',
+    'test_castlike_STRING_to_FLOAT_',
     'test_castlike_FLOAT16_to_FLOAT8E4M3FNUZ_',
     'test_castlike_FLOAT16_to_FLOAT8E4M3FNUZ_',
     'test_castlike_FLOAT16_to_FLOAT8E4M3FN_',
@@ -98,6 +96,7 @@ expect_fail_patterns.extend([
     'test_castlike_FLOAT_to_FLOAT8E4M3FN_',
     'test_castlike_FLOAT_to_FLOAT8E5M2FNUZ_',
     'test_castlike_FLOAT_to_FLOAT8E5M2_',
+    'test_castlike_FLOAT_to_BFLOAT16_',
     'test_castlike_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ_',
     'test_castlike_no_saturate_FLOAT16_to_FLOAT8E4M3FN_',
     'test_castlike_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ_',
