@@ -113,6 +113,21 @@ exclude_patterns.extend([
     'test_nonzero_',
     # np.object is not valid type for jax.array
     'test_equal_string_',
+    # The test case inputs are wrong
+    'test_PReLU_1d_multiparam_',
+    'test_PReLU_2d_multiparam_',
+    'test_PReLU_3d_multiparam_',
+    # Training Dropout has random output
+    'test_training_dropout_',
+    'test_training_dropout_default_',
+    'test_training_dropout_default_mask_',
+    'test_training_dropout_mask_',
+    # Loop is not implemented
+    'test_range_int32_type_negative_delta_expanded_',
+    'test_range_float_type_positive_delta_expanded_',
+    'test_loop11_',
+    'test_loop13_',
+    'test_loop16_',
 ])
 
 

@@ -11,20 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Define ONNX MaxPool operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
@@ -74,7 +60,7 @@ class MaxPool(handler.Handler):
       # lax conv is a sequence of n (low, high) integer pairs.
       n = len(pads) // 2
 
-      pads_new = [(0, 0) for i in range(inputs[0].ndim - 2)] + [
+      pads_new = [(0, 0) for i in range(x.ndim - n)] + [
           (pads[i], pads[i + n]) for i in range(n)
       ]
       node.attrs_dict["pads"] = tuple(pads_new)
@@ -89,6 +75,9 @@ class MaxPool(handler.Handler):
           pad_str_type in onnx_to_jax_pad_type
       ), f"Invalid auto_pad attribute: {pad_str_type}"
       node.attrs_dict["pads"] = onnx_to_jax_pad_type[pad_str_type]
+
+    if len(node.outputs) == 2:
+      node.attrs_dict["return_idx"] = True
 
   @classmethod
   def version_1(
@@ -139,6 +128,7 @@ class MaxPool(handler.Handler):
         "pads",
         "dilations",
         "kernel_shape",
+        "return_idx",
     ),
 )
 def onnx_maxpool(
@@ -149,13 +139,17 @@ def onnx_maxpool(
     dilations: Sequence[int],
     kernel_shape: Sequence[int],
     storage_order: int,
+    return_idx: bool = False,
 ):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#MaxPool for more details."""
   assert len(input_args) == 1
+  if return_idx:
+    raise NotImplementedError("MaxPool with indices output is not implemented!")
   x = input_args[0]
   if ceil_mode != 0:
     raise ValueError("ceil_mode = 1 is not implement yet.")
 
-  return lax.reduce_window(
+  pool_res = lax.reduce_window(
       x, -jnp.inf, lax.max, kernel_shape, strides, pads, None, dilations
   )
+  return pool_res

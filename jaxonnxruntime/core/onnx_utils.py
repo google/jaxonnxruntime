@@ -79,14 +79,14 @@ def contain_subgraph(node: Any) -> bool:
 
 def get_graph_input(graph: onnx.GraphProto) -> list[str]:
   """Returns unique non-node input names."""
-  real_input: list[str] = []
-  output_list: list[str] = []
-  initializers: list[str] = [ts.name for ts in graph.initializer]
+  exclude_set: set[str] = set(ts.name for ts in graph.initializer)
+  real_input: list[str] = [ts.name for ts in graph.input if ts.name not in exclude_set]
+  exclude_set.update(real_input)
   for node in graph.node:
-    output_list.extend(list(node.output))
+    exclude_set.update(name for name in node.output)
   for node in graph.node:
     real_input.extend(
-        i for i in node.input if i not in initializers and i not in output_list
+        i for i in node.input if i not in exclude_set
     )
 
   # Sometimes input name is empty string(""), which should be removed.
