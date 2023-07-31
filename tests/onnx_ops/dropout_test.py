@@ -43,7 +43,7 @@ class DropoutTest(absltest.TestCase):
         [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32
     )
     ratio = np.array([0.0], dtype=np.float32)
-    training_mode = True
+    training_mode = np.array([True])
     inputs = [data, ratio, training_mode]
 
     dropout_func = Dropout.version_13(self.node_dropout, inputs)
@@ -58,7 +58,7 @@ class DropoutTest(absltest.TestCase):
         [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32
     )
     ratio = np.array([0.0], dtype=np.float32)
-    training_mode = True
+    training_mode = np.array([True])
     inputs = [data, ratio, training_mode]
 
     dropout_func = Dropout.version_13(self.node_dropout, inputs)
@@ -84,14 +84,14 @@ class DropoutTest(absltest.TestCase):
         [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32
     )
     ratio = np.array([1.0], dtype=np.float32)
-    training_mode = True
+    training_mode = np.array([True])
     inputs = [data, ratio, training_mode]
 
     dropout_func = Dropout.version_13(self.node_dropout, inputs)
 
     outputs_train = dropout_func(*inputs, **self.node_dropout.attrs_dict)
 
-    training_mode = False
+    training_mode = np.array([False])
     inputs = [data, ratio, training_mode]
     outputs_infer = dropout_func(*inputs, **self.node_dropout.attrs_dict)
 

@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Define ONNX AveragePool operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
@@ -47,30 +34,43 @@ class AveragePool(handler.Handler):
   """Implementation of the ONNX AveragePool operator."""
 
   @classmethod
-  def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any],
-               onnx_jax_impl: Any):
+  def _prepare(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
     MaxPool._prepare(node, inputs, onnx_jax_impl)  # pylint: disable=protected-access
     node.attrs_dict["count_include_pad"] = node.attrs.get(
-        "count_include_pad", 0)
+        "count_include_pad", 0
+    )
     del node.attrs_dict["storage_order"]
 
   @classmethod
-  def version_7(cls, node: onnx_node.OnnxNode,
-                 inputs: Sequence[Any]) -> Callable[..., Any]:
+  def version_1(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_1 AveragePool op."""
+    cls._prepare(node, inputs, onnx_averagepool)
+    return onnx_averagepool
+
+  @classmethod
+  def version_7(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
     """ONNX version_7 AveragePool op."""
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
 
   @classmethod
-  def version_11(cls, node: onnx_node.OnnxNode,
-                 inputs: Sequence[Any]) -> Callable[..., Any]:
+  def version_11(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
     """ONNX version_11 AveragePool op."""
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
 
   @classmethod
-  def version_19(cls, node: onnx_node.OnnxNode,
-                 inputs: Sequence[Any]) -> Callable[..., Any]:
+  def version_19(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
     """ONNX version_19 AveragePool op."""
     cls._prepare(node, inputs, onnx_averagepool)
     return onnx_averagepool
@@ -101,7 +101,8 @@ def onnx_averagepool(
   x = input_args[0]
   if ceil_mode != 0:
     raise ValueError(
-        f"Jaxonnxruntime AveragePool only support ceil_mode = 0 but got {ceil_mode}."
+        "Jaxonnxruntime AveragePool only support ceil_mode = 0 but got"
+        f" {ceil_mode}."
     )
 
   if count_include_pad == 0:
@@ -110,13 +111,16 @@ def onnx_averagepool(
   else:
     wsizes = np.prod(kernel_shape)
 
-  return (lax.reduce_window(
-      x,
-      jnp.array(0, dtype=x.dtype),
-      lax.add,
-      kernel_shape,
-      strides,
-      pads,
-      None,
-      dilations,
-  ) / wsizes)
+  return (
+      lax.reduce_window(
+          x,
+          jnp.array(0, dtype=x.dtype),
+          lax.add,
+          kernel_shape,
+          strides,
+          pads,
+          None,
+          dilations,
+      )
+      / wsizes
+  )

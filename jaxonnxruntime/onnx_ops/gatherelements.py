@@ -49,6 +49,6 @@ def onnx_gatherelements(*input_args, axis):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#GatherElements for more details."""
   data, index = input_args
   data_swaped = jnp.swapaxes(data, 0, axis)
-  index_swaped = jnp.swapaxes(index, 0, axis)
+  index_swaped = jnp.swapaxes(index, 0, axis).astype(int)
   gathered = jnp.choose(index_swaped, data_swaped, mode='wrap')
   return jnp.swapaxes(gathered, 0, axis)

@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """onnx utility functions collection."""
 from typing import Any, Dict, Optional, Sequence, Union
 import jax
@@ -79,15 +66,15 @@ def contain_subgraph(node: Any) -> bool:
 
 def get_graph_input(graph: onnx.GraphProto) -> list[str]:
   """Returns unique non-node input names."""
-  real_input: list[str] = []
-  output_list: list[str] = []
-  initializers: list[str] = [ts.name for ts in graph.initializer]
+  exclude_set: set[str] = set(ts.name for ts in graph.initializer)
+  real_input: list[str] = [
+      ts.name for ts in graph.input if ts.name not in exclude_set
+  ]
+  exclude_set.update(real_input)
   for node in graph.node:
-    output_list.extend(list(node.output))
+    exclude_set.update(name for name in node.output)
   for node in graph.node:
-    real_input.extend(
-        i for i in node.input if i not in initializers and i not in output_list
-    )
+    real_input.extend(i for i in node.input if i not in exclude_set)
 
   # Sometimes input name is empty string(""), which should be removed.
   # We also need to remove duplicates.

@@ -139,6 +139,7 @@ include_patterns.append('test_sum_')
 include_patterns.append('test_squeeze_')
 include_patterns.append('test_tanh_')
 include_patterns.append('test_top_k_')
+include_patterns.append('test_training_dropout_')
 include_patterns.append('test_transpose_')
 include_patterns.append('test_tri')
 include_patterns.append('test_unsqueeze_')
@@ -161,19 +162,6 @@ exclude_patterns.append('test_split_to_sequence_2_cpu')  # Op SplitToSequence
 exclude_patterns.append(
     'test_split_to_sequence_nokeepdims_cpu'
 )  # Op SplitToSequence
-# Clip: In ONNX's def, the Clip op's input `min` and `max` are optional.
-# The input name list would be ['data', 'min', 'max'].
-# In the test cases below, when `min` is not given, its name is set to
-# be an empty string. But this is not compatible with jaxonnxruntime,
-# as we don't handle placeholder as input names if the actual input data is
-# missing. There will be a mismatch between the length of input name list and
-# input data list. Therefore, we only include test cases with all three inputs,
-# and with the first two inputs. Test cases with input name list
-# ['data', '', 'max'] are excluded.
-exclude_patterns.append('test_clip_default_inbounds_')
-exclude_patterns.append('test_clip_default_int8_inbounds_')
-exclude_patterns.append('test_clip_default_int8_max_')
-exclude_patterns.append('test_clip_default_max_')
 # Need more debug
 exclude_patterns.append('test_softmax_axis_0_expanded_cpu')
 exclude_patterns.append('test_softmax_axis_1_expanded_cpu')
@@ -235,7 +223,6 @@ expect_fail_patterns.extend([
     'test_castlike_no_saturate_FLOAT_to_FLOAT8E4M3FN_',
     'test_castlike_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ_',
     'test_castlike_no_saturate_FLOAT_to_FLOAT8E5M2_',
-    'test_castlike_.*_expanded_',
     # others
     'test_maxpool_2d_ceil_',
     'test_averagepool_2d_ceil_',
@@ -243,6 +230,11 @@ expect_fail_patterns.extend([
     'test_nonzero_',
     # np.object is not valid type for jax.array
     'test_equal_string_',
+    # Training Dropout has random output
+    'test_training_dropout_.pu',
+    'test_training_dropout_default_',
+    'test_training_dropout_default_mask_',
+    'test_training_dropout_mask_',
 ])
 
 

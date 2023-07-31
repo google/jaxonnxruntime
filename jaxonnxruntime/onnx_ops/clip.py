@@ -17,7 +17,6 @@
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 
 from jax import jit
@@ -26,33 +25,43 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
 
-@handler.register_op("Clip")
+@handler.register_op('Clip')
 class Clip(handler.Handler):
   """Implementation of the ONNX Clip operator."""
 
   @classmethod
-  def _prepare(
+  def _prepare_6(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
+    node.attrs_dict['amin'] = node.attrs.get('min')
+    node.attrs_dict['amax'] = node.attrs.get('max')
+
+  @classmethod
+  def _prepare_13(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
+  ):
+    pass
+
+  @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 Clip op."""
+    cls._prepare_6(node, inputs, onnx_clip)
+    return onnx_clip
 
   @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_13 Clip op."""
-    cls._prepare(node, inputs, onnx_clip)
+    cls._prepare_13(node, inputs, onnx_clip)
     return onnx_clip
 
 
 @functools.partial(jit, static_argnames=())
 def onnx_clip(data, amin=None, amax=None):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Clip for more details."""
+  if amin is None and amax is None:
+    return data
   return jnp.clip(data, a_min=amin, a_max=amax)

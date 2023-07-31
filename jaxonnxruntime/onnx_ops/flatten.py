@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Define ONNX Flatten operator."""
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
@@ -88,7 +75,7 @@ def onnx_flatten(*input_args, axis):
   assert len(input_args) == 1
   x = input_args[0]
   dim = len(x.shape)
-  assert axis < dim and axis >= -dim, f"axis should with [{-dim}, {dim}]"
+  assert axis <= dim and axis >= -dim, f"axis should with [{-dim}, {dim}]"
   new_shape = (
       (1, -1) if axis == 0 else (-1, np.prod(x.shape[axis:]).astype(int))
   )
