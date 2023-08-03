@@ -20,54 +20,52 @@ import numpy as np
 
 import onnx
 
-ValueInfoProto = onnx.ValueInfoProto
-TypeProto = onnx.TypeProto
-GraphProto = onnx.GraphProto
-NodeProto = onnx.NodeProto
-ModelProto = onnx.ModelProto
-TensorProto = onnx.TensorProto
-TensorShapeProto = onnx.TensorShapeProto
+
+def create_test_model(x: np.ndarray) -> onnx.ModelProto:
+  input_tensor = onnx.ValueInfoProto(
+      name='input',
+      type=onnx.TypeProto(
+          tensor_type=onnx.TypeProto.Tensor(
+              elem_type=onnx.TensorProto.FLOAT,
+              shape=onnx.TensorShapeProto(
+                  dim=[
+                      onnx.TensorShapeProto.Dimension(dim_value=d)
+                      for d in x.shape
+                  ]
+              ),
+          )
+      ),
+  )
+  output_tensor = onnx.ValueInfoProto(
+      name='output',
+      type=onnx.TypeProto(
+          tensor_type=onnx.TypeProto.Tensor(
+              elem_type=onnx.TensorProto.FLOAT,
+              shape=onnx.TensorShapeProto(
+                  dim=[
+                      onnx.TensorShapeProto.Dimension(dim_value=d)
+                      for d in x.shape
+                  ]
+              ),
+          )
+      ),
+  )
+  node_abs = onnx.NodeProto(op_type='Abs', input=['input'], output=['output'])
+  graph_def = onnx.GraphProto(
+      node=[node_abs],
+      name='abs_graph',
+      input=[input_tensor],
+      output=[output_tensor],
+  )
+  model_proto = onnx.ModelProto(graph=graph_def, producer_name='onnx-example')
+  return model_proto
 
 
 class TestCallOnnx(absltest.TestCase):
 
   def test_basic(self):
     x = np.array([-2.0, 1.0, 3.0], dtype=np.float32)
-
-    input_tensor = ValueInfoProto(
-        name='input',
-        type=TypeProto(
-            tensor_type=TypeProto.Tensor(
-                elem_type=TensorProto.FLOAT,
-                shape=TensorShapeProto(
-                    dim=[
-                        TensorShapeProto.Dimension(dim_value=d) for d in x.shape
-                    ]
-                ),
-            )
-        ),
-    )
-    output_tensor = ValueInfoProto(
-        name='output',
-        type=TypeProto(
-            tensor_type=TypeProto.Tensor(
-                elem_type=TensorProto.FLOAT,
-                shape=TensorShapeProto(
-                    dim=[
-                        TensorShapeProto.Dimension(dim_value=d) for d in x.shape
-                    ]
-                ),
-            )
-        ),
-    )
-    node_abs = NodeProto(op_type='Abs', input=['input'], output=['output'])
-    graph_def = GraphProto(
-        node=[node_abs],
-        name='abs_graph',
-        input=[input_tensor],
-        output=[output_tensor],
-    )
-    model_proto = ModelProto(graph=graph_def, producer_name='onnx-example')
+    model_proto = create_test_model(x)
     jax_func, model_params = call_onnx.call_onnx_model(model_proto, [x])
     results = jax_func(model_params, [x])
     expect = [np.array([2.0, 1.0, 3.0], dtype=np.float32)]
