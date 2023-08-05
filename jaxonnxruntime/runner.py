@@ -27,6 +27,7 @@ import time
 from typing import Any, Optional, Pattern, Set, Type, Union
 import unittest
 
+from absl import logging
 import jax
 from jaxonnxruntime.backend import Backend
 import numpy as np
@@ -309,6 +310,9 @@ class Runner:
     ]
 
     def run(test_self: Any, device: str) -> None:  # pylint: disable=unused-argument
+      if logging.vlog_is_on(3):
+        logging.vlog(3, f'jax devices = {jax.devices()}')
+        logging.vlog(3, f'default backend = {jax.default_backend()}')
       model_dir = model_test.model_dir
       model_pb_path = os.path.join(model_dir, 'model.onnx')
       model = onnx.load(model_pb_path)

@@ -26,6 +26,8 @@ from jaxonnxruntime.backend import Backend as JaxBackend  # pylint: disable=g-im
 
 jax.config.update('jax_enable_x64', True)
 jax.config.update('jax_numpy_rank_promotion', 'warn')
+# Force TPU use float32 instead of bfloat16 for matmul.
+jax.config.update('jax_default_matmul_precision', "float32")
 config.update('jaxort_only_allow_initializers_as_static_args', False)
 
 
