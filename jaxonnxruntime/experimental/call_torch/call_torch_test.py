@@ -39,7 +39,7 @@ class TestTorchToJax(absltest.TestCase):
     # Create and export the torch model
     torch_model = SimpleModel()
     torch_model.eval()
-    jax_fn = call_torch(torch_model, input_data)
+    jax_fn = call_torch.call_torch(torch_model, input_data)
 
     # Compare torch and jax output
     torch_output = torch_model(input_data).detach().numpy()

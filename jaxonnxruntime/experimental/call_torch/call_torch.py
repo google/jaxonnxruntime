@@ -70,7 +70,10 @@ def call_torch(
 
   def run(inputs):
     if not isinstance(inputs, list) and not isinstance(inputs, dict):
-      logging.warn("Only accept list or dict type inputs. Assume there is only one input and convert it to [inputs].")
+      logging.warn(
+          "Only accept list or dict type inputs. Assume there is only one input"
+          " and convert it to [inputs]."
+      )
       inputs = [inputs]
     return jax_fn(model_params, inputs)
 
