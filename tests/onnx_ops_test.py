@@ -115,6 +115,7 @@ include_patterns.append('test_maxpool_')
 include_patterns.append('test_min_')
 include_patterns.append('test_mul_')
 include_patterns.append('test_neg_')
+include_patterns.append('test_not_')
 include_patterns.append('test_onehot_')
 include_patterns.append('test_or_')
 include_patterns.append('test_pow_')
@@ -229,6 +230,7 @@ expect_fail_patterns.extend([
     'test_maxpool_2d_ceil_',
     'test_averagepool_2d_ceil_',
     'test_averagepool_2d_dilations_',
+    # https://github.com/google/jaxonnxruntime/issues/29
     'test_nonzero_',
     # np.object is not valid type for jax.array
     'test_equal_string_',

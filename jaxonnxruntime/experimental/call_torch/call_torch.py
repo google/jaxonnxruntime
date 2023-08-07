@@ -24,7 +24,8 @@ import torch
 
 import onnx
 
-def torch_to_numpy(tensor):
+
+def torch_tensor_to_np_array(tensor):
   if isinstance(tensor, torch.Tensor):
     return tensor.detach().cpu().numpy()
   else:
@@ -36,7 +37,7 @@ def call_torch(
         torch.nn.Module, torch.jit.ScriptModule, torch.jit.ScriptFunction
     ],
     args: Union[Tuple[Any, ...], torch.Tensor],
-) -> Callable[..., Any]:
+) -> Tuple[Callable[..., Any], Any]:
   """Give a pytorch model and return its equivilent jax function.
 
   Its API interface should be consistent with
@@ -65,16 +66,8 @@ def call_torch(
   )
   file_obj.seek(0)
   onnx_model = onnx.load(file_obj)
-  jax_args = jax.tree_util.tree_leaves(jax.tree_map(torch_to_numpy, args))
-  jax_fn, model_params = call_onnx.call_onnx_model(onnx_model, jax_args)
-
-  def run(inputs):
-    if not isinstance(inputs, list) and not isinstance(inputs, dict):
-      logging.warn(
-          "Only accept list or dict type inputs. Assume there is only one input"
-          " and convert it to [inputs]."
-      )
-      inputs = [inputs]
-    return jax_fn(model_params, inputs)
-
-  return run
+  jax_args = jax.tree_util.tree_leaves(
+      jax.tree_map(torch_tensor_to_np_array, args)
+  )
+  jax_fn, jax_model_params = call_onnx.call_onnx_model(onnx_model, jax_args)
+  return jax_fn, jax_model_params

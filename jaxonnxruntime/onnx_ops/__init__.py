@@ -71,6 +71,7 @@ from . import mul as mul
 from . import neg as neg
 from . import nonzero as nonzero
 from . import onehot as onehot
+from . import onnx_not as onnx_not
 from . import or_op as or_op
 from . import pad as pad
 from . import pow as pow

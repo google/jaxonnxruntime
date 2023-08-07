@@ -39,13 +39,12 @@ class TestTorchToJax(absltest.TestCase):
     # Create and export the torch model
     torch_model = SimpleModel()
     torch_model.eval()
-    jax_fn = call_torch.call_torch(torch_model, input_data)
+    jax_fn, jax_model_params = call_torch.call_torch(torch_model, input_data)
 
     # Compare torch and jax output
     torch_output = torch_model(input_data).detach().numpy()
-    jax_output = jax_fn(input_data.detach().numpy())[0]
-    print(f"torch model result = {torch_output}")
-    print(f"jaxonnxruntime model result = {jax_output}")
+    jax_inputs = [call_torch.torch_tensor_to_np_array(input_data)]
+    jax_output = jax_fn(jax_model_params, jax_inputs)[0]
     self.assertTrue(jnp.allclose(jax_output, torch_output))
 
 
