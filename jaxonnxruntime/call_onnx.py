@@ -232,8 +232,9 @@ def _get_all_handlers(
       continue
     version = opset_dict[handler.DOMAIN]
     since_version = handler.get_since_version(version)
-    handler.SINCE_VERSION = since_version
-    handlers.setdefault(domain, {})[handler.OP_TYPE] = handler
+    if since_version > 0:
+      handler.SINCE_VERSION = since_version
+      handlers.setdefault(domain, {})[handler.OP_TYPE] = handler
 
   return handlers
 

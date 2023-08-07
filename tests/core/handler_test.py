@@ -43,6 +43,19 @@ class TestHandler(absltest.TestCase):
     self.assertEqual(MyOpHandler.OP_TYPE, "my_op")
     self.assertEqual(MyOpHandler.DOMAIN, "ai.onnx")
 
+  def test_castlike_model_version_14(self):
+    class MyOpHandler(handler.Handler):
+      pass
+
+    MyOpHandler.DOMAIN = ""
+    MyOpHandler.OP_TYPE = "CastLike"
+    version = 14
+    since_version = MyOpHandler.get_since_version(version)
+
+    # CastLike was added in version 15. So there is no CastLike in model
+    # version 14.
+    self.assertEqual(since_version, -1)
+
 
 if __name__ == "__main__":
   absltest.main()

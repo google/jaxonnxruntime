@@ -50,10 +50,13 @@ class Handler:
 
   @classmethod
   def get_since_version(cls, version: int) -> int:
-    """Get the SINCE_VERSION based on the VERSION of the ONNX opset being used."""
+    """Get the SINCE_VERSION based on the VERSION of the ONNX opset being used.
+
+    For standard onnx opset, it returns -1. It means that this op was added
+    after this model version.
+    """
     domain = cls.DOMAIN
     op_type = cls.OP_TYPE
-    since_version = 1
     try:
       since_version = defs.get_schema(
           op_type,
@@ -61,15 +64,13 @@ class Handler:
           max_inclusive_version=version,
       ).since_version
     except Exception:  # pylint: disable=broad-except
-      logger.warning(
-          (
-              "Fail to get since_version of %s in domain %s "
-              "with max_inclusive_version= %d. Set to 1."
-          ),
-          op_type,
-          domain,
-          version,
-      )
+      # For standard onnx opset, exclude it by returning -1
+      if not domain:
+        return -1
+      # TODO(johnqiangzhang): For custom domain, return version_1.
+      # Need handle the version with same convertion as onnx in the future.
+      else:
+        return 1
     return since_version
 
   @classmethod
