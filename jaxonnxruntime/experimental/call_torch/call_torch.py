@@ -33,9 +33,7 @@ def torch_tensor_to_np_array(tensor):
 
 
 def call_torch(
-    model: Union[
-        torch.nn.Module, torch.jit.ScriptModule, torch.jit.ScriptFunction
-    ],
+    model: Union[torch.jit.ScriptModule, torch.jit.ScriptFunction],
     args: Union[Tuple[Any, ...], torch.Tensor],
 ) -> Tuple[Callable[..., Any], Any]:
   """Give a pytorch model and return its equivilent jax function.
@@ -44,7 +42,7 @@ def call_torch(
   [`torch.onnx.export`](https://pytorch.org/docs/stable/onnx.html#torch.onnx.export)
 
   Args:
-    model: the model to be exported.
+    model: the torchs_cript model to be exported.
     args:  (tuple or torch.Tensor), model inputs args for torch.onnx.export.
 
   Returns:
