@@ -25,6 +25,10 @@ import torch
 import onnx
 
 
+class TorchONNXExportError(Exception):
+  pass
+
+
 def torch_tensor_to_np_array(tensor):
   if isinstance(tensor, torch.Tensor):
     return tensor.detach().cpu().numpy()
@@ -33,7 +37,9 @@ def torch_tensor_to_np_array(tensor):
 
 
 def call_torch(
-    model: Union[torch.jit.ScriptModule, torch.jit.ScriptFunction],
+    model: Union[
+        torch.nn.Module, torch.jit.ScriptModule, torch.jit.ScriptFunction
+    ],
     args: Union[Tuple[Any, ...], torch.Tensor],
 ) -> Tuple[Callable[..., Any], Any]:
   """Give a pytorch model and return its equivilent jax function.
@@ -42,7 +48,7 @@ def call_torch(
   [`torch.onnx.export`](https://pytorch.org/docs/stable/onnx.html#torch.onnx.export)
 
   Args:
-    model: the torchs_cript model to be exported.
+    model: the torch model to be exported.
     args:  (tuple or torch.Tensor), model inputs args for torch.onnx.export.
 
   Returns:
@@ -53,15 +59,21 @@ def call_torch(
     verbose = True
   else:
     verbose = False
-  torch.onnx.export(
-      model=model,
-      args=args,
-      f=file_obj,
-      export_params=True,
-      verbose=verbose,
-      dynamic_axes=None,
-      keep_initializers_as_inputs=False,
-  )
+  try:
+    torch.onnx.export(
+        model=model,
+        args=args,
+        f=file_obj,
+        export_params=True,
+        verbose=verbose,
+        dynamic_axes=None,
+        keep_initializers_as_inputs=False,
+    )
+  except Exception as e:
+    raise TorchONNXExportError(
+        "torch.onnx.export fails. Please debug torch.onnx.export manually"
+        " first."
+    ) from e
   file_obj.seek(0)
   onnx_model = onnx.load(file_obj)
   jax_args = jax.tree_util.tree_leaves(

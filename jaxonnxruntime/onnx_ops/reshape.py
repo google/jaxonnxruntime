@@ -49,9 +49,11 @@ class Reshape(handler.Handler):
       if node.inputs[1] not in node.context_graph.initializer_dict:
         raise ValueError(
             f'{node.inputs[1]} is not constant but used as `shape` of Reshape'
-            ' static argument during `jax.jit`. '
-            'the jitted function gives wrong results if its value changes '
-            'in another input.'
+            ' static argument during `jax.jit`. the jitted function gives'
+            ' wrong results if its value changes in another input.If you know'
+            ' what you are doing, set'
+            ' `config.update("jaxort_only_allow_initializers_as_static_args",'
+            ' False)` to remove this contraint.'
         )
       node.attrs_dict['shape'] = tuple(
           node.context_graph.initializer_dict[node.inputs[1]].tolist()

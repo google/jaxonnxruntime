@@ -56,11 +56,14 @@ class CallTorchTestCase(absltest.TestCase):
       raise TypeError((type(x), type(y)))
 
   def assert_call_torch_convert_and_compare(self, test_module, torch_inputs):
-    """assert the converted jax function and torch module numerical accuracy."""
+    """assert the converted jittable jax function and torch module numerical accuracy."""
     if not isinstance(
-        test_module, (torch.jit.ScriptModule, torch.jit.ScriptFunction)
+        test_module,
+        (torch.jit.ScriptModule, torch.jit.ScriptFunction, torch.nn.Module),
     ):
-      test_module = torch.jit.script(test_module, torch_inputs)
+      test_module = torch.jit.trace(
+          func=test_module, example_inputs=torch_inputs
+      )
     torch_outputs = test_module(*torch_inputs)
     torch_outputs = jax.tree_map(
         call_torch.torch_tensor_to_np_array, torch_outputs
@@ -69,5 +72,5 @@ class CallTorchTestCase(absltest.TestCase):
       torch_outputs = (torch_outputs,)
     jax_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
     jax_fn, jax_params = call_torch.call_torch(test_module, torch_inputs)
-    jax_outputs = jax_fn(jax_params, jax_inputs)
+    jax_outputs = jax.jit(jax_fn)(jax_params, jax_inputs)
     self.assert_allclose(torch_outputs, jax_outputs)
