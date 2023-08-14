@@ -64,10 +64,19 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
       self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
+  def test_addictive_attention(self):
+    queries = torch.normal(0, 1, (2, 1, 20))
+    keys = torch.normal(0, 1, (2, 10, 2))
+    values = torch.normal(0, 1, (2, 10, 4))
+    valid_lens = torch.tensor([2, 6])
+    torch_inputs = (queries, keys, values, valid_lens)
+    attention = d2l.AdditiveAttention(num_hiddens=8, dropout=0.1)
+    torch_func = attention.eval()
+    with config_class.jaxort_only_allow_initializers_as_static_args(False):
+      self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
   def test_bmm(self):
-    Q = torch.ones((2, 3, 4))
-    K = torch.ones((2, 4, 6))
-    torch_inputs = (Q, K)
+    torch_inputs = (torch.ones((2, 3, 4)), torch.ones((2, 4, 6)))
     torch_func = torch.bmm
     self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
