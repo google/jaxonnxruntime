@@ -23,20 +23,7 @@ import onnx
 
 
 # define the template for the operator implementation
-template_head = """# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-\"\"\"Define ONNX {op_name} operator.\"\"\"
+template_head = """\"\"\"Define ONNX {op_name} operator.\"\"\"
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 import functools
@@ -125,6 +112,10 @@ def update_onnx_ops_test_file(op_name):
   py_file = os.path.join(
       os.path.realpath(onnx_ops_root_dir), '../tests/onnx_ops_test.py'
   )
+  if not os.path.exists(py_file):
+    py_file = os.path.join(
+        os.path.realpath(onnx_ops_root_dir), '../../tests/onnx_ops_test.py'
+    )
   with open(py_file, 'r') as f:
     source_code = f.read()
 
