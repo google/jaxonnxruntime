@@ -13,9 +13,18 @@
 # limitations under the License.
 
 """onnx utility functions collection."""
+
+import inspect
 from typing import Any, Dict, Optional, Sequence, Union
+
+from absl import logging
+from absl.testing import parameterized
 import jax
 from jax import numpy as jnp
+from jaxonnxruntime import config as jort_config
+from jaxonnxruntime.core import onnx_graph
+import numpy as np
+
 import onnx
 from onnx import numpy_helper
 
@@ -157,3 +166,187 @@ def sanitize_tensor_names_in_graph(
 
   _sanitize_tensor_names_in_graph(graph)
   return graph
+
+
+def with_jax_config(**kwds):
+  """Test case decorator for subclasses of JortTestCase."""
+
+  def decorator(cls):
+    assert inspect.isclass(cls) and issubclass(
+        cls, JortTestCase
+    ), "@with_jax_config can only wrap JaxTestCase class definitions."
+    cls.default_jax_config = {**JortTestCase.default_jax_config, **kwds}
+    return cls
+
+  return decorator
+
+
+def with_jort_config(**kwds):
+  """Test case decorator for subclasses of JortTestCase."""
+
+  def decorator(cls):
+    assert inspect.isclass(cls) and issubclass(
+        cls, JortTestCase
+    ), "@with_jax_config can only wrap JaxTestCase class definitions."
+    cls.default_jort_config = {**JortTestCase.default_jort_config, **kwds}
+    return cls
+
+  return decorator
+
+
+def is_sequence(x):
+  try:
+    iter(x)
+  except TypeError:
+    return False
+  else:
+    return True
+
+
+def _cosin_sim(a: Any, b: Any) -> float:
+  a = np.array(a)
+  b = np.array(b)
+  a = a.astype(jnp.float32)
+  b = b.astype(jnp.float32)
+  a = a.flatten()
+  b = b.flatten()
+  cos_sim = jnp.dot(a, b) / (jnp.linalg.norm(a) * jnp.linalg.norm(b))
+  return cos_sim
+
+
+class JortTestCase(parameterized.TestCase):
+  """Base class for JAXOnnxRuntime tests."""
+
+  default_jort_config = {}
+  default_jax_config = {}
+
+  def setUp(self):
+    """Set the jax and jaxonnxruntime config."""
+    super().setUp()
+
+    self._original_jax_config = {}
+    for key, value in self.default_jax_config.items():
+      self._original_jax_config[key] = jax.config._read(key)
+      jax.config.update(key, value)
+
+    self._original_jort_config = {}
+    for key, value in self.default_jort_config.items():
+      self._original_jax_config[key] = jort_config._read(key)
+      jort_config.update(key, value)
+
+  def tearDown(self):
+    """Reset the jax and jaxonnxruntime config."""
+    for key, value in self._original_jax_config.items():
+      jax.config.update(key, value)
+    for key, value in self._original_jort_config.items():
+      jort_config.update(key, value)
+    super().tearDown()
+
+  def assert_allclose(self, x, y, *, atol=10e-7, rtol=10e-5, err_msg=""):
+    """Assert that x and y, either arrays or nested tuples/lists, are close."""
+    if isinstance(x, dict):
+      self.assertIsInstance(y, dict)
+      self.assertEqual(set(x.keys()), set(y.keys()))
+      for k in x.keys():
+        self.assert_allclose(x[k], y[k], atol=atol, rtol=rtol, err_msg=err_msg)
+    elif is_sequence(x) and not hasattr(x, "__array__"):
+      self.assertTrue(is_sequence(y) and not hasattr(y, "__array__"))
+      self.assertEqual(len(x), len(y))
+      for x_elt, y_elt in zip(x, y):
+        self.assert_allclose(
+            x_elt, y_elt, atol=atol, rtol=rtol, err_msg=err_msg
+        )
+    elif hasattr(x, "__array__") or np.isscalar(x):
+      self.assertTrue(hasattr(y, "__array__") or np.isscalar(y), type(y))
+      x = np.asarray(x)
+      y = np.asarray(y)
+      np.testing.assert_allclose(x, y, atol=atol, rtol=rtol, err_msg=err_msg)
+    elif x == y:
+      return
+    else:
+      raise TypeError((type(x), type(y)))
+
+  def assert_all_similar(self, x, y, *, similarity=0.97, err_msg=""):
+    """Assert that x and y, either arrays or nested tuples/lists, are have linear similarity."""
+    if isinstance(x, dict):
+      self.assertIsInstance(y, dict)
+      self.assertEqual(set(x.keys()), set(y.keys()))
+      for k in x.keys():
+        self.assert_all_similar(
+            x[k], y[k], similarity=similarity, err_msg=err_msg
+        )
+    elif is_sequence(x) and not hasattr(x, "__array__"):
+      self.assertTrue(is_sequence(y) and not hasattr(y, "__array__"))
+      self.assertEqual(len(x), len(y))
+      for x_elt, y_elt in zip(x, y):
+        self.assert_all_similar(
+            x_elt, y_elt, similarity=similarity, err_msg=err_msg
+        )
+    elif hasattr(x, "__array__") or np.isscalar(x):
+      self.assertTrue(hasattr(y, "__array__") or np.isscalar(y), type(y))
+      x = np.asarray(x)
+      y = np.asarray(y)
+      self.assertGreater(_cosin_sim(x, y), similarity, err_msg)
+    elif x == y:
+      return
+    else:
+      raise TypeError((type(x), type(y)))
+
+  def assert_ort_jort_all_close(
+      self, onnx_model: onnx.ModelProto, model_inputs: tuple[Any]
+  ):
+    """Assert ONNXRuntime and JaxOnnxRuntime is numerically close."""
+    # Update the onnx_model with all intermediate outputs.
+    graph_helper = onnx_graph.OnnxGraph(onnx_model.graph)
+    node_execute_order_list = graph_helper.topological_sort()
+    all_outputs = []
+    for node in node_execute_order_list:
+      all_outputs.extend(node.output)
+
+    all_outputs = list(
+        filter(lambda n: n in graph_helper.value_info_dict, all_outputs)
+    )
+
+    all_outputs_value_info = [
+        graph_helper.value_info_dict[name] for name in all_outputs
+    ]
+
+    while onnx_model.graph.output:
+      onnx_model.graph.output.pop()
+    onnx_model.graph.output.extend(all_outputs_value_info)
+
+    from jaxonnxruntime import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+
+    try:
+      import onnxruntime.backend as ort_backend  #  pylint: disable=g-import-not-at-top
+    except ImportError:
+      ort_backend = None
+
+    if ort_backend:
+      ort_model = ort_backend.prepare(onnx_model)
+      result_ort = ort_backend.run(ort_model, model_inputs)
+      result_jort = jort_backend.run(onnx_model, model_inputs)
+      assert len(result_ort) == len(
+          result_jort
+      ), f"{len(result_ort)} != {len(result_jort)}"
+      assert len(result_jort) == len(all_outputs)
+      for i in range(len(all_outputs)):
+        self.assert_all_similar(
+            result_ort[i],
+            result_jort[i],
+            err_msg=(
+                f"Tensor {all_outputs[i]} jort and ort mismatch:\n"
+                f"jort={result_jort[i]}, ort={result_ort[i]}"
+            ),
+        )
+    else:
+      logging.info("Please install onnxruntime first.")
+
+  def assert_model_run_through(
+      self, onnx_model: onnx.ModelProto, model_inputs: tuple[Any]
+  ):
+    from jaxonnxruntime import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+
+    prepared_model = jort_backend.prepare(onnx_model)
+    assert prepared_model is not None
+    _ = prepared_model.run(model_inputs)

@@ -12,48 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from absl.testing import absltest
+"""test utilities for call_torch API."""
 import jax
+from jaxonnxruntime.core import onnx_utils
 from jaxonnxruntime.experimental import call_torch
 import numpy as np
 import torch
 
 
-def is_sequence(x):
-  try:
-    iter(x)
-  except TypeError:
-    return False
-  else:
-    return True
-
-
-class CallTorchTestCase(absltest.TestCase):
+class CallTorchTestCase(onnx_utils.JortTestCase):
   """Base class for CallTorch tests including numerical checks and boilerplate."""
-
-  def assert_allclose(self, x, y, *, atol=10e-7, rtol=10e-5, err_msg=''):
-    """Assert that x and y, either arrays or nested tuples/lists, are close."""
-    if isinstance(x, dict):
-      self.assertIsInstance(y, dict)
-      self.assertEqual(set(x.keys()), set(y.keys()))
-      for k in x.keys():
-        self.assert_allclose(x[k], y[k], atol=atol, rtol=rtol, err_msg=err_msg)
-    elif is_sequence(x) and not hasattr(x, '__array__'):
-      self.assertTrue(is_sequence(y) and not hasattr(y, '__array__'))
-      self.assertEqual(len(x), len(y))
-      for x_elt, y_elt in zip(x, y):
-        self.assert_allclose(
-            x_elt, y_elt, atol=atol, rtol=rtol, err_msg=err_msg
-        )
-    elif hasattr(x, '__array__') or np.isscalar(x):
-      self.assertTrue(hasattr(y, '__array__') or np.isscalar(y), type(y))
-      x = np.asarray(x)
-      y = np.asarray(y)
-      np.testing.assert_allclose(x, y, atol=atol, rtol=rtol, err_msg=err_msg)
-    elif x == y:
-      return
-    else:
-      raise TypeError((type(x), type(y)))
 
   def assert_call_torch_convert_and_compare(self, test_module, torch_inputs):
     """assert the converted jittable jax function and torch module numerical accuracy."""
