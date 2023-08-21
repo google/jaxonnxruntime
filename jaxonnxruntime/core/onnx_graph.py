@@ -80,7 +80,9 @@ class OnnxGraph:
   def _initialize_metadata(self):
     """Initialize the meta_data dict."""
     # Build those dicts link tensors and nodes
+    # key is tensor, value is the list of node who take this tensor as input.
     tensor_down_to_node_dict = {}
+    # key is tensor, value is the node who output this tensor.
     tensor_up_to_node_dict = {}
     for nd_name, nd in self.node_dict.items():
       for input_name in nd.input:
@@ -148,6 +150,12 @@ class OnnxGraph:
         tensor_up_to_node_dict[i] for i in inputs if i in tensor_up_to_node_dict
     ]
 
+  def get_tensor_parent_node_name(self, tensor_name: str) -> str:
+    """Get the name of the parent node of a given tensor."""
+    tensor_up_to_node_dict = self.metadata["tensor_up_to_node_dict"]
+    assert tensor_name in tensor_up_to_node_dict
+    return tensor_up_to_node_dict[tensor_name]
+
   def get_child_nodes_name(self, node_name: str) -> List[str]:
     """Get the names of the children nodes of a given node."""
     node_down_to_tensor_dict = self.metadata["node_down_to_tensor_dict"]
@@ -159,6 +167,12 @@ class OnnxGraph:
       if output_ in tensor_down_to_node_dict:
         results.extend(tensor_down_to_node_dict[output_])
     return results
+
+  def get_tensor_child_node_name(self, tensor_name: str) -> List[str]:
+    """Get the names of the children nodes of a given tensor."""
+    tensor_down_to_node_dict = self.metadata["tensor_down_to_node_dict"]
+    assert tensor_name in tensor_down_to_node_dict
+    return tensor_down_to_node_dict[tensor_name]
 
   def topological_sort(self) -> Sequence[onnx.NodeProto]:
     """Return the topological sort order of those nodes."""

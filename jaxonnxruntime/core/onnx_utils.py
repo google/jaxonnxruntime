@@ -109,7 +109,9 @@ def maybe_convert_to_dict(
   elif isinstance(inputs, Sequence):
     if input_names is None:
       raise ValueError("Should provide input names if `inputs` is a Sequence!")
-    assert len(inputs) == len(input_names)
+    assert len(inputs) == len(
+        input_names
+    ), f"{len(inputs)} != {len(input_names)}"
     return dict(zip(input_names, inputs))
   else:
     raise NotImplementedError("Please use inputs of type dict or Sequence!")
@@ -340,7 +342,7 @@ class JortTestCase(parameterized.TestCase):
             ),
         )
     else:
-      logging.info("Please install onnxruntime first.")
+      self.skipTest("Please install onnxruntime first.")
 
   def assert_model_run_through(
       self, onnx_model: onnx.ModelProto, model_inputs: tuple[Any]

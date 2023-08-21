@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+import inspect
+import os
 
 from absl.testing import absltest
 import jax
-import jax.numpy as jnp
 from jaxonnxruntime import config_class
 from jaxonnxruntime.experimental import call_torch
 from jaxonnxruntime.experimental.call_torch.tests.d2l_torch import d2l
 import torch
 from torch import nn
 import torch.nn.functional as F
+
+import onnx
 
 
 class TestCallTorchBasic(call_torch.CallTorchTestCase):
@@ -90,16 +92,18 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
       self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  @unittest.skip("TorchONNXExportError")
   def test_multi_head_attention(self):
     num_hiddens, num_heads = 100, 5
     batch_size, num_queries, num_kvpairs = 2, 4, 6
     valid_lens = torch.tensor([3, 2])
-    x = torch.ones((batch_size, num_queries, num_hiddens))
-    y = torch.ones((batch_size, num_kvpairs, num_hiddens))
+    valid_lens = torch.repeat_interleave(valid_lens, repeats=num_heads, dim=0)
+    x = torch.normal(0, 1, (batch_size, num_queries, num_hiddens))
+    y = torch.normal(0, 1, (batch_size, num_kvpairs, num_hiddens))
     torch_inputs = (x, y, y, valid_lens)
     torch_func = d2l.MultiHeadAttention(num_hiddens, num_heads, 0.5)
-    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+    torch_func.eval()
+    with config_class.jaxort_only_allow_initializers_as_static_args(False):
+      self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
 
 if __name__ == "__main__":

@@ -1372,12 +1372,14 @@ class MultiHeadAttention(d2l.Module):
     keys = self.transpose_qkv(self.W_k(keys))
     values = self.transpose_qkv(self.W_v(values))
 
-    if valid_lens is not None:
-      # On axis 0, copy the first item (scalar or vector) for num_heads
-      # times, then copy the next item, and so on
-      valid_lens = torch.repeat_interleave(
-          valid_lens, repeats=self.num_heads, dim=0
-      )
+    # Modify d2l and disable repeat_interleave since onnx_export does not
+    # support it.
+    # if valid_lens is not None:
+    ## On axis 0, copy the first item (scalar or vector) for num_heads
+    ## times, then copy the next item, and so on
+    # valid_lens = torch.repeat_interleave(
+    # valid_lens, repeats=self.num_heads, dim=0
+    # )
 
     # Shape of output: (batch_size * num_heads, no. of queries,
     # num_hiddens / num_heads)

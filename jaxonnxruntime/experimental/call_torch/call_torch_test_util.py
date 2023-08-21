@@ -13,34 +13,48 @@
 # limitations under the License.
 
 """test utilities for call_torch API."""
+import os
+
 import jax
 from jaxonnxruntime.core import onnx_utils
 from jaxonnxruntime.experimental import call_torch
 import numpy as np
 import torch
 
+import onnx
+
 
 class CallTorchTestCase(onnx_utils.JortTestCase):
   """Base class for CallTorch tests including numerical checks and boilerplate."""
 
+  _onnx_dump_prefix = None
+
   def assert_call_torch_convert_and_compare(self, test_module, torch_inputs):
     """assert the converted jittable jax function and torch module numerical accuracy."""
-    if not isinstance(
-        test_module,
-        (torch.jit.ScriptModule, torch.jit.ScriptFunction, torch.nn.Module),
-    ):
-      test_module = torch.jit.trace(
-          func=test_module, example_inputs=torch_inputs
-      )
+    # Get Torch model outputs.
     torch_outputs = test_module(*torch_inputs)
     torch_outputs = jax.tree_map(
         call_torch.torch_tensor_to_np_array, torch_outputs
     )
     if isinstance(torch_outputs, np.ndarray):
       torch_outputs = (torch_outputs,)
-    jax_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
-    jax_fn, jax_params = call_torch.call_torch(test_module, torch_inputs)
+
+    # Get JAX model outputs.
+    if not isinstance(
+        test_module,
+        (torch.jit.ScriptModule, torch.jit.ScriptFunction, torch.nn.Module),
+    ):
+      test_module = torch.jit.trace(test_module, example_inputs=torch_inputs)
+    np_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
+    jax_fn, jax_params = call_torch.call_torch(
+        test_module, torch_inputs, self._onnx_dump_prefix
+    )
     jax_fn = jax.jit(jax_fn)
-    jax_outputs = jax_fn(jax_params, jax_inputs)
+    jax_outputs = jax_fn(jax_params, np_inputs)
+
+    # Assert if Torch and JAX model result match each other.
     self.assert_allclose(torch_outputs, jax_outputs)
-    return jax_fn, jax_params, jax_inputs, jax_outputs
+    if self._onnx_dump_prefix:
+      onnx_model = onnx.load(os.path.join(self._onnx_dump_prefix, "model.onnx"))
+      self.assert_ort_jort_all_close(onnx_model, np_inputs)
+    return jax_fn, jax_params, np_inputs, torch_outputs, jax_outputs
