@@ -342,7 +342,9 @@ class JortTestCase(parameterized.TestCase):
             ),
         )
     else:
-      self.skipTest("Please install onnxruntime first.")
+      logging.warning(
+          "Skip ort and jort match test.Please install onnxruntime first."
+      )
 
   def assert_model_run_through(
       self, onnx_model: onnx.ModelProto, model_inputs: tuple[Any]

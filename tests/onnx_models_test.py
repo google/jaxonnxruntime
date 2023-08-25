@@ -18,7 +18,7 @@ import collections
 from typing import Any, Optional, Union
 import unittest
 
-from absl import flags
+from absl import app
 from absl import logging
 from absl.testing import absltest
 import jax
@@ -26,10 +26,11 @@ import jaxonnxruntime as jort
 from jaxonnxruntime import runner
 from jaxonnxruntime.backend import Backend as JaxBackend  # pylint: disable=g-importing-member
 from jaxonnxruntime.core import onnx_utils
+from onnx import hub
 import numpy as np
 
 import onnx
-from onnx import hub
+
 
 jax.config.update('jax_enable_x64', True)
 jax.config.update('jax_numpy_rank_promotion', 'warn')
@@ -87,7 +88,7 @@ class Runner(runner.Runner):
       self.check_compatibility(model, device)
       model_info = hub.get_model_info(model_name)
       model_inputs_info = list(
-          model_info.metadata.get('io_ports').get('inputs')
+          model_info.metadata.get('io_ports', {}).get('inputs')
       )
       model_inputs = [_create_dummy_tensor(item) for item in model_inputs_info]
       test_case = onnx_utils.JortTestCase()
@@ -104,69 +105,76 @@ class Runner(runner.Runner):
         and callable(self.backend.is_compatible)
         and not self.backend.is_compatible(model, device)
     ):
-      raise unittest.SkipTest('Not compatible with backend')
+      raise unittest.SkipTest(f'Not compatible with backend with {device}')
 
 
-backend_test = Runner(JaxBackend, __name__)
-expect_fail_patterns = []
-include_patterns = []
-exclude_patterns = []
+def main(unused_argv):
+  backend_test = Runner(JaxBackend, __name__)
+  expect_fail_patterns = []
+  include_patterns = []
+  exclude_patterns = []
 
-include_patterns.append('test_alexnet_')
-include_patterns.append('test_bert_squad_')
-include_patterns.append('test_caffenet_')
-include_patterns.append('test_densenet_121_12_')
-include_patterns.append('test_emotion_ferplus_')
-include_patterns.append('test_googlenet_')
-include_patterns.append('test_gpt_2_')
-include_patterns.append('test_gpt_2_lm_head_')
-include_patterns.append('test_inception_1_')
-include_patterns.append('test_inception_2_')
-include_patterns.append('test_mnist_12_')
-include_patterns.append('test_mnist_')
-include_patterns.append('test_r_cnn_ilsvrc13_')
-include_patterns.append('test_resnet101_')
-include_patterns.append('test_resnet101_duc_hdc_12_')
-include_patterns.append('test_resnet101_duc_hdc_')
-include_patterns.append('test_resnet101_v2_')
-include_patterns.append('test_resnet152_')
-include_patterns.append('test_resnet152_v2_')
-include_patterns.append('test_resnet18_')
-include_patterns.append('test_resnet18_v2_')
-include_patterns.append('test_resnet34_')
-include_patterns.append('test_resnet34_v2_')
-include_patterns.append('test_resnet50_caffe2_')
-include_patterns.append('test_resnet50_')
-include_patterns.append('test_resnet50_fp32_')
-include_patterns.append('test_resnet50_v2_')
-include_patterns.append('test_shufflenet_v1_')
-include_patterns.append('test_shufflenet_v2_')
-include_patterns.append('test_shufflenet_v2_fp32_')
-include_patterns.append('test_squeezenet_1.0_')
-include_patterns.append('test_squeezenet_1.1_')
-include_patterns.append('test_super_resolution_')
-include_patterns.append('test_tiny_yolov2_')
-include_patterns.append('test_vgg_16_bn_')
-include_patterns.append('test_vgg_16_')
-include_patterns.append('test_vgg_16_fp32_')
-include_patterns.append('test_vgg_19_bn_')
-include_patterns.append('test_vgg_19_caffe2_')
-include_patterns.append('test_vgg_19_')
-include_patterns.append('test_yolov2_')
-include_patterns.append('test_zfnet_512._')
+  include_patterns.append('test_alexnet_.pu')
+  # Exclude bert-squad temporarily, see b/294910226
+  # include_patterns.append('test_bert_squad_.pu')
+  include_patterns.append('test_caffenet_.pu')
+  include_patterns.append('test_densenet_121_12_.pu')
+  include_patterns.append('test_emotion_ferplus_.pu')
+  include_patterns.append('test_googlenet_.pu')
+  include_patterns.append('test_gpt_2_.pu')
+  include_patterns.append('test_gpt_2_lm_head_.pu')
+  include_patterns.append('test_inception_1_.pu')
+  include_patterns.append('test_inception_2_.pu')
+  include_patterns.append('test_mnist_12_.pu')
+  include_patterns.append('test_mnist_.pu')
+  include_patterns.append('test_r_cnn_ilsvrc13_.pu')
+  include_patterns.append('test_resnet101_.pu')
+  include_patterns.append('test_resnet101_duc_hdc_12_.pu')
+  include_patterns.append('test_resnet101_duc_hdc_.pu')
+  include_patterns.append('test_resnet101_v2_.pu')
+  include_patterns.append('test_resnet152_.pu')
+  include_patterns.append('test_resnet152_v2_.pu')
+  include_patterns.append('test_resnet18_.pu')
+  include_patterns.append('test_resnet18_v2_.pu')
+  include_patterns.append('test_resnet34_.pu')
+  include_patterns.append('test_resnet34_v2_.pu')
+  include_patterns.append('test_resnet50_caffe2_.pu')
+  include_patterns.append('test_resnet50_.pu')
+  include_patterns.append('test_resnet50_fp32_.pu')
+  include_patterns.append('test_resnet50_v2_.pu')
+  include_patterns.append('test_shufflenet_v1_.pu')
+  include_patterns.append('test_shufflenet_v2_.pu')
+  include_patterns.append('test_shufflenet_v2_fp32_.pu')
+  include_patterns.append('test_squeezenet_1.0_.pu')
+  include_patterns.append('test_squeezenet_1.1_.pu')
+  include_patterns.append('test_super_resolution_.pu')
+  include_patterns.append('test_tiny_yolov2_.pu')
+  include_patterns.append('test_vgg_16_bn_.pu')
+  include_patterns.append('test_vgg_16_.pu')
+  include_patterns.append('test_vgg_16_fp32_.pu')
+  include_patterns.append('test_vgg_19_bn_.pu')
+  include_patterns.append('test_vgg_19_caffe2_.pu')
+  include_patterns.append('test_vgg_19_.pu')
+  include_patterns.append('test_yolov2_.pu')
+  include_patterns.append('test_zfnet_512_.pu')
 
-for pattern in include_patterns:
-  backend_test.include(pattern)
+  for pattern in include_patterns:
+    backend_test.include(pattern)
 
-for pattern in exclude_patterns:
-  backend_test.exclude(pattern)
+  for pattern in exclude_patterns:
+    backend_test.exclude(pattern)
 
-for pattern in expect_fail_patterns:
-  backend_test.xfail(pattern)
+  for pattern in expect_fail_patterns:
+    backend_test.xfail(pattern)
 
-# import all test cases at global scope to make them visible to python.unittest
-globals().update(backend_test.test_cases)
+  # import all test cases at global scope to make them visible to
+  # python.unittest
+  logging.info(
+      'list all test_cases: %s', '\n'.join(backend_test.test_cases.keys())
+  )
+  globals().update(backend_test.test_cases)
+  absltest.main()
 
 
 if __name__ == '__main__':
-  absltest.main()
+  app.run(main)
