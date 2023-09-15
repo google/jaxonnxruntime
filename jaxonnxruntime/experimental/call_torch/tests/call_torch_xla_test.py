@@ -14,51 +14,55 @@
 
 """The call_torch_xla_p primitive test."""
 
-from absl import logging
+import abc
+
 from absl.testing import absltest
+from absl.testing import parameterized
 import chex
 import jax
+from jax.experimental import jax2tf
 from jaxonnxruntime.experimental import call_torch
 from jaxonnxruntime.experimental.call_torch import call_torch_xla
+import tensorflow as tf
 import torch
 
 
-def _convert_to_mhlo(jax_fn, inputs, *, dialect):
-  lowered_forward = jax_fn.lower(*inputs)
-  mhlo_text = lowered_forward.as_text(dialect=dialect)
-  return mhlo_text
+class TorchModuleBase(abc.ABC):
+
+  @abc.abstractmethod
+  def torch_func(self):
+    pass
+
+  @abc.abstractmethod
+  def torch_inputs(self):
+    pass
+
+  def torch_params(self):
+    pass
+
+  @abc.abstractmethod
+  def stablehlo_text(self):
+    pass
 
 
-def _check_transforms(fn, inputs, *, dialect):
-  jaxpr = jax.make_jaxpr(fn)(*inputs)
-  logging.info(jaxpr)
+class TorchModuleFoo(TorchModuleBase):
 
-  mhlo_text = jax.jit(fn).lower(*inputs).as_text(dialect=dialect)
-  logging.info(mhlo_text)
-
-
-class MhloTest(chex.TestCase):
-
-  def _assert_all_close(self, expect_fn, actual_fn, inputs):
-    expect_outputs = self.variant(expect_fn)(*inputs)
-    actual_outputs = self.variant(actual_fn)(*inputs)
-    logging.info(expect_outputs)
-    logging.info(actual_outputs)
-    chex.assert_trees_all_close(expect_outputs, actual_outputs)
-
-  def test_basic(self):
-    """Here we test basic pytorch function.
-
-    We generate the stablehlo text offline for test purpose.
-    """
-
-    def foo(x, y):
+  def torch_func(self):
+    def foo(params, inputs):  # pylint: disable=unused-argument
+      x, y = inputs
       a = torch.sin(x)
       b = torch.cos(y)
       return a + b
 
-    torch_inputs = (torch.randn(10, 10), torch.randn(10, 10))
-    jax_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
+    return foo
+
+  def torch_params(self):
+    return ()
+
+  def torch_inputs(self):
+    return (torch.randn(10, 10), torch.randn(10, 10))
+
+  def stablehlo_text(self):
     # This is generated from offline pytorch/xla
     foo_stablehlo_text = """
 module @IrToHlo.13 attributes {mhlo.cross_program_prefetches = [], mhlo.dynamic_parameter_bindings = [], mhlo.is_dynamic = false, mhlo.use_auto_spmd_partitioning = false} {
@@ -70,16 +74,53 @@ module @IrToHlo.13 attributes {mhlo.cross_program_prefetches = [], mhlo.dynamic_
   }
 }
 """
+    return foo_stablehlo_text
 
-    mhlo_module = call_torch_xla.MhloModule(
-        module=foo_stablehlo_text, fun_name=foo.__name__
+
+class CallTorchXlaTest(chex.TestCase):
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name="foo",
+          torch_module=TorchModuleFoo(),
+      ),
+  )
+  def test_basic(self, torch_module: TorchModuleBase):
+    """Here we test basic pytorch function."""
+    torch_func = torch_module.torch_func()
+    torch_inputs = torch_module.torch_inputs()
+    torch_params = torch_module.torch_params()
+    torch_results = torch_func(torch_params, torch_inputs)
+    _, res_tree_def = jax.tree_flatten(
+        jax.tree_map(call_torch.torch_tensor_to_np_array, torch_results)
+    )
+    print(f"res_tree_def = {res_tree_def}")
+    stablehlo_text = torch_module.stablehlo_text()
+    jax_params = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_params)
+    jax_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
+
+    def jax_func(jax_params, jax_inputs):
+      flat_xla_args = jax.tree_leaves(jax_params) + jax.tree_leaves(jax_inputs)
+      flat_xla_res = call_torch_xla.call_torch_xla(
+          *flat_xla_args, module=stablehlo_text
+      )
+      return jax.tree_unflatten(res_tree_def, flat_xla_res)
+
+    chex.assert_trees_all_close(
+        jax_func(jax_params, jax_inputs),
+        torch_results,
+        rtol=1e-6,
+        atol=1e-5,
+    )
+
+    tf_func = tf.function(
+        jax2tf.convert(jax.jit(jax_func), with_gradient=False, enable_xla=True),
+        jit_compile=True,
+        autograph=False,
     )
 
     chex.assert_trees_all_close(
-        call_torch_xla.call_torch_xla(*jax_inputs, module=mhlo_module),
-        foo(*torch_inputs),
-        rtol=1e-6,
-        atol=1e-5,
+        tf_func(jax_params, jax_inputs), torch_results, atol=1e-5, rtol=1e-6
     )
 
 

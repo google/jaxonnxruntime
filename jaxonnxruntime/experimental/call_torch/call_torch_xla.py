@@ -14,42 +14,88 @@
 
 """The call_torch API  on the pytorch exported stablehlo module."""
 
-import dataclasses
-from typing import Tuple
-
+from typing import Any, Tuple, Union
+from absl import logging
 import jax
 from jax import core
 from jax.interpreters import mlir
 from jax.interpreters import xla
 from jax.lib import xla_client as xc
 import jax.numpy as jnp
+from jaxlib.mlir import ir
 
-from mlir import ir
-
+__all__ = ["call_torch_xla"]
 
 safe_zip = jax.util.safe_zip
+
+
+def _clean_mhlo_attributes(mlir_module):
+  """Removes those extra mhlo attributes not belong to stablehlo dialect."""
+
+  def walk_stablehlo_operations(op, cb):
+    """walk the stablehlo operation recursive with callback function."""
+    cb(op)
+    for region in op.operation.regions:
+      for block in region:
+        for op in block:
+          walk_stablehlo_operations(op, cb)
+
+  def remove_attribute(op):
+    attributes = op.operation.attributes
+    # Remove all attributes whole name start with "mhlo." i.e.
+    # mhlo.is_dynamicing.
+    remove_key_names = [
+        key.name for key in attributes if key.name.startswith("mhlo.")
+    ]
+    for key_name in remove_key_names:
+      del op.operation.attributes[key_name]
+
+  new_module = mlir_module
+  walk_stablehlo_operations(new_module, remove_attribute)
+  return new_module
+
 
 call_torch_xla_p = core.Primitive("call_torch_xla")
 call_torch_xla_p.multiple_results = True
 
 
-@dataclasses.dataclass(frozen=True)
-class MhloModule:
-  module: str  # string representation of the MLIR module.
-  fun_name: str
+def call_torch_xla(*args, module: Union[str, Any], clean_mhlo_attributes=True):
+  """Lower torch module to XLA and wrap it as JAX funtion.
 
-  def __str__(self):
-    return f"MhloModule(fun_name={self.fun_name}, ...)"
+  Given the the torch module and its input arguments, this function will lower
+  the torch module into stablehlo first. Then it wrap the stablehlo module as
+  JAX function. So it can work with other JAX functions.
 
+  Args:
+    *args: The arguments to the called module.
+    module: The module to call, it supports one of `torch.nn.Module`, or
+      stablehlo module str.
+    clean_mhlo_attributes: Remove Mhlo attributes from the stablehlo MlirModule.
+      This is typically done when people legalize the compiled Hlo to stablehlo.
 
-def call_torch_xla(*args, module: MhloModule):
+  Returns:
+    The output of the torch function.
+  """
+  if not isinstance(module, str):
+    raise NotImplementedError(
+        "call_torch_xla only support stablehlo str currently."
+    )
+
+  if clean_mhlo_attributes:
+    with mlir.make_ir_context():
+      mlir_module = ir.Module.parse(module)
+      new_module = _clean_mhlo_attributes(mlir_module)
+      module = str(new_module)
+      if logging.vlog_is_on(3):
+        logging.vlog(
+            3, "Mlir module after clean_mhlo_attributes is:\n\n%s", module
+        )
+
   ret = call_torch_xla_p.bind(*args, module=module)
-  if len(ret) == 1:
-    return ret[0]
   return tuple(ret)
 
 
-def call_torch_xla_impl(*args, module: MhloModule):
+def call_torch_xla_impl(*args, module):
   return xla.apply_primitive(call_torch_xla_p, *args, module=module)
 
 
@@ -87,12 +133,12 @@ _UKNOWN_DIM_PREFIX = "call_torch_unknown_dim"
 
 
 def call_torch_xla_abstract_eval(
-    *in_avals: core.ShapedArray, module: MhloModule
+    *in_avals: core.ShapedArray, module: str
 ) -> Tuple[core.ShapedArray, ...]:
   """Abstract evaluation rule."""
   with mlir.make_ir_context():
-    mhlo_module = ir.Module.parse(module.module)
-    symtab = ir.SymbolTable(mhlo_module.operation)
+    stablehlo_module = ir.Module.parse(module)
+    symtab = ir.SymbolTable(stablehlo_module.operation)
 
     # Check we are not reusing existing dimension vars.
     has_polymorphic = False
@@ -173,23 +219,16 @@ def refine_polymorphic_shapes(
     return ir.Module.parse(refined_module_str)
 
 
-def call_torch_xla_lowering(
-    ctx: mlir.LoweringRuleContext, *args, module: MhloModule
-):
+def call_torch_xla_lowering(ctx: mlir.LoweringRuleContext, *args, module: str):
   """Lowering rule."""
-  program_name = f"_call_torch_xla_fn_{module.fun_name}"
-  mhlo_module = ir.Module.parse(module.module)
+  program_name = "_call_torch_xla_fn"
+  stablehlo_module = ir.Module.parse(module)
 
-  if xc.mlir_api_version < 41:
-    callee_name = mlir.merge_mhlo_modules(
-        dst_module=ctx.module_context.module,
-        sym_name=program_name,
-        src_module=mhlo_module)  # type: ignore
-  else:
-    callee_name = mlir.merge_mlir_modules(
-        dst_module=ctx.module_context.module,
-        sym_name=program_name,
-        src_module=mhlo_module)
+  callee_name = mlir.merge_mlir_modules(
+      dst_module=ctx.module_context.module,
+      sym_name=program_name,
+      src_module=stablehlo_module,
+  )
 
   symtab = ir.SymbolTable(ctx.module_context.module.operation)
   result_types = symtab[program_name].type.results
