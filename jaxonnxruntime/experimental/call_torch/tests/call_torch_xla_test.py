@@ -123,6 +123,5 @@ class CallTorchXlaTest(chex.TestCase):
         tf_func(jax_params, jax_inputs), torch_results, atol=1e-5, rtol=1e-6
     )
 
-
 if __name__ == "__main__":
   absltest.main()
