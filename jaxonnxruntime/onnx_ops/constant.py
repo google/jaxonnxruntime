@@ -52,34 +52,7 @@ class Constant(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    attr_to_dtype = {
-        'value_int': jnp.int64,
-        'value_ints': jnp.int64,
-        'value_float': jnp.float32,
-        'value_floats': jnp.float32,
-    }
-
-    matched = 0
-    if 'value_string' in node.attrs:
-      node.attrs_dict['value'] = node.attrs['value_string']
-      matched = matched + 1
-    elif 'value_strings' in node.attrs:
-      node.attrs_dict['value'] = node.attrs['value_strings']
-      matched = matched + 1
-    elif 'value' in node.attrs:
-      node.attrs_dict['value'] = _asarray(node.attrs['value'])
-      matched = matched + 1
-    else:
-      for item in attr_to_dtype:
-        if item in node.attrs:
-          node.attrs_dict['value'] = jnp.array(
-              node.attrs[item], dtype=attr_to_dtype[item]
-          )
-          matched = matched + 1
-
-    assert (
-        matched == 1
-    ), f'Should only provide one of value attributes, but get {matched}'
+    node.attrs_dict['value'] = node.get_constant_node_value()
 
   @classmethod
   def version_1(

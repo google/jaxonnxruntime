@@ -464,13 +464,13 @@ jaxort_if_op_reshape_output_for_llama = config.define_bool_state(
     ),
 )
 
-jaxort_experimental_support_abtract_input_shape = config.define_bool_state(
-    name='jaxort_experimental_support_abtract_input_shape',
+jaxort_experimental_support_abstract_shape = config.define_bool_state(
+    name='jaxort_experimental_support_abstract_shape',
     default=False,
     help=(
         'Default behaviour is that call_onnx require real model input to'
-        ' tracethe JAX function. If `jaxort_support_abtract_input_shape`, users'
-        ' onlyneed provide input abstract shape and dtype info. Here we use'
-        ' `jax.eval_shape`function to deduce the output shape and dtype'
+        ' tracethe JAX function. If `jaxort_support_abstract_input_shape`,'
+        ' users onlyneed provide input abstract shape and dtype info. Here we'
+        ' use `jax.eval_shape`function to deduce the output shape and dtype'
     ),
 )

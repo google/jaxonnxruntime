@@ -99,7 +99,7 @@ def flatten_subgraph(node, inputs):
       inp_end = inp_start + len(input_names)
       subgraph_inps = inputs[inp_start:inp_end]
       params = {
-          n.name: onnx_utils.valueinfoproto_asarray(n) for n in a.initializer
+          n.name: onnx_utils.onnx_tensor_to_np_array(n) for n in a.initializer
       }
       tensor_dict = dict(
           **onnx_utils.maybe_convert_to_dict(subgraph_inps, input_names),

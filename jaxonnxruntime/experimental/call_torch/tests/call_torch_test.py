@@ -12,19 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
 import os
-
 from absl.testing import absltest
-import jax
+import jaxonnxruntime
 from jaxonnxruntime import config_class
 from jaxonnxruntime.experimental import call_torch
 from jaxonnxruntime.experimental.call_torch.tests.d2l_torch import d2l
 import torch
 from torch import nn
 import torch.nn.functional as F
-
-import onnx
 
 
 class TestCallTorchBasic(call_torch.CallTorchTestCase):

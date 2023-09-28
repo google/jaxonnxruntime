@@ -48,14 +48,14 @@ class Expand(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     if config.jaxort_only_allow_initializers_as_static_args:
-      if node.inputs[1] not in node.context_graph.initializer_dict:
+      if node.inputs[1] not in node.context_graph.get_constant_dict():
         raise ValueError(
             f"{node.inputs[1]} is not constant but used as a static argument "
             "`shape` when `jax.jit` the `Expand` operator. "
             "The jitted function gives wrong results if its value changes."
         )
       node.attrs_dict["shape"] = tuple(
-          node.context_graph.initializer_dict[node.inputs[1]].tolist()
+          node.context_graph.get_constant_dict()[node.inputs[1]].tolist()
       )
     else:
       node.attrs_dict["shape"] = tuple(inputs[1].tolist())

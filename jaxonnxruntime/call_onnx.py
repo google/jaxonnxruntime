@@ -24,6 +24,7 @@ from jaxonnxruntime.core import handler as onnx_handler
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
+from jaxonnxruntime.core import jax_utils
 
 import onnx
 from onnx import defs
@@ -58,14 +59,18 @@ def call_onnx_model(
 
   graph = model.graph
   if rename_tensors:
+    logging.info(
+        'In call_onnx_model: rename the onnx tensors with unique_id'
+        ' `tensor_{id}.'
+    )
     graph = onnx_utils.sanitize_tensor_names_in_graph(graph)
+  graph_helper = OnnxGraph(graph)
   if model.ir_version < 3:
     opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
   else:
     opset = model.opset_import
-  model_params = {
-      n.name: onnx_utils.valueinfoproto_asarray(n) for n in graph.initializer
-  }
+
+  model_params = graph_helper.initializer_dict
   input_names = onnx_utils.get_graph_input(graph)
   tensor_dict = dict(
       **onnx_utils.maybe_convert_to_dict(inputs, input_names), **model_params
@@ -113,8 +118,8 @@ def call_onnx_graph(
     jit_func = _get_jit_func(node, node_inputs, handlers=handlers)
     jit_func_dict[node.name] = jit_func
 
-    if config.jaxort_experimental_support_abtract_input_shape:
-      outputs = jax.eval_shape(jit_func, *node_inputs, **node.attrs_dict)
+    if config.jaxort_experimental_support_abstract_shape:
+      outputs = jax_utils.eval_shape(jit_func, *node_inputs, **node.attrs_dict)
     else:
       outputs = jit_func(*node_inputs, **node.attrs_dict)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]

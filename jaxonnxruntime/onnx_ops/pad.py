@@ -45,7 +45,7 @@ class Pad(handler.Handler):
 
     if config.jaxort_only_allow_initializers_as_static_args:
       for index in range(1, len(node.inputs)):
-        if node.inputs[index] not in node.context_graph.initializer_dict:
+        if node.inputs[index] not in node.context_graph.get_constant_dict():
           raise ValueError(
               f'{node.inputs[index]} is not constant but used as `pads`'
               ' static argument during `jax.jit`. '

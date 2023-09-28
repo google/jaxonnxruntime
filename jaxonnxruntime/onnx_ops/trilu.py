@@ -38,7 +38,7 @@ class Trilu(handler.Handler):
     if config.jaxort_only_allow_initializers_as_static_args:
       if (
           len(node.inputs) == 1
-          or node.inputs[1] not in node.context_graph.initializer_dict
+          or node.inputs[1] not in node.context_graph.get_constant_dict()
       ):
         raise ValueError(
             "Trilu's `k` is not constant defined by the graph initializers but"
@@ -46,7 +46,7 @@ class Trilu(handler.Handler):
             ' output incorrect results if its value changes in another input.'
         )
       node.attrs_dict['k'] = int(
-          node.context_graph.initializer_dict[node.inputs[1]].tolist()[0]
+          node.context_graph.get_constant_dict()[node.inputs[1]].tolist()[0]
       )
     else:
       node.attrs_dict['k'] = int(inputs[1]) if len(inputs) == 2 else 0

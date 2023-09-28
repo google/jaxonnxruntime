@@ -50,13 +50,13 @@ class Range(handler.Handler):
     effective_inputs = []
     if config.jaxort_only_allow_initializers_as_static_args:
       for inp in node.inputs[:]:
-        if inp not in node.context_graph.initializer_dict:
+        if inp not in node.context_graph.get_constant_dict():
           raise ValueError(
               f"{inp} is not constant but used as a static argument "
               "when `jax.jit` the `Range` operator. "
               "The jitted function gives wrong results if its value changes."
           )
-        effective_inputs.append(node.context_graph.initializer_dict[inp])
+        effective_inputs.append(node.context_graph.get_constant_dict()[inp])
     else:
       effective_inputs = inputs
     node.attrs_dict["start"] = effective_inputs[0].item()

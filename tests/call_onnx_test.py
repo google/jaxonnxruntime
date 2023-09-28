@@ -71,7 +71,7 @@ class TestCallOnnx(absltest.TestCase):
     expect = [np.array([2.0, 1.0, 3.0], dtype=np.float32)]
     np.testing.assert_array_equal(results, expect)
 
-    with config_class.jaxort_experimental_support_abtract_input_shape(True):
+    with config_class.jaxort_experimental_support_abstract_shape(True):
       x = np.array([-2.0, -8.0, 3.0], dtype=np.float32)
       jax_func, model_params = call_onnx.call_onnx_model(
           model_proto, [jax.ShapeDtypeStruct(x.shape, x.dtype)]

@@ -27,6 +27,7 @@
 # limitations under the License.
 """Wrap the onnx.NodeProto as OnnxNode class."""
 from typing import Any
+from jax import numpy as jnp
 import onnx
 from .onnx_utils import contain_subgraph
 from .onnx_utils import get_graph_input
@@ -124,3 +125,35 @@ class OnnxNode:
   def len_outputs(self) -> int:
     """The number of output tensors of the ONNX node."""
     return len(self.outputs)
+
+  def get_constant_node_value(self) -> Any:
+    """Returns the value of the constant node."""
+    assert self.node_proto.op_type == 'Constant', self.node_proto.op_type
+    result = None
+    attr_to_dtype = {
+        'value_int': jnp.int64,
+        'value_ints': jnp.int64,
+        'value_float': jnp.float32,
+        'value_floats': jnp.float32,
+    }
+
+    matched = 0
+    if 'value_string' in self.attrs:
+      result = self.attrs['value_string']
+      matched = matched + 1
+    elif 'value_strings' in self.attrs:
+      result = self.attrs['value_strings']
+      matched = matched + 1
+    elif 'value' in self.attrs:
+      result = onnx.numpy_helper.to_array(self.attrs['value'])
+      matched = matched + 1
+    else:
+      for item in attr_to_dtype:
+        if item in self.attrs:
+          result = jnp.array(self.attrs[item], dtype=attr_to_dtype[item])
+          matched = matched + 1
+
+    assert (
+        matched == 1
+    ), f'Should only provide one of value attributes, but get {matched}'
+    return result

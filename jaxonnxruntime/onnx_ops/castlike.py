@@ -47,9 +47,9 @@ class CastLike(handler.Handler):
           tensor_proto.type.tensor_type.elem_type
       )
     elif config.jaxort_only_allow_initializers_as_static_args:
-      if node.context_graph.initializer_dict.get(input_name) is not None:
-        tensor_proto = node.context_graph.initializer_dict.get(input_name)
-        res_type = onnx_utils.tensor_dtype_to_jnp_dtype(tensor_proto.data_type)
+      if input_name in node.context_graph.get_constant_dict():
+        tensor = node.context_graph.get_constant_dict().get(input_name)
+        res_type = tensor.dtype
       else:
         raise ValueError(
             "`config.jaxort_only_allow_initializers_as_static_args = True but "

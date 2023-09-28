@@ -35,7 +35,7 @@ class TopK(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     if config.jaxort_only_allow_initializers_as_static_args:
-      if node.inputs[1] not in node.context_graph.initializer_dict:
+      if node.inputs[1] not in node.context_graph.get_constant_dict():
         raise ValueError(
             f'{node.inputs[1]} is not constant defined by the graph'
             " initializers but used as TopK's static argument `k`. The"
@@ -43,7 +43,7 @@ class TopK(handler.Handler):
             ' its value changes in another input.'
         )
       node.attrs_dict['k'] = int(
-          node.context_graph.initializer_dict[node.inputs[1]].tolist()[0]
+          node.context_graph.get_constant_dict()[node.inputs[1]].tolist()[0]
       )
     else:
       node.attrs_dict['k'] = int(inputs[1].tolist()[0])

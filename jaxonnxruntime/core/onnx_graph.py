@@ -28,9 +28,11 @@
 """Wrap the onnx.GraphProto as OnnxGraph class and provide useful graph manipulation methods."""
 
 import collections
-from typing import Any, List, Sequence
+import functools
+from typing import Any, List, Sequence, Union
 
 import jax
+from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
 
 import onnx
@@ -53,6 +55,14 @@ class OnnxGraph:
       indexed by their names.
     metadata: A dictionary containing the metadata of the graph.
   """
+  initializer_dict: dict[str, jax.Array]
+  node_dict: dict[str, onnx.NodeProto]
+  input: list[str]
+  output: list[str]
+  doc_string: str
+  name: str
+  value_info_dict: dict[str, onnx.ValueInfoProto]
+  metadata: dict[str, Any]
 
   def __init__(self, graph_proto: onnx.GraphProto):
     self.graph_proto: onnx.GraphProto = graph_proto
@@ -62,7 +72,7 @@ class OnnxGraph:
       nd.name = node_name
       self.node_dict[node_name] = nd
     self.initializer_dict: dict[str, jax.Array] = {
-        ts.name: onnx_utils.valueinfoproto_asarray(ts)
+        ts.name: onnx_utils.onnx_tensor_to_np_array(ts)
         for ts in graph_proto.initializer
     }
     self.input: list[str] = [proto.name for proto in graph_proto.input]
@@ -76,6 +86,16 @@ class OnnxGraph:
     }
     self.metadata: dict[str, Any] = {}
     self._initialize_metadata()
+
+  @functools.lru_cache(maxsize=128)
+  def get_constant_dict(self) -> dict[str, Any]:
+    """Get a dictionary of constant tensors."""
+    results = dict()
+    for node in self.graph_proto.node:
+      if node.op_type == "Constant":
+        node_wrapper = onnx_node.OnnxNode(node)
+        results[node.output[0]] = node_wrapper.get_constant_node_value()
+    return results
 
   def _initialize_metadata(self):
     """Initialize the meta_data dict."""
@@ -155,6 +175,25 @@ class OnnxGraph:
     tensor_up_to_node_dict = self.metadata["tensor_up_to_node_dict"]
     assert tensor_name in tensor_up_to_node_dict
     return tensor_up_to_node_dict[tensor_name]
+
+  def get_value_info_shape(self, tensor_name: str) -> list[Union[str, int]]:
+    """Extracts the shape of an ONNX ValueInfoProto as a list.
+
+    Args:
+      tensor_name: The ONNX tensor name.
+
+    Returns:
+      list: A list representing the shape of the ValueInfoProto.
+    """
+    assert tensor_name in self.value_info_dict
+    value_info_proto = self.value_info_dict[tensor_name]
+    shape = []
+    for dim in value_info_proto.type.tensor_type.shape.dim:
+      if dim.HasField("dim_value"):
+        shape.append(dim.dim_value)
+      elif dim.HasField("dim_param"):
+        shape.append(dim.dim_param)
+    return shape
 
   def get_child_nodes_name(self, node_name: str) -> List[str]:
     """Get the names of the children nodes of a given node."""

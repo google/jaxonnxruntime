@@ -22,7 +22,6 @@ from absl.testing import parameterized
 import jax
 from jax import numpy as jnp
 from jaxonnxruntime import config as jort_config
-from jaxonnxruntime.core import onnx_graph
 import numpy as np
 
 import onnx
@@ -60,6 +59,8 @@ def get_shape_and_dtype_from_val_info(
     value_info: onnx.ValueInfoProto,
 ) -> tuple[list[int], jnp.dtype]:
   """Get jax numpy shape and dtype from onnx.ValueInfoProto."""
+  if not hasattr(value_info, "type"):
+    raise RuntimeError(f"there is no type info value_info {str(value_info)}")
   type_proto = value_info.type
   elem_type = get_elem_type_from_type_proto(type_proto)
   dtype = tensor_dtype_to_jnp_dtype(elem_type)
@@ -94,9 +95,9 @@ def get_graph_input(graph: onnx.GraphProto) -> list[str]:
   return unique_real_input
 
 
-def valueinfoproto_asarray(proto: Any) -> jax.Array:
-  """Convert onnx.ValueInfoProto to jaxlib.xla_extension.ArrayImpl."""
-  return jnp.asarray(numpy_helper.to_array(proto).reshape(tuple(proto.dims)))
+def onnx_tensor_to_np_array(proto: onnx.TensorProto) -> np.ndarray[Any, Any]:
+  """Convert onnx.TensorInfoProto to numpy array."""
+  return numpy_helper.to_array(proto).reshape(tuple(proto.dims))
 
 
 def maybe_convert_to_dict(
@@ -176,7 +177,7 @@ def with_jax_config(**kwds):
   def decorator(cls):
     assert inspect.isclass(cls) and issubclass(
         cls, JortTestCase
-    ), "@with_jax_config can only wrap JaxTestCase class definitions."
+    ), "@with_jax_config can only wrap JortTestCase class definitions."
     cls.default_jax_config = {**JortTestCase.default_jax_config, **kwds}
     return cls
 
@@ -189,7 +190,7 @@ def with_jort_config(**kwds):
   def decorator(cls):
     assert inspect.isclass(cls) and issubclass(
         cls, JortTestCase
-    ), "@with_jax_config can only wrap JaxTestCase class definitions."
+    ), "@with_jax_config can only wrap JortTestCase class definitions."
     cls.default_jort_config = {**JortTestCase.default_jort_config, **kwds}
     return cls
 
@@ -299,6 +300,10 @@ class JortTestCase(parameterized.TestCase):
   ):
     """Assert ONNXRuntime and JaxOnnxRuntime is numerically close."""
     # Update the onnx_model with all intermediate outputs.
+    try:
+      from jaxonnxruntime.core import onnx_graph  # pylint: disable=g-import-not-at-top
+    except ImportError:
+      onnx_graph = None
     graph_helper = onnx_graph.OnnxGraph(onnx_model.graph)
     node_execute_order_list = graph_helper.topological_sort()
     all_outputs = []
