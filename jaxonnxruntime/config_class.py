@@ -474,3 +474,17 @@ jaxort_experimental_support_abstract_shape = config.define_bool_state(
         ' use `jax.eval_shape`function to deduce the output shape and dtype'
     ),
 )
+
+jaxort_jaxort_enable_backend_testing = config.define_bool_state(
+    name='jaxort_enable_backend_testing',
+    default=False,
+    help=(
+        'Enable the backend testing mode. When this option is set to True, the'
+        ' ONNX model will be run using backend-specific tests, which may'
+        ' involve specialized optimizations or configurations specific to the'
+        ' backend. This mode is primarily intended for backend developers and'
+        ' maintainers to validate their backend implementation against ONNX'
+        ' models. By default, this option is set to False, and standard ONNX'
+        ' model execution is performed.'
+    ),
+)

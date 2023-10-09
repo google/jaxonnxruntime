@@ -113,9 +113,12 @@ def onnx_cast(
     )
   to_type = onnx_utils.tensor_dtype_to_jnp_dtype(to)
   try:
-    return x.view(from_type).astype(to_type)
+    y = x.view(from_type).astype(to_type)
+    if config.jaxort_enable_backend_testing:
+      if to_type is jnp.bfloat16:
+        y = y.view(jnp.uint16)
+    return y
   except Exception as e:
     raise ValueError(
-        f"onnx_cast cannot support from_type = {from_type}, to_type ="
-        f" {to_type}"
+        f"onnx_cast cannot support from_type = {from_type}, to_type = {to_type}"
     ) from e

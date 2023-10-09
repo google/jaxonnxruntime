@@ -29,6 +29,7 @@ jax.config.update('jax_numpy_rank_promotion', 'warn')
 # Force TPU use float32 instead of bfloat16 for matmul.
 jax.config.update('jax_default_matmul_precision', "float32")
 config.update('jaxort_only_allow_initializers_as_static_args', False)
+config.update('jaxort_enable_backend_testing', True)
 
 
 class Runner(runner.Runner):
@@ -151,7 +152,6 @@ include_patterns.append('test_where_')
 
 # TODO(johnqiangzhang): should modify onnx.numpy_helper.to_array to support load
 # bfloat16.
-exclude_patterns.append('test_cast_FLOAT_to_BFLOAT16')
 exclude_patterns.append('test_castlike_FLOAT_to_BFLOAT16')
 # Not implement yet
 exclude_patterns.append('test_gather_elements_')  # Op GatherElements
