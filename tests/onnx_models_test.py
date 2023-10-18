@@ -92,8 +92,8 @@ class Runner(runner.Runner):
       )
       model_inputs = [_create_dummy_tensor(item) for item in model_inputs_info]
       test_case = onnx_utils.JortTestCase()
-      test_case.assert_model_run_through(model, model_inputs)
-      test_case.assert_ort_jort_all_close(model, model_inputs)
+      test_case.assert_model_run_through(model, model_inputs)  # pytype: disable=wrong-arg-types
+      test_case.assert_ort_jort_all_close(model, model_inputs)  # pytype: disable=wrong-arg-types
 
     model_test_name = model_name.replace('-', '_').replace(' ', '_')
     model_test_name = f'test_{model_test_name}'

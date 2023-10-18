@@ -74,7 +74,7 @@ class ZerosLike(handler.Handler):
 @functools.partial(jit, static_argnames="dtype")
 def tf_zeros_like(x: jax.Array, *, dtype: int):
   """https://www.tensorflow.org/api_docs/python/tf/zeros_like for more details."""
-  jax_dtype = onnx_utils.tensor_dtype_to_jnp_dtype(dtype)
+  jax_dtype = onnx_utils.tensor_dtype_to_jnp_dtype(dtype)  # pytype: disable=wrong-arg-types
 
   def tf_func(input0):
     return tf.zeros_like(input0, dtype=jax_dtype)
