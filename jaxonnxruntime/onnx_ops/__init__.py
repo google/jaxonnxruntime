@@ -99,6 +99,7 @@ from . import squeeze as squeeze
 from . import sub as sub
 from . import sum as sum
 from . import tanh as tanh
+from . import tile as tile
 from . import topk as topk
 from . import transpose as transpose
 from . import trilu as trilu

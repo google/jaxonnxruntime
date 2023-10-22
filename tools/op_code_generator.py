@@ -30,7 +30,6 @@ template_head = """\"\"\"Define ONNX {op_name} operator.\"\"\"
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 import functools
-import inspect
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -46,10 +45,7 @@ class {op_name}(handler.Handler):
 
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
+    onnx_node.update_node_attr_dict_with_jax_func_kwargs(node, onnx_jax_impl)
 """
 
 template_version_func = """
