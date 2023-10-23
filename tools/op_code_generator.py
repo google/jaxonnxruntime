@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Help simplify the onnx op develoment, example cmd."""
+"""Help simplify the onnx op develoment, example cmd.
+
+Example: ```op_code_generator.py <ONNX_OP_NAME>```
+"""
 # Example cmd: `python op_code_generator.py Add`
 import argparse
 import logging

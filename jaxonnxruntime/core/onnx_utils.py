@@ -21,10 +21,11 @@ from absl import logging
 from absl.testing import parameterized
 import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config as jort_config
+from jaxonnxruntime import config as jort_config  # pylint: disable=g-importing-member
 import numpy as np
 
 import onnx
+from onnx import helper as onnx_helper
 from onnx import numpy_helper
 
 
@@ -37,8 +38,15 @@ def tensor_dtype_to_jnp_dtype(
   if onnx.__version__ < "1.14.0":
     np_type = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type]
   else:
-    np_type = onnx.helper.tensor_dtype_to_np_dtype(tensor_type)
+    np_type = onnx_helper.tensor_dtype_to_np_dtype(tensor_type)
   return jnp.dtype(np_type)
+
+
+def np_dtype_to_tensor_dtype(np_dtype: np.dtype) -> onnx.TensorProto.DataType:
+  if onnx.__version__ < "1.14.0":
+    return onnx.mapping.NP_TYPE_TO_TENSOR_TYPE[np_dtype]
+  else:
+    return onnx_helper.np_dtype_to_tensor_dtype(np_dtype)
 
 
 def get_elem_type_from_type_proto(type_proto: onnx.TypeProto):

@@ -18,21 +18,22 @@ from jaxonnxruntime.experimental import custom_ops  # pylint: disable=unused-imp
 import numpy as np
 
 import onnx
+from onnx import helper as onnx_helper
 
 
 class ZerosLikeTest(absltest.TestCase):
 
   def test_basic(self):
     # Create input and output tensors.
-    input_tensor = onnx.helper.make_tensor_value_info(
+    input_tensor = onnx_helper.make_tensor_value_info(
         "X", onnx.TensorProto.FLOAT, [1, 3, 224, 224]
     )
-    output_tensor = onnx.helper.make_tensor_value_info(
+    output_tensor = onnx_helper.make_tensor_value_info(
         "Y", onnx.TensorProto.FLOAT, [1, 3, 224, 224]
     )
 
     # Create the ZerosLike node
-    node = onnx.helper.make_node(
+    node = onnx_helper.make_node(
         "ZerosLike",
         inputs=["X"],
         outputs=["Y"],
@@ -41,7 +42,7 @@ class ZerosLikeTest(absltest.TestCase):
     )
 
     # Create the graph with the node
-    graph_def = onnx.helper.make_graph(
+    graph_def = onnx_helper.make_graph(
         [node],
         "ZerosLike_Model",
         [input_tensor],
@@ -49,14 +50,14 @@ class ZerosLikeTest(absltest.TestCase):
     )
 
     # Create the model
-    onnx_model = onnx.helper.make_model(
+    onnx_model = onnx_helper.make_model(
         graph_def,
         producer_name="JAX-ONNX",
         opset_imports=[
-            onnx.helper.make_opsetid(
+            onnx_helper.make_opsetid(
                 onnx.defs.ONNX_DOMAIN, onnx.defs.onnx_opset_version()
             ),
-            onnx.helper.make_opsetid("jaxonnxruntime", 1),
+            onnx_helper.make_opsetid("jaxonnxruntime", 1),
         ],
     )
     x = np.random.randn(3, 4, 5).astype(np.float32)

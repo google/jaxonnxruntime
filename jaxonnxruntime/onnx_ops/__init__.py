@@ -43,6 +43,7 @@ from . import constantofshape as constantofshape
 from . import conv as conv
 from . import cos as cos
 from . import cosh as cosh
+from . import dequantizelinear as dequantizelinear
 from . import div as div
 from . import dropout as dropout
 from . import einsum as einsum
@@ -76,6 +77,7 @@ from . import or_op as or_op
 from . import pad as pad
 from . import pow as pow
 from . import prelu as prelu
+from . import quantizelinear as quantizelinear
 from . import range as range
 from . import reciprocal as reciprocal
 from . import reducemax as reducemax

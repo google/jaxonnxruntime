@@ -26,7 +26,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Wrap the onnx.NodeProto as OnnxNode class."""
-from typing import Any
+import inspect
+from typing import Any, Sequence
 from jax import numpy as jnp
 import onnx
 from .onnx_utils import contain_subgraph
@@ -157,3 +158,23 @@ class OnnxNode:
         matched == 1
     ), f'Should only provide one of value attributes, but get {matched}'
     return result
+
+
+def update_node_attr_dict_with_jax_func_kwargs(
+    node: 'OnnxNode', onnx_jax_impl: Any
+):
+  """Update the node attributes dict with the jax onnx implementation kwargs."""
+  sig = inspect.signature(onnx_jax_impl)
+  kwparams = [
+      param.name
+      for param in sig.parameters.values()
+      if param.kind == inspect.Parameter.KEYWORD_ONLY
+  ]
+  for name in kwparams:
+    node.attrs_dict[name] = node.attrs.get(name, None)
+
+
+def pad_sequence(sequence: Sequence[Any], length: int, pad_value: Any = None):
+  """Pad a sequence to the length of the sequence."""
+  assert len(sequence) <= length, f'{len(sequence)} >= {length}'
+  return list(sequence) + [pad_value] * (length - len(sequence))

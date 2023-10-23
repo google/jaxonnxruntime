@@ -26,12 +26,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Help list those not-implement ops in jaxonnxruntime for a onnx model."""
-import argparse
-import logging
+from absl import app
+from absl import flags
+from absl import logging
 from jaxonnxruntime import call_onnx
-import onnx
 from onnx import hub
-from onnx.helper import make_opsetid
+import onnx
+from onnx import helper as onnx_helper
+
+_MODEL_PATH = flags.DEFINE_string(
+    'model_path',
+    None,
+    'The onnx model path or name in onnx model zoo',
+)
 
 
 def get_model_name_list():
@@ -39,21 +46,33 @@ def get_model_name_list():
   return [x.model.lower() for x in hub.list_models()]
 
 
-def main(args):
+def main(argv):
   """Find those not-implement ops for the specific onnx model."""
+  if len(argv) > 1:
+    raise app.UsageError('Too many command-line arguments.')
   # get the version list for the ONNX operator
-  model_path = args.model_path
+  model_path = _MODEL_PATH.value
+  if not model_path:
+    print(f'model list in zoo: {get_model_name_list()}')
+    return
   if model_path in get_model_name_list():
+    logging.info(
+        'Find the %s model in onnx model zoo, here will use onnx.hub to'
+        ' load it',
+        model_path,
+    )
     onnx_model = hub.load(model_path)
   else:
     onnx_model = onnx.load(model_path)
 
   if isinstance(onnx_model, onnx.ModelProto):
     op_types = {node.op_type for node in onnx_model.graph.node}
-    opset = make_opsetid(onnx.defs.ONNX_DOMAIN, 1)
+    opset = onnx_helper.make_opsetid(
+        onnx.defs.ONNX_DOMAIN, onnx.defs.onnx_opset_version()
+    )
     all_impl_op_dict = call_onnx._get_all_handlers([opset])[opset.domain]  # pylint: disable=protected-access
     logging.info(
-        'All ops used in model %s is %s', model_path, all_impl_op_dict.keys()
+        'All onnx implmented ops %s is %s', model_path, all_impl_op_dict.keys()
     )
     not_impl_ops = {op for op in op_types if op not in all_impl_op_dict}
     logging.info('Those not-implement ops: %s', not_impl_ops)
@@ -62,9 +81,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-  logging.basicConfig(level=logging.INFO)
-  parser = argparse.ArgumentParser(
-      description='List those not-implement ONNX ops.'
-  )
-  parser.add_argument('model_path', type=str, help='input model path')
-  main(parser.parse_args())
+  app.run(main)

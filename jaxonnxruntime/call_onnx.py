@@ -17,7 +17,6 @@
 import logging
 from typing import Any, Callable, Dict, Sequence, Tuple, Type, Union
 
-import jax
 from jaxonnxruntime import config
 from jaxonnxruntime import onnx_ops  # pylint: disable=unused-import
 from jaxonnxruntime.core import handler as onnx_handler
@@ -27,8 +26,7 @@ from jaxonnxruntime.core import onnx_utils
 from jaxonnxruntime.core import jax_utils
 
 import onnx
-from onnx import defs
-from onnx.helper import make_opsetid
+from onnx import helper as onnx_helper
 
 
 OnnxNode = onnx_node.OnnxNode
@@ -66,7 +64,7 @@ def call_onnx_model(
     graph = onnx_utils.sanitize_tensor_names_in_graph(graph)
   graph_helper = OnnxGraph(graph)
   if model.ir_version < 3:
-    opset = [make_opsetid(defs.ONNX_DOMAIN, 1)]
+    opset = [onnx_helper.make_opsetid(onnx.defs.ONNX_DOMAIN, 1)]
   else:
     opset = model.opset_import
 
@@ -93,7 +91,11 @@ def call_onnx_graph(
   jit_func_dict = {}
   onnx_node_dict = {}
   if opset is None:
-    opset = [make_opsetid(defs.ONNX_DOMAIN, defs.onnx_opset_version())]
+    opset = [
+        onnx_helper.make_opsetid(
+            onnx.defs.ONNX_DOMAIN, onnx.defs.onnx_opset_version()
+        )
+    ]
   handlers = _get_all_handlers(opset)
   node_execute_order_list = graph_helper.topological_sort()
 
