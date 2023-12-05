@@ -171,7 +171,7 @@ def call_torch_xla_abstract_eval(
         assert has_polymorphic, has_polymorphic
         from jax.experimental.export import shape_poly  # pylint: disable=g-import-not-at-top  # pytype: disable=import-error
 
-        out_shape = shape_poly._parse_spec(out_shape, res.shape)  # pylint: disable=protected-access
+        out_shape = shape_poly.symbolic_shape(out_shape, like=res.shape)  # pylint: disable=protected-access
       else:
         out_shape = res.shape
       output_specs.append(
