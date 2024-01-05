@@ -49,7 +49,7 @@ class OneHot(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     node.attrs_dict["axis"] = node.attrs.get("axis", -1)
-    node.attrs_dict["depth"] = int(inputs[1])
+    node.attrs_dict["depth"] = int(inputs[1].item())
 
   @classmethod
   def version_11(
