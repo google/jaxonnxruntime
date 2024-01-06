@@ -55,7 +55,7 @@ class Flatten(handler.Handler):
   def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
-    """ONNX version_1 Flatten op."""
+    """ONNX version_9 Flatten op."""
     cls._prepare(node, inputs, onnx_flatten)
     return onnx_flatten
 
