@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from absl.testing import absltest
-from jaxonnxruntime import call_onnx
+from jaxonnxruntime.core import call_onnx
 from jaxonnxruntime.experimental import custom_ops  # pylint: disable=unused-import
 import numpy as np
 

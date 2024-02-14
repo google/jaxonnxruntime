@@ -30,7 +30,7 @@
 from collections.abc import Callable, Sequence
 import functools
 from typing import Any
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -73,7 +73,7 @@ class ReduceSum(handler.Handler):
 
 
 @functools.partial(
-    jit, static_argnames=('axes', 'keepdims', 'noop_with_empty_axes')
+    jax.jit, static_argnames=('axes', 'keepdims', 'noop_with_empty_axes')
 )
 def onnx_reducesum(
     *input_args,

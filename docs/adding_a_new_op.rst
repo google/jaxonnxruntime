@@ -108,7 +108,7 @@ Therefore, we may also use part of the inputs as static arguments for them.
 
 Take `version 13 Softmax`_ for an example again. Its JAX implementation is listed below::
 
-  @functools.partial(jit, static_argnames=('axis',))
+  @functools.partial(jax.jit, static_argnames=('axis',))
   def onnx_softmax(*input_args, axis):
     assert len(input_args) == 1
     x = input_args[0]

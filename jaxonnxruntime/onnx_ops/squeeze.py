@@ -30,7 +30,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -74,7 +74,7 @@ class Squeeze(handler.Handler):
     return onnx_squeeze
 
 
-@functools.partial(jit, static_argnames='axis')
+@functools.partial(jax.jit, static_argnames='axis')
 def onnx_squeeze(*input_args, axis):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Squeeze."""
   x = input_args[0]

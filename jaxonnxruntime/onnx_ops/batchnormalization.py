@@ -19,7 +19,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -79,7 +79,7 @@ class BatchNormalization(handler.Handler):
 
 
 @functools.partial(
-    jit, static_argnames=('epsilon', 'momentum', 'training_mode')
+    jax.jit, static_argnames=('epsilon', 'momentum', 'training_mode')
 )
 def onnx_batchnormalization(
     *input_args, epsilon: float, momentum: float, training_mode: int

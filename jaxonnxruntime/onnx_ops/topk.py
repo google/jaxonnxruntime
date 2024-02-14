@@ -19,9 +19,11 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -60,7 +62,7 @@ class TopK(handler.Handler):
     return onnx_topk
 
 
-@functools.partial(jit, static_argnames=('k', 'axis', 'largest', 'sorted'))
+@functools.partial(jax.jit, static_argnames=('k', 'axis', 'largest', 'sorted'))
 def onnx_topk(*input_args, k, axis, largest, sorted):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#TopK for more details."""
   assert len(input_args) == 2

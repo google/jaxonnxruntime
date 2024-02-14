@@ -31,7 +31,7 @@ import functools
 import inspect
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -87,7 +87,7 @@ class Sub(handler.Handler):
     return onnx_sub
 
 
-@functools.partial(jit, static_argnames=())
+@functools.partial(jax.jit, static_argnames=())
 def onnx_sub(*input_args):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Sub."""
   assert len(input_args) == 2

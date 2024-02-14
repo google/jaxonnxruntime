@@ -17,7 +17,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -35,7 +35,7 @@ class Not(handler.Handler):
     return onnx_not
 
 
-@functools.partial(jit, static_argnames=())
+@functools.partial(jax.jit, static_argnames=())
 def onnx_not(*input_args):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Not."""
   assert len(input_args) == 1

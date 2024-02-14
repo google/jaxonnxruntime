@@ -13,20 +13,20 @@
 # limitations under the License.
 
 """Define ONNX AveragePool operator."""
+
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 from collections.abc import Callable, Sequence
 import functools
 from typing import Any, Union
 
-from jax import jit
+import jax
 from jax import lax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+from jaxonnxruntime.onnx_ops import maxpool
 import numpy as np
-
-from .maxpool import MaxPool
 
 
 @handler.register_op("AveragePool")
@@ -37,7 +37,7 @@ class AveragePool(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    MaxPool._prepare(node, inputs, onnx_jax_impl)  # pylint: disable=protected-access
+    maxpool.MaxPool._prepare(node, inputs, onnx_jax_impl)  # pylint: disable=protected-access
     node.attrs_dict["count_include_pad"] = node.attrs.get(
         "count_include_pad", 0
     )
@@ -77,7 +77,7 @@ class AveragePool(handler.Handler):
 
 
 @functools.partial(
-    jit,
+    jax.jit,
     static_argnames=(
         "ceil_mode",
         "strides",

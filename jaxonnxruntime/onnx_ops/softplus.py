@@ -21,7 +21,6 @@ import inspect
 from typing import Any
 
 import jax
-from jax import jit
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -52,7 +51,7 @@ class Softplus(handler.Handler):
     return onnx_softplus
 
 
-@functools.partial(jit, static_argnames=())
+@functools.partial(jax.jit, static_argnames=())
 def onnx_softplus(*input_args):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Softplus for more details."""
   assert len(input_args) == 1

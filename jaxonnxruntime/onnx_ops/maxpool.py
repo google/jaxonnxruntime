@@ -20,7 +20,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any, Union
 
-from jax import jit
+import jax
 from jax import lax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
@@ -122,7 +122,7 @@ class MaxPool(handler.Handler):
 
 
 @functools.partial(
-    jit,
+    jax.jit,
     static_argnames=(
         "ceil_mode",
         "strides",

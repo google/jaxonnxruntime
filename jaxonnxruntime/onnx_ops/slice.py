@@ -16,7 +16,7 @@
 from collections.abc import Callable, Sequence
 import functools
 from typing import Any
-from jax import jit
+import jax
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -97,7 +97,7 @@ class Slice(handler.Handler):
     return onnx_slice
 
 
-@functools.partial(jit, static_argnames=('starts', 'ends', 'axes', 'steps'))
+@functools.partial(jax.jit, static_argnames=('starts', 'ends', 'axes', 'steps'))
 def onnx_slice(*input_args, starts, ends, axes, steps):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Slice."""
   x = input_args[0]

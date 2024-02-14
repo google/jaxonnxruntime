@@ -32,7 +32,6 @@ import inspect
 from typing import Any, Optional
 
 import jax
-from jax import jit
 from jax import lax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
@@ -95,7 +94,7 @@ class Conv(handler.Handler):
 
 
 @functools.partial(
-    jit,
+    jax.jit,
     static_argnames=("group", "kernel_shape", "pads", "strides", "dilations"),
 )
 def onnx_conv(

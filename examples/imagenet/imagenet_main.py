@@ -27,7 +27,7 @@ import jax
 from jax import numpy as jnp
 from jax.experimental import jax2tf
 from jaxonnxruntime import backend as JaxBackend
-from jaxonnxruntime import call_onnx
+from jaxonnxruntime.core import call_onnx
 import numpy as np
 from orbax import export as orbax_export
 import tensorflow as tf

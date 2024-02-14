@@ -29,12 +29,13 @@ import unittest
 
 from absl import logging
 import jax
-from jaxonnxruntime.backend import Backend
+from jaxonnxruntime.core import backend as jort_backend
 import numpy as np
 
 import onnx
 from onnx import numpy_helper
 
+Backend = jort_backend.Backend
 
 class TestItem:
 

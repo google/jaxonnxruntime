@@ -34,7 +34,6 @@ import functools
 from typing import Any
 
 import jax
-from jax import jit
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -60,7 +59,7 @@ class OneHot(handler.Handler):
     return onnx_onehot
 
 
-@functools.partial(jit, static_argnames=("depth", "axis"))
+@functools.partial(jax.jit, static_argnames=("depth", "axis"))
 def onnx_onehot(*input_args, depth, axis):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#OneHot for more details."""
   assert len(input_args) == 3

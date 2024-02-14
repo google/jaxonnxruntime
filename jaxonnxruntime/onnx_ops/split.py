@@ -17,7 +17,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import lax
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -101,7 +101,7 @@ class Split(handler.Handler):
     return onnx_split
 
 
-@functools.partial(jit, static_argnames=('num_outputs', 'split', 'axis'))
+@functools.partial(jax.jit, static_argnames=('num_outputs', 'split', 'axis'))
 def onnx_split(*input_args, num_outputs, split=None, axis=0):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Split for more details."""
 

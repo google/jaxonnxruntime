@@ -31,7 +31,7 @@ import functools
 import inspect
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -87,7 +87,7 @@ class Div(handler.Handler):
     return onnx_div
 
 
-@functools.partial(jit, static_argnames=())
+@functools.partial(jax.jit, static_argnames=())
 def onnx_div(*input_args):
   """The internal jax impl for onnx Div op."""
   assert len(input_args) == 2

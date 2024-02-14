@@ -33,7 +33,9 @@ from typing import Any, Optional
 
 import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils

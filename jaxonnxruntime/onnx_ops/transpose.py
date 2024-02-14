@@ -31,7 +31,7 @@ import functools
 import inspect
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -71,7 +71,7 @@ class Transpose(handler.Handler):
     return onnx_transpose
 
 
-@functools.partial(jit, static_argnames="perm")
+@functools.partial(jax.jit, static_argnames="perm")
 def onnx_transpose(*input_args, perm):
   """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Transpose."""
   assert len(input_args) == 1

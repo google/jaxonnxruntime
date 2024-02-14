@@ -19,8 +19,10 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
-from jaxonnxruntime import config
+import jax
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
@@ -77,7 +79,7 @@ class CastLike(handler.Handler):
     return onnx_castlike
 
 
-@functools.partial(jit, static_argnames=("from_type",))
+@functools.partial(jax.jit, static_argnames=("from_type",))
 def onnx_castlike(*input_args, from_type):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#CastLike for more details."""
   assert len(input_args) == 2

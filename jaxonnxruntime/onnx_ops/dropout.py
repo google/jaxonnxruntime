@@ -19,7 +19,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import lax
 from jax import numpy as jnp
 from jax import random
@@ -78,7 +78,7 @@ class Dropout(handler.Handler):
 
 
 @functools.partial(
-    jit, static_argnames=("ratio", "training_mode", "require_mask")
+    jax.jit, static_argnames=("ratio", "training_mode", "require_mask")
 )
 def onnx_dropout(*input_args, ratio, training_mode, seed, require_mask):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Dropout for more details."""

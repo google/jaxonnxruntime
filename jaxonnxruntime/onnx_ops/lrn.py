@@ -32,7 +32,7 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import lax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
@@ -70,7 +70,7 @@ class LRN(handler.Handler):
     return onnx_lrn
 
 
-@functools.partial(jit, static_argnames=("alpha", "beta", "bias", "size"))
+@functools.partial(jax.jit, static_argnames=("alpha", "beta", "bias", "size"))
 def onnx_lrn(*input_args, alpha, beta, bias, size):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#LRN for more details."""
   assert len(input_args) == 1

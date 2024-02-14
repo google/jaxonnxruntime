@@ -32,9 +32,11 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -73,7 +75,9 @@ class Range(handler.Handler):
     return onnx_range
 
 
-@functools.partial(jit, static_argnames=("start", "limit", "delta", "dtype"))
+@functools.partial(
+    jax.jit, static_argnames=("start", "limit", "delta", "dtype")
+)
 def onnx_range(*_, start, limit, delta, dtype):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Range for more details."""
   return jnp.arange(start, stop=limit, step=delta, dtype=dtype)

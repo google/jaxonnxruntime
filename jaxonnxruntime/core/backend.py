@@ -30,7 +30,7 @@
 from typing import Any
 
 import jax
-from jaxonnxruntime import call_onnx
+from jaxonnxruntime.core import call_onnx
 
 import onnx
 

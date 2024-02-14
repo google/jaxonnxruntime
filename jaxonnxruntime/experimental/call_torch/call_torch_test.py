@@ -14,10 +14,9 @@
 
 import os
 from absl.testing import absltest
-import jaxonnxruntime
-from jaxonnxruntime import config_class
+from jaxonnxruntime.core import config_class
 from jaxonnxruntime.experimental import call_torch
-from jaxonnxruntime.experimental.call_torch.tests.d2l_torch import d2l
+from jaxonnxruntime.experimental.call_torch.test_data.d2l_torch import d2l
 import torch
 from torch import nn
 import torch.nn.functional as F

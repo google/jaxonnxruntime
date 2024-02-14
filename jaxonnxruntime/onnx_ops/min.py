@@ -20,7 +20,7 @@ import functools
 import inspect
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -61,7 +61,7 @@ class Min(handler.Handler):
     return onnx_min
 
 
-@functools.partial(jit, static_argnames=("arg_num",))
+@functools.partial(jax.jit, static_argnames=("arg_num",))
 def onnx_min(*input_args, arg_num):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Min for more details."""
   assert len(input_args) == arg_num

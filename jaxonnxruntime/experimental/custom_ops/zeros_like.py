@@ -37,7 +37,6 @@ import inspect
 from typing import Any
 
 import jax
-from jax import jit
 from jax.experimental import jax2tf
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -71,7 +70,7 @@ class ZerosLike(handler.Handler):
     return tf_zeros_like
 
 
-@functools.partial(jit, static_argnames="dtype")
+@functools.partial(jax.jit, static_argnames="dtype")
 def tf_zeros_like(x: jax.Array, *, dtype: int):
   """https://www.tensorflow.org/api_docs/python/tf/zeros_like for more details."""
   jax_dtype = onnx_utils.tensor_dtype_to_jnp_dtype(dtype)  # pytype: disable=wrong-arg-types

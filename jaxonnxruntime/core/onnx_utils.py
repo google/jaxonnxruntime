@@ -21,12 +21,14 @@ from absl import logging
 from absl.testing import parameterized
 import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config as jort_config  # pylint: disable=g-importing-member
+from jaxonnxruntime.core import config_class
 import numpy as np
 
 import onnx
 from onnx import helper as onnx_helper
 from onnx import numpy_helper
+
+jort_config = config_class.config
 
 
 def tensor_dtype_to_jnp_dtype(
@@ -38,7 +40,7 @@ def tensor_dtype_to_jnp_dtype(
   if onnx.__version__ < "1.14.0":
     np_type = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[tensor_type]
   else:
-    np_type = onnx_helper.tensor_dtype_to_np_dtype(tensor_type)
+    np_type = onnx_helper.tensor_dtype_to_np_dtype(tensor_type)  # pylint: disable=module-attr
   return jnp.dtype(np_type)
 
 
@@ -330,7 +332,10 @@ class JortTestCase(parameterized.TestCase):
       onnx_model.graph.output.pop()
     onnx_model.graph.output.extend(all_outputs_value_info)
 
-    from jaxonnxruntime import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+    try:
+      from jaxonnxruntime.core import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+    except ImportError as e:
+      raise ImportError("Please install jaxonnxruntime first.") from e
 
     try:
       import onnxruntime.backend as ort_backend  #  pylint: disable=g-import-not-at-top
@@ -362,7 +367,10 @@ class JortTestCase(parameterized.TestCase):
   def assert_model_run_through(
       self, onnx_model: onnx.ModelProto, model_inputs: tuple[Any]
   ):
-    from jaxonnxruntime import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+    try:
+      from jaxonnxruntime.core import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+    except Exception as e:
+      raise ImportError("Please install jaxonnxruntime first.") from e
 
     prepared_model = jort_backend.prepare(onnx_model)
     assert prepared_model is not None

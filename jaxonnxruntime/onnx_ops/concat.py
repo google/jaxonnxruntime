@@ -31,7 +31,7 @@ import functools
 import inspect
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -79,7 +79,7 @@ class Concat(handler.Handler):
     return onnx_concat
 
 
-@functools.partial(jit, static_argnames="axis")
+@functools.partial(jax.jit, static_argnames="axis")
 def onnx_concat(*input_args, axis=0):
   """The internal jax impl for onnx Concat op."""
   return jnp.concatenate(input_args, axis=axis)

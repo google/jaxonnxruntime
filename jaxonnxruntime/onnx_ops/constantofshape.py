@@ -31,7 +31,7 @@ from collections.abc import Callable, Sequence
 import functools
 import inspect
 from typing import Any
-from jax import jit
+import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
@@ -75,7 +75,7 @@ class ConstantOfShape(handler.Handler):
     return onnx_constantofshape
 
 
-@functools.partial(jit, static_argnames=('value', 'shape', 'dtype'))
+@functools.partial(jax.jit, static_argnames=('value', 'shape', 'dtype'))
 def onnx_constantofshape(*input_args, value=0, shape=None, dtype=jnp.float32):
   """The internal jax impl for onnx ConstantOfShape op."""
   return jnp.full(fill_value=value, shape=shape, dtype=dtype)

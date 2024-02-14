@@ -19,9 +19,11 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -60,7 +62,7 @@ class Trilu(handler.Handler):
     return onnx_trilu
 
 
-@functools.partial(jit, static_argnames=('upper', 'k'))
+@functools.partial(jax.jit, static_argnames=('upper', 'k'))
 def onnx_trilu(*input_args, k, upper):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Trilu for more details."""
   assert len(input_args) == 1 or len(input_args) == 2

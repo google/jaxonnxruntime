@@ -29,7 +29,7 @@
 from absl import app
 from absl import flags
 from absl import logging
-from jaxonnxruntime import call_onnx
+from jaxonnxruntime.core import call_onnx
 from onnx import hub
 import onnx
 from onnx import helper as onnx_helper

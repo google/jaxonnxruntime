@@ -29,9 +29,9 @@
 import inspect
 from typing import Any, Sequence
 from jax import numpy as jnp
+from jaxonnxruntime.core.onnx_utils import contain_subgraph
+from jaxonnxruntime.core.onnx_utils import get_graph_input
 import onnx
-from .onnx_utils import contain_subgraph
-from .onnx_utils import get_graph_input
 
 
 def convert_onnx(attr_proto: onnx.AttributeProto) -> Any:

@@ -19,10 +19,11 @@ from typing import Any
 
 from absl.testing import absltest
 import jax
-from jaxonnxruntime import config
+import jaxonnxruntime
 from jaxonnxruntime import runner
-from jaxonnxruntime.backend import Backend as JaxBackend  # pylint: disable=g-importing-member
 
+config = jaxonnxruntime.config
+JaxBackend = jaxonnxruntime.Backend
 
 jax.config.update('jax_enable_x64', True)
 jax.config.update('jax_numpy_rank_promotion', 'warn')
@@ -170,7 +171,7 @@ exclude_patterns.append(
 )  # Op SplitToSequence
 # Need more debug
 exclude_patterns.append('test_logsoftmax_axis_0_cpu')  # only onnx 1.14.0 fails.
-exclude_patterns.append('test_softmax_axis_0_cpu') # only onnx 1.14.0 fails.
+exclude_patterns.append('test_softmax_axis_0_cpu')  # only onnx 1.14.0 fails.
 exclude_patterns.append('test_softmax_axis_0_expanded_cpu')
 exclude_patterns.append('test_softmax_axis_1_expanded_cpu')
 exclude_patterns.append('test_softmax_axis_2_expanded_cpu')

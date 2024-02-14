@@ -12,3 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Utilities for creating onnx ops."""
+
+from collections.abc import Callable
+import inspect
+from typing import Any
+
+from jaxonnxruntime.core import onnx_node
+
+
+def update_node_attrs_dict(
+    node: onnx_node.OnnxNode, onnx_jax_impl: Callable[..., Any]
+):
+  """Updates the node's attrs_dict with the values from the node's attrs."""
+  sig = inspect.signature(onnx_jax_impl)
+  kwparams = [
+      param.name
+      for param in sig.parameters.values()
+      if param.kind == inspect.Parameter.KEYWORD_ONLY
+  ]
+  for name in kwparams:
+    node.attrs_dict[name] = node.attrs.get(name, None)

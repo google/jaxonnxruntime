@@ -32,9 +32,11 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -77,7 +79,7 @@ class Expand(handler.Handler):
     return onnx_expand
 
 
-@functools.partial(jit, static_argnames="shape")
+@functools.partial(jax.jit, static_argnames="shape")
 def onnx_expand(*input_args, shape):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Expand for more details."""
   data = input_args[0]

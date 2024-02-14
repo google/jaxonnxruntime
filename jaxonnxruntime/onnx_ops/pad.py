@@ -17,9 +17,11 @@ from collections.abc import Callable, Sequence
 import functools
 from typing import Any
 
-from jax import jit
+import jax
 from jax import numpy as jnp
-from jaxonnxruntime import config
+from jaxonnxruntime.core import config_class
+
+config = config_class.config
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -111,7 +113,7 @@ class Pad(handler.Handler):
 
 
 @functools.partial(
-    jit, static_argnames=('pads', 'constant_value', 'mode', 'axes')
+    jax.jit, static_argnames=('pads', 'constant_value', 'mode', 'axes')
 )
 def onnx_pad(
     *input_args,

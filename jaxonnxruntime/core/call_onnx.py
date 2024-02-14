@@ -17,18 +17,17 @@
 import logging
 from typing import Any, Callable, Dict, Sequence, Tuple, Type, Union
 
-from jaxonnxruntime import config
-from jaxonnxruntime import onnx_ops  # pylint: disable=unused-import
+from jaxonnxruntime.core import config_class
 from jaxonnxruntime.core import handler as onnx_handler
+from jaxonnxruntime.core import jax_utils
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
-from jaxonnxruntime.core import jax_utils
 
 import onnx
 from onnx import helper as onnx_helper
 
-
+config = config_class.config
 OnnxNode = onnx_node.OnnxNode
 OnnxGraph = onnx_graph.OnnxGraph
 Handler = onnx_handler.Handler

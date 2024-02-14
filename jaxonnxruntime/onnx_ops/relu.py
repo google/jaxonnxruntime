@@ -34,7 +34,6 @@ import inspect
 from typing import Any
 
 import jax
-from jax import jit
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -73,7 +72,7 @@ class Relu(handler.Handler):
     return onnx_relu
 
 
-@functools.partial(jit, static_argnames=())
+@functools.partial(jax.jit, static_argnames=())
 def onnx_relu(*input_args):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Relu for more details."""
   assert len(input_args) == 1

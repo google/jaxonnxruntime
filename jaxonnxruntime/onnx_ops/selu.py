@@ -20,7 +20,6 @@ import functools
 from typing import Any
 
 import jax
-from jax import jit
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 
@@ -49,7 +48,7 @@ class Selu(handler.Handler):
     return onnx_selu
 
 
-@functools.partial(jit, static_argnames=('alpha', 'gamma'))
+@functools.partial(jax.jit, static_argnames=('alpha', 'gamma'))
 def onnx_selu(*input_args, alpha, gamma):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Selu for more details."""
   assert len(input_args) == 1

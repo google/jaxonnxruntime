@@ -14,8 +14,9 @@
 
 from absl.testing import absltest
 import jax
-from jaxonnxruntime import call_onnx
-from jaxonnxruntime import config_class
+from jaxonnxruntime.core import call_onnx
+from jaxonnxruntime.core import config_class
+from jaxonnxruntime.onnx_ops import abs
 import numpy as np
 
 import onnx

@@ -33,15 +33,16 @@ import functools
 from typing import Any
 
 import jax
-from jax import jit
 from jax import numpy as jnp
-from jax.lax import cond
-from jaxonnxruntime import config
+from jaxonnxruntime.core import call_onnx
+from jaxonnxruntime.core import config_class
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
 
 import onnx
+
+config = config_class.config
 
 
 @handler.register_op("If")
@@ -89,8 +90,6 @@ class If(handler.Handler):
 
 def flatten_subgraph(node, inputs):
   """Recursively construct the subgraphs for else and then branches."""
-  from jaxonnxruntime.call_onnx import call_onnx_graph  # pylint: disable=g-import-not-at-top
-
   inp_start = 1
   subgraph_out_shape = None
   for a_name, a in node.attrs.items():
@@ -105,7 +104,7 @@ def flatten_subgraph(node, inputs):
           **onnx_utils.maybe_convert_to_dict(subgraph_inps, input_names),
           **params,
       )
-      jax_func = call_onnx_graph(a, tensor_dict)
+      jax_func = call_onnx.call_onnx_graph(a, tensor_dict)
 
       if not bypass_output_shape_check():
         out_shape = [tensor_dict[o.name].shape for o in a.output]
@@ -151,7 +150,7 @@ def bypass_output_shape_check():
 
 
 @functools.partial(
-    jit,
+    jax.jit,
     static_argnames=(
         "else_branch",
         "then_branch",
@@ -173,7 +172,7 @@ def onnx_if(
   else_inputs = input_args[1 : 1 + else_branch_input_num]
   then_inputs = input_args[1 + else_branch_input_num :]
 
-  @jit
+  @jax.jit
   def run_else_branch(y, z, else_branch_params, else_inputs):
     else_result = else_branch(else_branch_params, else_inputs)
     if config.jaxort_if_op_reshape_output_for_llama:
@@ -181,12 +180,12 @@ def onnx_if(
     else:
       return else_result
 
-  @jit
+  @jax.jit
   def run_then_branch(then_branch_params, then_inputs, y, x):
     then_result = then_branch(then_branch_params, then_inputs)
     return then_result
 
-  res = cond(
+  res = jax.lax.cond(
       jnp.squeeze(input_args[0]),
       run_then_branch,
       run_else_branch,
