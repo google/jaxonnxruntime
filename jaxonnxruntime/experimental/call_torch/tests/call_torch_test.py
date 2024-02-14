@@ -1,4 +1,4 @@
-# Copyright 2023 The Jaxonnxruntime Authors.
+# Copyright 2024 The Jaxonnxruntime Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,25 +46,28 @@ class TestCallTorchBasic(call_torch.CallTorchTestCase):
     torch_inputs = (torch.rand(3), torch.rand(3))
     self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  @absltest.skip("Requires implementing `Tile` onnx op as of torch-2.1.2")
+  @absltest.skip("torch_repeat_interleave has bug during onnx.export")
   def test_torch_repeat_interleave(self):
+    output_dir = os.getenv(
+        "TEST_UNDECLARED_OUTPUTS_DIR", "/tmp/torch_repeat_interleave"
+    )
     torch_inputs = (torch.tensor([[1, 2], [3, 4]]), torch.tensor(2))
     torch_func = torch.repeat_interleave
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
-      self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+      self.assert_call_torch_convert_and_compare(
+          torch_func, torch_inputs, onnx_dump_prefix=output_dir
+      )
 
 
 class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
   # https://d2l.ai/chapter_attention-mechanisms-and-transformers/index.html
 
-  @absltest.skip("Requires implementing `Tile` onnx op as of torch-2.1.2")
   def test_masked_softmax(self):
     torch_inputs = (torch.rand(2, 2, 4), torch.tensor([2, 3]))
     torch_func = d2l.masked_softmax
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
       self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  @absltest.skip("Requires implementing `Tile` onnx op as of torch-2.1.2")
   def test_additive_attention(self):
     queries = torch.normal(0, 1, (2, 1, 20))
     keys = torch.normal(0, 1, (2, 10, 2))
@@ -81,7 +84,6 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     torch_func = torch.bmm
     self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  @absltest.skip("Requires implementing `Tile` onnx op as of torch-2.1.2")
   def test_dot_product_attention(self):
     queries = torch.normal(0, 1, (2, 1, 2))
     keys = torch.normal(0, 1, (2, 10, 2))
@@ -92,7 +94,6 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
       self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  @absltest.skip("Requires implementing `Tile` onnx op as of torch-2.1.2")
   def test_multi_head_attention(self):
     num_hiddens, num_heads = 100, 5
     batch_size, num_queries, num_kvpairs = 2, 4, 6

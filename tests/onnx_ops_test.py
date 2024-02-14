@@ -1,4 +1,4 @@
-# Copyright 2023 The Jaxonnxruntime Authors.
+# Copyright 2024 The Jaxonnxruntime Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -144,6 +144,7 @@ include_patterns.append('test_squeeze_')
 include_patterns.append('test_sub_')
 include_patterns.append('test_sum_')
 include_patterns.append('test_tanh_')
+include_patterns.append('test_tile_')
 include_patterns.append('test_top_k_')
 include_patterns.append('test_training_dropout_')
 include_patterns.append('test_transpose_')

@@ -1,4 +1,4 @@
-# Copyright 2023 The Jaxonnxruntime Authors.
+# Copyright 2024 The Jaxonnxruntime Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -99,6 +99,7 @@ from . import squeeze as squeeze
 from . import sub as sub
 from . import sum as sum
 from . import tanh as tanh
+from . import tile as tile
 from . import topk as topk
 from . import transpose as transpose
 from . import trilu as trilu
