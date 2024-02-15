@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+from absl import logging
 from absl.testing import absltest
 from jaxonnxruntime.core import config_class
 from jaxonnxruntime.experimental import call_torch
@@ -105,6 +106,24 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     torch_func.eval()
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
       self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_loop(self):
+    torch_inputs = (torch.randn(128),)
+
+    def f(x):
+      for _ in range(100):
+        x = torch.sin(x)
+      return x
+
+    torch_func = f
+    jax_fn, jax_params, np_inputs, torch_outputs, jax_outputs = (
+        self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+    )
+    logging.info("jax_fn: %s", jax_fn)
+    logging.info("jax_params: %s", jax_params)
+    logging.info("np_inputs: %s", np_inputs)
+    logging.info("torch_outputs: %s", torch_outputs)
+    logging.info("jax_outputs: %s", jax_outputs)
 
 
 if __name__ == "__main__":

@@ -49,6 +49,9 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
         test_module,
         (torch.jit.ScriptModule, torch.jit.ScriptFunction, torch.nn.Module),
     ):
+      # Prefer torch.jit.trace over torch.jit.script here.
+      # See in-depth discussion here
+      # https://ppwwyyxx.com/blog/2022/TorchScript-Tracing-vs-Scripting/
       test_module = torch.jit.trace(test_module, example_inputs=torch_inputs)
     np_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
     jax_fn, jax_params = call_torch.call_torch(

@@ -16,8 +16,8 @@
 
 # pylint: disable=g-importing-member
 from jaxonnxruntime import version
-from jaxonnxruntime.core.backend import Backend
-from jaxonnxruntime.core.config_class import config
+from jaxonnxruntime.core import backend
+from jaxonnxruntime.core import config_class
 
 # pylint: disable=redefined-builtin
 # pylint: disable=g-bad-import-order
@@ -109,4 +109,6 @@ from jaxonnxruntime.onnx_ops import unsqueeze
 from jaxonnxruntime.onnx_ops import where
 # pylint: enable=g-bad-import-order
 
+Backend = backend.Backend
+config = config_class.config
 __version__ = version.__version__
