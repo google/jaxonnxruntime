@@ -333,7 +333,7 @@ class JortTestCase(parameterized.TestCase):
     onnx_model.graph.output.extend(all_outputs_value_info)
 
     try:
-      from jaxonnxruntime.core import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+      from jaxonnxruntime import backend as jort_backend  #  pylint: disable=g-import-not-at-top
     except ImportError as e:
       raise ImportError("Please install jaxonnxruntime first.") from e
 
@@ -368,7 +368,7 @@ class JortTestCase(parameterized.TestCase):
       self, onnx_model: onnx.ModelProto, model_inputs: tuple[Any]
   ):
     try:
-      from jaxonnxruntime.core import backend as jort_backend  #  pylint: disable=g-import-not-at-top
+      from jaxonnxruntime import backend as jort_backend  #  pylint: disable=g-import-not-at-top
     except Exception as e:
       raise ImportError("Please install jaxonnxruntime first.") from e
 

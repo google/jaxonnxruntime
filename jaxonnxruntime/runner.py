@@ -29,7 +29,7 @@ import unittest
 
 from absl import logging
 import jax
-from jaxonnxruntime.core import backend as jort_backend
+from jaxonnxruntime import backend as jort_backend
 import numpy as np
 
 import onnx

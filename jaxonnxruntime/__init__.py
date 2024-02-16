@@ -15,8 +15,9 @@
 """JAX based onnxruntime."""
 
 # pylint: disable=g-importing-member
+from jaxonnxruntime import backend
 from jaxonnxruntime import version
-from jaxonnxruntime.core import backend
+from jaxonnxruntime.core import call_onnx
 from jaxonnxruntime.core import config_class
 
 # pylint: disable=redefined-builtin
