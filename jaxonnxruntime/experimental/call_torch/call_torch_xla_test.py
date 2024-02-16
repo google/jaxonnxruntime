@@ -92,12 +92,16 @@ class CallTorchXlaTest(chex.TestCase):
     torch_params = torch_module.torch_params()
     torch_results = torch_func(torch_params, torch_inputs)
     _, res_tree_def = jax.tree_flatten(
-        jax.tree_map(call_torch.torch_tensor_to_np_array, torch_results)
+        jax.tree_map(call_torch.torch_tensor_to_jax_array, torch_results)
     )
     print(f"res_tree_def = {res_tree_def}")
     stablehlo_text = torch_module.stablehlo_text()
-    jax_params = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_params)
-    jax_inputs = jax.tree_map(call_torch.torch_tensor_to_np_array, torch_inputs)
+    jax_params = jax.tree_map(
+        call_torch.torch_tensor_to_jax_array, torch_params
+    )
+    jax_inputs = jax.tree_map(
+        call_torch.torch_tensor_to_jax_array, torch_inputs
+    )
 
     def jax_func(jax_params, jax_inputs):
       flat_xla_args = jax.tree_leaves(jax_params) + jax.tree_leaves(jax_inputs)

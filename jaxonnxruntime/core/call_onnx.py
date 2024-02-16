@@ -17,12 +17,14 @@
 import logging
 from typing import Any, Callable, Dict, Sequence, Tuple, Type, Union
 
+import jax
 from jaxonnxruntime.core import config_class
 from jaxonnxruntime.core import handler as onnx_handler
 from jaxonnxruntime.core import jax_utils
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
+import jaxtyping
 
 import onnx
 from onnx import helper as onnx_helper
@@ -39,7 +41,7 @@ def call_onnx_model(
     model: onnx.ModelProto,
     inputs: Union[Sequence[Any], Dict[str, Any]],
     rename_tensors: bool = False,
-) -> Tuple[Callable[..., Any], Any]:
+) -> Tuple[Callable[..., Any], jaxtyping.PyTree[jax.Array]]:
   """Convert an ONNX.ModelProto to a JAX function with model parameters and sample input.
 
   Args:

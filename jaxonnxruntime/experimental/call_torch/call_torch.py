@@ -21,6 +21,7 @@ from typing import Any, Callable, Tuple, Union
 from absl import logging
 import jax
 from jaxonnxruntime.core import call_onnx
+import numpy as np
 import torch
 
 import onnx
@@ -30,11 +31,13 @@ class TorchONNXExportError(Exception):
   pass
 
 
-def torch_tensor_to_np_array(tensor):
-  if isinstance(tensor, torch.Tensor):
-    return tensor.detach().cpu().numpy()
-  else:
-    raise ValueError("Input must be a PyTorch tensor.")
+def torch_tensor_to_jax_array(
+    tensor: torch.Tensor, inplace: bool = False
+) -> jax.Array:
+  """Convert a torch tensor to a jax array."""
+  if not inplace:
+    tensor = tensor.clone().detach()
+  return jax.dlpack.from_dlpack(tensor)
 
 
 def call_torch(
@@ -43,6 +46,7 @@ def call_torch(
     ],
     args: Union[Tuple[Any, ...], torch.Tensor],
     onnx_dump_prefix: str | None = None,
+    verbose: bool = False,
 ) -> Tuple[Callable[..., Any], Any]:
   """Give a pytorch model and return its equivilent jax function.
 
@@ -53,15 +57,12 @@ def call_torch(
     model: the torch model to be exported.
     args:  (tuple or torch.Tensor), model inputs args for torch.onnx.export.
     onnx_dump_prefix: The onnx_model debug directory.
+    verbose: (bool, default False) if True, prints more debugging info.
 
   Returns:
     A JAX jittable function can be invoked with JAX pytree arguments.
   """
   file_obj = io.BytesIO()
-  if logging.vlog_is_on(3):
-    verbose = True
-  else:
-    verbose = False
   try:
     torch.onnx.export(
         model=model,
@@ -87,7 +88,7 @@ def call_torch(
   file_obj.seek(0)
   onnx_model = onnx.load(file_obj)
   jax_args = jax.tree_util.tree_leaves(
-      jax.tree_map(torch_tensor_to_np_array, args)
+      jax.tree_map(torch_tensor_to_jax_array, args)
   )
   jax_fn, jax_model_params = call_onnx.call_onnx_model(onnx_model, jax_args)
   return jax_fn, jax_model_params

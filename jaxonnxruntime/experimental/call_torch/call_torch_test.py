@@ -107,7 +107,7 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     with config_class.jaxort_only_allow_initializers_as_static_args(False):
       self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  def test_loop(self):
+  def test_torch_loop(self):
     torch_inputs = (torch.randn(128),)
 
     def f(x):
@@ -116,14 +116,19 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
       return x
 
     torch_func = f
-    jax_fn, jax_params, np_inputs, torch_outputs, jax_outputs = (
-        self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+    logging.info(torch_func)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_torch_bfloat16(self):
+    # Create sample tensors in bfloat16 format
+    torch_inputs = (
+        torch.randn(4, 4, dtype=torch.bfloat16),
+        torch.randn(4, 4, dtype=torch.bfloat16),
     )
-    logging.info("jax_fn: %s", jax_fn)
-    logging.info("jax_params: %s", jax_params)
-    logging.info("np_inputs: %s", np_inputs)
-    logging.info("torch_outputs: %s", torch_outputs)
-    logging.info("jax_outputs: %s", jax_outputs)
+    torch_func = torch.matmul
+    self.assert_call_torch_convert_and_compare(
+        torch_func, torch_inputs, verbose=True
+    )
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """call_torch module to support convert pytorch module to jax function."""
+
 from .call_torch import call_torch
-from .call_torch import torch_tensor_to_np_array
+from .call_torch import torch_tensor_to_jax_array
 from .call_torch_test_util import CallTorchTestCase
