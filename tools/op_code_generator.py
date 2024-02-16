@@ -30,7 +30,6 @@ template_head = """\"\"\"Define ONNX {op_name} operator.\"\"\"
 # pylint: disable=unused-argument
 # pylint: disable=g-explicit-length-test
 import functools
-import inspect
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -38,6 +37,7 @@ import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+from jaxonnxruntime.onnx_ops import onnx_ops_utils
 
 
 @handler.register_op("{op_name}")
@@ -46,10 +46,7 @@ class {op_name}(handler.Handler):
 
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [param.name for param in sig.parameters.values() if param.kind == inspect.Parameter.KEYWORD_ONLY]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
+    onnx_ops_utils.update_node_attrs_dict(node, onnx_jax_impl)
 """
 
 template_version_func = """

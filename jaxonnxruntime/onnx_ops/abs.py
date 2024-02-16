@@ -16,13 +16,13 @@
 
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 from typing import Any
 
 import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+from jaxonnxruntime.onnx_ops import onnx_ops_utils
 from jaxonnxruntime.onnx_ops import onnx_ops_utils
 
 

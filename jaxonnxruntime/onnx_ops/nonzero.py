@@ -15,13 +15,13 @@
 """Define ONNX NonZero operator."""
 from collections.abc import Callable, Sequence
 import functools
-import inspect
 import logging
 from typing import Any
 
 import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import config_class
+from jaxonnxruntime.onnx_ops import onnx_ops_utils
 
 config = config_class.config
 from jaxonnxruntime.core import handler
@@ -36,14 +36,8 @@ class NonZero(handler.Handler):
   def _prepare(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
-    sig = inspect.signature(onnx_jax_impl)
-    kwparams = [
-        param.name
-        for param in sig.parameters.values()
-        if param.kind == inspect.Parameter.KEYWORD_ONLY
-    ]
-    for name in kwparams:
-      node.attrs_dict[name] = node.attrs.get(name, None)
+    onnx_ops_utils.update_node_attrs_dict(node, onnx_jax_impl)
+
     assert len(inputs) == 1
     if config.jaxort_nonzero_use_fully_padding:
       node.attrs_dict["size"] = inputs[0].size
