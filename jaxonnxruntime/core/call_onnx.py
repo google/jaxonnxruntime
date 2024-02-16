@@ -20,7 +20,6 @@ from typing import Any, Callable, Dict, Sequence, Tuple, Type, Union
 import jax
 from jaxonnxruntime.core import config_class
 from jaxonnxruntime.core import handler as onnx_handler
-from jaxonnxruntime.core import jax_utils
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
@@ -122,7 +121,7 @@ def call_onnx_graph(
     jit_func_dict[node.name] = jit_func
 
     if config.jaxort_experimental_support_abstract_shape:
-      outputs = jax_utils.eval_shape(jit_func, *node_inputs, **node.attrs_dict)
+      outputs = jax.eval_shape(jit_func, *node_inputs, **node.attrs_dict)
     else:
       outputs = jit_func(*node_inputs, **node.attrs_dict)
     outputs = outputs if isinstance(outputs, Sequence) else [outputs]

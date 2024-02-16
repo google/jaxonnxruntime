@@ -34,6 +34,7 @@ from typing import Any, List, Sequence, Union
 import jax
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
+import numpy as np
 
 import onnx
 
@@ -55,6 +56,7 @@ class OnnxGraph:
       indexed by their names.
     metadata: A dictionary containing the metadata of the graph.
   """
+
   initializer_dict: dict[str, jax.Array]
   node_dict: dict[str, onnx.NodeProto]
   input: list[str]
@@ -71,7 +73,7 @@ class OnnxGraph:
       node_name = f"node_{index}"
       nd.name = node_name
       self.node_dict[node_name] = nd
-    self.initializer_dict: dict[str, jax.Array] = {
+    self.initializer_dict: dict[str, Union[jax.Array, np.ndarray]] = {
         ts.name: onnx_utils.onnx_tensor_to_np_array(ts)
         for ts in graph_proto.initializer
     }

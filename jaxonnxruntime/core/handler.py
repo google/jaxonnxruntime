@@ -12,22 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copyright 2023 The Jaxonnxruntime Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Defines a Handler class and a decorator to register ONNX ops."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 import inspect
 import logging
 from typing import Any
@@ -38,7 +25,7 @@ from onnx import defs
 logger = logging.getLogger(__name__)
 
 OnnxNode = Any
-JaxFunc = Any
+OnnxOp = Any
 
 
 class Handler:
@@ -50,10 +37,14 @@ class Handler:
 
   @classmethod
   def get_since_version(cls, version: int) -> int:
-    """Get the SINCE_VERSION based on the VERSION of the ONNX opset being used.
+    """Get the `since_version` of the op.
 
-    For standard onnx opset, it returns -1. It means that this op was added
-    after this model version.
+    `since_version` is the first opset version this op was added.
+    Args:
+      version: The version of the opset.
+
+    Returns:
+      The since version of the op.
     """
     domain = cls.DOMAIN
     op_type = cls.OP_TYPE
@@ -67,15 +58,28 @@ class Handler:
       # For standard onnx opset, exclude it by returning -1
       if not domain:
         return -1
-      # TODO(johnqiangzhang): For custom domain, return version_1.
-      # Need handle the version with same convertion as onnx in the future.
+      # For custom domain, return version 1.
       else:
         return 1
     return since_version
 
   @classmethod
-  def handle(cls, node: OnnxNode, inputs: Sequence[Any], **kwargs) -> Any:
-    """Return the jax class version member depending on OnnxNode verison."""
+  def handle(
+      cls, node: OnnxNode, inputs: Sequence[Any], **kwargs
+  ) -> Callable[..., Any]:
+    """Return the version method jax function depending on OnnxNode verison.
+
+    For example, onnx abs op with version 4 will call jax class `abs.version_4`
+    API.
+
+    Args:
+      node: The onnx node to be handled.
+      inputs: The inputs of the onnx node.
+      **kwargs: The kwargs to be passed to the jax function.
+
+    Returns:
+      The jax function.
+    """
     ver_handle = getattr(cls, "version_{}".format(cls.SINCE_VERSION), None)
     if ver_handle:
       return ver_handle(node, inputs, **kwargs)  # pylint: disable=not-callable
@@ -95,16 +99,19 @@ class Handler:
 
   @classmethod
   def _prepare(
-      cls, node: OnnxNode, inputs: Sequence[Any], onnx_jax_impl: JaxFunc
+      cls,
+      node: OnnxNode,
+      inputs: Sequence[Any],
+      onnx_jax_impl: Callable[..., Any],
   ) -> None:
-    """The abstract method to rewwrite the node.attrs_dict."""
+    """Rwrite the OnnxNode to prepare the inputs attributes for the onnx jax implementation."""
     raise NotImplementedError
 
 
-def register_op(op_type: str, domain: str = "") -> Any:
+def register_op(op_type: str, domain: str = "") -> Callable[[OnnxOp], OnnxOp]:
   """Register op into specific domain. default value "" is ai.onnx domain."""
 
-  def deco(cls):
+  def deco(cls: OnnxOp):
     setattr(cls, "DOMAIN", domain)
     setattr(cls, "OP_TYPE", op_type)
     return cls

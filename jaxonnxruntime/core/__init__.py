@@ -16,7 +16,6 @@
 
 from jaxonnxruntime.core import config_class
 from jaxonnxruntime.core import handler
-from jaxonnxruntime.core import jax_utils
 from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
