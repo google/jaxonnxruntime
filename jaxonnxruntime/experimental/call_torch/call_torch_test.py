@@ -131,5 +131,121 @@ class TestCh11AttentionTransformer(call_torch.CallTorchTestCase):
     )
 
 
+class TestCallTorchNN(call_torch.CallTorchTestCase):
+  """test torch.nn layers https://pytorch.org/docs/stable/nn.html."""
+
+  def test_conv1d(self):
+    torch_func = torch.nn.Conv1d(16, 33, 3, stride=2)
+    torch_inputs = (torch.randn(20, 16, 50),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_conv2d(self):
+    torch_func = nn.Conv2d(
+        16, 33, (3, 5), stride=(2, 1), padding=(4, 2), dilation=(3, 1)
+    )
+    x = torch.randn(20, 16, 50, 100)
+    torch_inputs = (x,)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_conv3d(self):
+    torch_func = nn.Conv3d(
+        16, 33, (3, 5, 2), stride=(2, 1, 1), padding=(4, 2, 0)
+    )
+    x = torch.randn(20, 16, 10, 50, 100)
+    torch_inputs = (x,)
+    # TODO(johnqiangzhang): investigate why relative error is big.
+    # Max absolute difference: 3.33786e-06
+    # Max relative difference: 10.1
+    self.assert_call_torch_convert_and_compare(
+        torch_func, torch_inputs, rtol=10.2
+    )
+
+  @absltest.skip("NotImplementedError: ConvTranspose is not implemented.")
+  def test_conv_transpose2d(self):
+    torch_func = torch.nn.ConvTranspose2d(
+        16, 33, (3, 5), stride=(2, 1), padding=(4, 2)
+    )
+    torch_inputs = (torch.randn(20, 16, 50, 100),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+    def f(x):
+      downsample = nn.Conv2d(16, 16, 3, stride=2, padding=1)
+      upsample = nn.ConvTranspose2d(16, 16, 3, stride=2, padding=1)
+      h = downsample(x)
+      logging.info(h.size())
+      output = upsample(h, output_size=h.size())
+      logging.info(output.size())
+      return output
+
+    torch_func = f
+    torch_inputs = (torch.randn(1, 16, 12, 12),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  @absltest.skip("NotImplementedError: ConvTranspose is not implemented.")
+  def test_conv_transpose3d(self):
+    torch_func = nn.ConvTranspose3d(
+        16, 33, (3, 5, 2), stride=(2, 1, 1), padding=(0, 4, 2)
+    )
+    torch_inputs = (torch.randn(20, 16, 10, 50, 100),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_max_pool1d(self):
+    torch_func = nn.MaxPool1d(3, stride=2)
+    torch_inputs = (torch.randn(20, 16, 50),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_max_pool2d(self):
+    torch_func = nn.MaxPool2d(3, stride=(2, 1))
+    torch_inputs = (torch.randn(20, 16, 50, 32),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_max_pool3d(self):
+    torch_func = nn.MaxPool3d(3, stride=2)
+    torch_inputs = (torch.randn(20, 16, 50, 44, 31),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  @absltest.skip(
+      "torch.onnx.errors.UnsupportedOperatorError: Exporting the operator"
+      " 'aten::max_unpool2d' to ONNX opset version 17 is not supported."
+  )
+  def test_max_unpool1d(self):
+    def f(x):
+      pool = nn.MaxPool1d(2, stride=2, return_indices=True)
+      unpool = nn.MaxUnpool1d(2, stride=2)
+      y, indices = pool(x)
+      return unpool(y, indices)
+
+    torch_func = f
+    torch_inputs = (torch.tensor([[[1.0, 2, 3, 4, 5, 6, 7, 8]]]),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_avg_pool1d(self):
+    torch_func = nn.AvgPool1d(3, stride=2)
+    torch_inputs = (torch.tensor([[[1.0, 2, 3, 4, 5, 6, 7]]]),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_avg_pool2d(self):
+    torch_func = nn.AvgPool2d((3, 2), stride=(2, 1))
+    torch_inputs = (torch.randn(20, 16, 50, 32),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  def test_avg_pool3d(self):
+    torch_func = nn.AvgPool3d(3, stride=(2, 1, 2))
+    torch_inputs = (torch.randn(20, 16, 50, 44, 31),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  @absltest.skip("NotImplementedError: Sign is not implemented.")
+  def test_lp_pool1d(self):
+    torch_func = nn.LPPool1d(2, 3, stride=2)
+    torch_inputs = (torch.randn(20, 16, 50),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+  @absltest.skip("NotImplementedError: Sign is not implemented.")
+  def test_lp_pool2d(self):
+    torch_func = nn.LPPool2d(2, 3, stride=2)
+    torch_inputs = (torch.randn(20, 16, 50, 32),)
+    self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
+
+
 if __name__ == "__main__":
   absltest.main()
