@@ -21,7 +21,6 @@ from typing import Any, Callable, Tuple, Union
 from absl import logging
 import jax
 from jaxonnxruntime.core import call_onnx
-import numpy as np
 import torch
 
 import onnx

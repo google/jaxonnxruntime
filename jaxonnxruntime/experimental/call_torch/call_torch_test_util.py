@@ -42,7 +42,7 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
   def assert_call_torch_convert_and_compare(
       self,
       test_module: Any,
-      torch_inputs: Any,
+      args: Any,
       atol: float = 1e-5,
       rtol: float = 1e-5,
       onnx_dump_prefix: Optional[str] = None,
@@ -50,7 +50,7 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
   ):
     """assert the converted jittable jax function and torch module numerical accuracy."""
     # Get Torch model outputs.
-    torch_outputs = test_module(*torch_inputs)
+    torch_outputs = test_module(*args)
     torch_outputs = jax.tree_map(
         call_torch.torch_tensor_to_jax_array, torch_outputs
     )
@@ -65,12 +65,16 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
       # Prefer torch.jit.trace over torch.jit.script here.
       # See in-depth discussion here
       # https://ppwwyyxx.com/blog/2022/TorchScript-Tracing-vs-Scripting/
-      test_module = torch.jit.trace(test_module, example_inputs=torch_inputs)
-    jax_inputs = jax.tree_map(
-        call_torch.torch_tensor_to_jax_array, torch_inputs
-    )
+      test_module = torch.jit.trace(
+          func=test_module,
+          example_inputs=args,
+      )
+    jax_inputs = jax.tree_map(call_torch.torch_tensor_to_jax_array, args)
     jax_fn, jax_params = call_torch.call_torch(
-        test_module, torch_inputs, onnx_dump_prefix, verbose
+        model=test_module,
+        args=args,
+        onnx_dump_prefix=onnx_dump_prefix,
+        verbose=verbose,
     )
     jax_fn = jax.jit(jax_fn)
     if verbose:

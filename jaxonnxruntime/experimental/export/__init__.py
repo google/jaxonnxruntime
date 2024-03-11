@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""call_torch module to support convert pytorch module to jax function."""
+"""Exportable modules."""
 
-from ._call_torch import call_torch
-from ._call_torch import torch_tensor_to_jax_array
-from .call_torch_test_util import CallTorchTestCase
+from .exportable import Exportable as JaxExportable  # pylint: disable=g-importing-member
+from .tensorflow_exportable import TensorflowExportable  # pylint: disable=g-importing-member
+from .torch_exportable import TorchExportable  # pylint: disable=g-importing-member
