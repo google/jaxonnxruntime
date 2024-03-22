@@ -17,7 +17,7 @@
 import inspect
 import os
 from typing import Any
-
+from absl import logging
 from absl.testing import parameterized
 import jax
 from jax.experimental import export as jax_export
@@ -64,6 +64,17 @@ class ExportableTestCase(parameterized.TestCase):
     exportable_utils.save_exported(exported, model_path)
     loaded_exported = exportable_utils.load_exported(model_path)
     return loaded_exported
+
+  def check_exported_call(self, exported: jax_export.Exported, *args, **kwargs):
+    logging.info('exported.__dict__: %s', exported.__dict__)
+    f = jax_export.call(exported)
+    f = jax.jit(f)
+    lowered = f.lower(*args, **kwargs)
+    lowering = lowered._lowering  # pylint: disable=protected-access
+    compile_args = lowering.compile_args
+    mlir_module_str = lowering.as_text()
+    logging.info('compile_args: %s', compile_args)
+    logging.info('mlir_module_str: %s', mlir_module_str)
 
   def assertClassAttributeType(self, obj: Any, other_obj: Any):  # pylint: disable=invalid-name
     def get_attributes_and_types_inspect(obj):

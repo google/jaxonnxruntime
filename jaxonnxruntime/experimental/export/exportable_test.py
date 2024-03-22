@@ -28,11 +28,7 @@ global_vars: dict[str, Any] = {}
 
 
 def setUpModule():
-  exportable_test_utils.set_up_module(global_vars)
-
-
-def tearDownModule():
-  exportable_test_utils.tear_down_module(global_vars)
+  chex.set_n_cpu_devices(8)
 
 
 class ExportableTest(exportable_test_utils.ExportableTestCase):

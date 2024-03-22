@@ -15,7 +15,7 @@
 """Tests for tf2export."""
 
 import functools
-from typing import Any
+from absl import logging
 from absl.testing import absltest
 import chex
 import jax
@@ -26,32 +26,28 @@ from jax.experimental import mesh_utils
 from jax.experimental import pjit
 from jax.sharding import PartitionSpec as P  # pylint: disable=g-importing-member
 from jaxonnxruntime.experimental.export import exportable_test_utils
-from jaxonnxruntime.experimental.export import exportable_utils
 import numpy as np
 import tensorflow as tf
 
-global_vars: dict[str, Any] = {}
-
 
 def setUpModule():
-  exportable_test_utils.set_up_module(global_vars)
-
-
-def tearDownModule():
-  exportable_test_utils.tear_down_module(global_vars)
+  chex.set_n_cpu_devices(8)
 
 
 class ExportedTest(exportable_test_utils.ExportableTestCase):
 
-  def _save_and_load_exported(
-      self, exported: jax_export.Exported
-  ) -> jax_export.Exported:
-    model_path = self.create_tempdir().full_path
-    exportable_utils.save_exported(exported, model_path)
-    loaded_exported = exportable_utils.load_exported(model_path)
-    return loaded_exported
+  def check_exported_call(self, exported: jax_export.Exported, *args, **kwargs):
+    logging.info('exported.__dict__: %s', exported.__dict__)
+    f = jax_export.call(exported)
+    f = jax.jit(f)
+    lowered = f.lower(*args, **kwargs)
+    lowering = lowered._lowering
+    compile_args = lowering.compile_args
+    mlir_module_str = lowering.as_text()
+    logging.info('compile_args: %s', compile_args)
+    logging.info('mlir_module_str: %s', mlir_module_str)
 
-  def test_tf_function(self):
+  def test_jax2tf_call_tf(self):
     """Test tensorflow function to Exported via jax2tf.call_tf."""
 
     def tf_func(x):
@@ -83,36 +79,45 @@ class ExportedTest(exportable_test_utils.ExportableTestCase):
           jax_export.call(loaded_exported)(*exported_inputs),
       )
 
-  @absltest.skip(
-      'Exported module jax_func was lowered for 8 devices and is called in a'
-      ' context with 1 devices.'
-      'See sponge2/29bfc71b-3730-490b-9d5b-9391f2dd7c3b.'
-  )
-  def test_pjit_function(self):
+  def test_jax_pjit_func(self):
     """Test jax function to Exported."""
     devices = mesh_utils.create_device_mesh((4, 2))
     mesh = jax.sharding.Mesh(devices, axis_names=('x', 'y'))
 
     @functools.partial(
-        pjit.pjit, in_shardings=jax.sharding.NamedSharding(mesh, P('x'))
+        pjit.pjit,
+        in_shardings=(
+            jax.sharding.NamedSharding(mesh, P('x')),
+            jax.sharding.NamedSharding(mesh, P('y')),
+        ),
     )
-    def jax_func(x):
-      return jnp.sum(jnp.sin(x))
+    def jax_func(x, y):
+      return jnp.sum(jnp.sin(x) + jnp.cos(y))
 
-    x = jnp.arange(32, dtype=np.float32).reshape((8, 4))
-    exported_inputs = (x,)
+    x = jnp.arange(32, dtype=np.float32).reshape((4, 8))
+    y = jnp.arange(32, dtype=np.float32).reshape((4, 8))
+    exported_inputs = (x, y)
+    exported_inputs_sharded = (
+        jax.device_put(x, jax.sharding.NamedSharding(mesh, P('x'))),
+        jax.device_put(y, jax.sharding.NamedSharding(mesh, P('y'))),
+    )
 
     result = jax_func(*exported_inputs)
     exported = jax_export.export(jax_func)(*exported_inputs)
     loaded_exported = self._save_and_load_exported(exported)
+    logging.info('check exported.\n\n')
+    # Need use the sharded JAX array inputs.
+    self.check_exported_call(exported, *exported_inputs_sharded)
+    logging.info('check loaded_expoted.\n\n')
+    self.check_exported_call(loaded_exported, *exported_inputs_sharded)
 
-    with mesh:
-      result1 = jax_export.call(exported)(*exported_inputs)
-      result2 = jax_export.call(loaded_exported)(*exported_inputs)
+    result1 = jax_export.call(exported)(*exported_inputs_sharded)
+    result2 = jax_export.call(loaded_exported)(*exported_inputs_sharded)
     chex.assert_trees_all_equal(result, result1)
-    chex.assert_trees_all_close(result1, result2)
+    chex.assert_trees_all_equal(result1, result2)
 
 
 if __name__ == '__main__':
   jax.config.parse_flags_with_absl()
+  jax.config.update('jax_traceback_filtering', 'off')
   absltest.main()
