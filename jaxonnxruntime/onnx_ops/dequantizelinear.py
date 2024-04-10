@@ -23,6 +23,7 @@ import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
+from jaxonnxruntime.onnx_ops import onnx_ops_utils
 
 
 @handler.register_op("DequantizeLinear")
@@ -34,6 +35,7 @@ class DequantizeLinear(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     onnx_node.update_node_attr_dict_with_jax_func_kwargs(node, onnx_jax_impl)
+    onnx_ops_utils.update_node_attrs_dict(node, onnx_jax_impl)
 
   @classmethod
   def version_10(

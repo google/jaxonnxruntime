@@ -37,10 +37,18 @@ class Log(handler.Handler):
     onnx_ops_utils.update_node_attrs_dict(node, onnx_jax_impl)
 
   @classmethod
-  def version_11(
+  def version_1(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
     """ONNX version_1 Log op."""
+    cls._prepare(node, inputs, onnx_log)
+    return onnx_log
+
+  @classmethod
+  def version_6(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_6 Log op."""
     cls._prepare(node, inputs, onnx_log)
     return onnx_log
 

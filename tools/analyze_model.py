@@ -25,7 +25,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Help list those not-implement ops in jaxonnxruntime for a onnx model."""
+"""Help list those not-implement ops in jaxonnxruntime for a onnx model.
+
+Example cmd:
+List all model zoo model name list:
+```
+python third_party/py/jaxonnxruntime/tools/analyze_model
+```
+
+Find those missing ops in the onnx model.
+```
+python third_party/py/jaxonnxruntime/tools/analyze_model \
+--model_path=t5-decoder-with-lm-head
+```
+Notes: The model path can be real path name or model zoo onnx model name from
+onnx.hub.
+"""
 from absl import app
 from absl import flags
 from absl import logging

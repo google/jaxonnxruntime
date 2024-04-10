@@ -46,6 +46,22 @@ class Min(handler.Handler):
     return onnx_min
 
   @classmethod
+  def version_8(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_8 Min op."""
+    cls._prepare(node, inputs, onnx_min)
+    return onnx_min
+
+  @classmethod
+  def version_12(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_12 Min op."""
+    cls._prepare(node, inputs, onnx_min)
+    return onnx_min
+
+  @classmethod
   def version_13(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
