@@ -87,7 +87,7 @@ def call_torch(
   file_obj.seek(0)
   onnx_model = onnx.load(file_obj)
   jax_args = jax.tree_util.tree_leaves(
-      jax.tree_map(torch_tensor_to_jax_array, args)
+      jax.tree.map(torch_tensor_to_jax_array, args)
   )
   jax_fn, jax_model_params = call_onnx.call_onnx_model(onnx_model, jax_args)
   return jax_fn, jax_model_params

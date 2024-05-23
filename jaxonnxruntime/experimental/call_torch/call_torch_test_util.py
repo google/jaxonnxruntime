@@ -51,7 +51,7 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
     """assert the converted jittable jax function and torch module numerical accuracy."""
     # Get Torch model outputs.
     torch_outputs = test_module(*args)
-    torch_outputs = jax.tree_map(
+    torch_outputs = jax.tree.map(
         call_torch.torch_tensor_to_jax_array, torch_outputs
     )
     if isinstance(torch_outputs, np.ndarray):
@@ -69,7 +69,7 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
           func=test_module,
           example_inputs=args,
       )
-    jax_inputs = jax.tree_map(call_torch.torch_tensor_to_jax_array, args)
+    jax_inputs = jax.tree.map(call_torch.torch_tensor_to_jax_array, args)
     jax_fn, jax_params = call_torch.call_torch(
         model=test_module,
         args=args,
@@ -89,8 +89,8 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
 
     # Assert if Torch and JAX model result match each other.
     chex.assert_trees_all_close(
-        jax.tree_leaves(torch_outputs),
-        jax.tree_leaves(jax_outputs),
+        jax.tree.leaves(torch_outputs),
+        jax.tree.leaves(jax_outputs),
         atol=atol,
         rtol=rtol,
     )
