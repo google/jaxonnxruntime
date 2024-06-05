@@ -25,14 +25,14 @@ from jaxonnxruntime.experimental.export import exportable_utils
 import torch
 
 Tensor = torch.Tensor
-XLACompatibleSharding = exportable_utils.XLACompatibleSharding
+Sharding = exportable_utils.Sharding
 HloSharding = exportable_utils.HloSharding
 
 
 @dataclasses.dataclass
 class TensorWithSharding:
   tensor: Tensor
-  sharding: XLACompatibleSharding = None
+  sharding: Sharding = None
 
 
 @dataclasses.dataclass
@@ -48,7 +48,7 @@ class TorchExportable:
   @classmethod
   def _to_xla_hlo_sharding(
       cls,
-      sharding: jax.sharding.XLACompatibleSharding,
+      sharding: jax.sharding.Sharding,
       tensor: Tensor,
   ) -> HloSharding:
     if sharding is None:
@@ -124,7 +124,7 @@ class TorchExportable:
     return tuple(self._out_hlo_sharding)
 
   @out_shardings.setter
-  def out_shardings(self, jax_shardings: tuple[XLACompatibleSharding, ...]):
+  def out_shardings(self, jax_shardings: tuple[Sharding, ...]):
     """Provide the function to change out_sharding."""
     out_aval = self.out_avals
     hlo_sharding = jax.tree_util.tree_map(
