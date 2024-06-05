@@ -28,7 +28,7 @@ import torch
 
 MLIRModule = ir.Module
 HloSharding = xla_client.HloSharding | None
-XLACompatibleSharding = jax.sharding.XLACompatibleSharding | None
+Sharding = jax.sharding.Sharding | None
 
 
 def save_exported(exp: jax_export.Exported, export_path: str) -> None:
