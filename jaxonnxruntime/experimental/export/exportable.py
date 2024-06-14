@@ -45,17 +45,13 @@ class Exportable:
     return s._to_xla_hlo_sharding(aval.ndim)  # pylint: disable=protected-access
 
   def __post_init__(self):
-    if not hasattr(self.function, "lower"):
+    if not hasattr(self.function, "trace"):
       wrapped_func_jax = jax.jit(self.function)
     else:
       wrapped_func_jax = self.function
 
-    self.lowered = wrapped_func_jax.lower(
-        *self.args,
-        **self.kwargs,
-        _experimental_lowering_parameters=mlir.LoweringParameters(
-            platforms=self.actual_lowering_platforms,
-        ),
+    self.lowered = wrapped_func_jax.trace(*self.args, **self.kwargs).lower(
+        lowering_platforms=self.actual_lowering_platforms
     )
     self.lowering = self.lowered._lowering  # pylint: disable=protected-access
 
