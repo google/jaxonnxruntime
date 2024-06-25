@@ -20,7 +20,7 @@ from typing import Any
 from absl import logging
 from absl.testing import parameterized
 import jax
-from jax.experimental import export as jax_export
+from jax import export as jax_export
 from jax.lib import xla_bridge
 from jaxonnxruntime.experimental.export import exportable_utils
 
@@ -67,7 +67,7 @@ class ExportableTestCase(parameterized.TestCase):
 
   def check_exported_call(self, exported: jax_export.Exported, *args, **kwargs):
     logging.info('exported.__dict__: %s', exported.__dict__)
-    f = jax_export.call(exported)
+    f = exported.call
     f = jax.jit(f)
     lowered = f.lower(*args, **kwargs)
     lowering = lowered._lowering  # pylint: disable=protected-access

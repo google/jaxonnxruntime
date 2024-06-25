@@ -18,8 +18,8 @@ import io
 import os
 
 import jax
+from jax import export as jax_export
 from jax import numpy as jnp
-from jax.experimental import export as jax_export
 from jax.lib import xla_client
 from jaxlib.mlir import ir
 from mlir.dialects import stablehlo
@@ -36,7 +36,7 @@ def save_exported(exp: jax_export.Exported, export_path: str) -> None:
   tf.io.gfile.makedirs(export_path)
   jax_exported_file = os.path.join(export_path, "jax_exported.bin")
   with tf.io.gfile.GFile(jax_exported_file, "wb") as f:
-    f.write(jax_export.serialize(exp))
+    f.write(exp.serialize(vjp_order=0))
 
 
 def load_exported(export_path: str) -> jax_export.Exported:

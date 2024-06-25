@@ -14,13 +14,12 @@
 
 """Torch Exportable class."""
 
-from collections.abc import Callable
 import dataclasses
 from typing import Any
 from absl import logging
 import jax
-from jax.experimental import export as jax_export
 from jaxonnxruntime.experimental import call_torch
+from jaxonnxruntime.experimental.export import exportable
 from jaxonnxruntime.experimental.export import exportable_utils
 import torch
 
@@ -36,13 +35,9 @@ class TensorWithSharding:
 
 
 @dataclasses.dataclass
-class TorchExportable:
+class TorchExportable(exportable.Exportable):
   """Torch Exportable class."""
 
-  func: Callable[..., Any]
-  args: tuple[Any, ...]
-  kwargs: dict[str, Any]
-  lowering_platform: str | None = None
   _out_hlo_sharding: tuple[HloSharding, ...] | None = None
 
   @classmethod
@@ -57,12 +52,12 @@ class TorchExportable:
 
   def __post_init__(self):
     assert not self.kwargs, "kwargs is not supported currently."
-    self.args_maybe_sharding_flat, self.in_tree = jax.tree_util.tree_flatten(
+    self.args_maybe_sharding_flat, self._in_tree = jax.tree_util.tree_flatten(
         (self.args, self.kwargs)
     )
 
     self.jit_func = torch.jit.trace(
-        self.func,
+        self.function,
         example_inputs=self.args,
         # example_kwarg_inputs=self.kwargs,
     )
@@ -70,23 +65,24 @@ class TorchExportable:
         *self.args,
         # **self.kwargs
     )
-    res_flat, self.out_tree = jax.tree_util.tree_flatten(res)
+    res_flat, self._out_tree = jax.tree_util.tree_flatten(res)
     out_avals = jax.tree_util.tree_map(
         exportable_utils.torch_tensor_to_jax_abstract_shaped_array,
         res_flat,
     )
-    self.out_avals = tuple(out_avals)
+    self._out_avals = tuple(out_avals)
 
   @property
-  def actual_lowering_platforms(self) -> tuple[str, ...]:
-    if self.lowering_platform is not None:
-      return tuple((self.lowering_platform,))
-    else:
-      return (jax_export.default_lowering_platform(),)
+  def in_tree(self):
+    return self._in_tree
+
+  @property
+  def out_tree(self):
+    return self._out_tree
 
   @property
   def fun_name(self) -> str:
-    return getattr(self.func, "__name__", "unknown")
+    return getattr(self.function, "__name__", "unknown")
 
   @property
   def in_avals(self) -> tuple[jax.core.AbstractValue, ...]:
@@ -106,7 +102,7 @@ class TorchExportable:
     return tuple(range(len(self.in_avals)))
 
   @property
-  def in_shardings(self) -> tuple[HloSharding, ...]:
+  def in_shardings_hlo(self) -> tuple[HloSharding, ...]:
 
     hlo_in_shardings = jax.tree_util.tree_map(
         lambda x: self._to_xla_hlo_sharding(x.sharding, x.tensor)
@@ -117,13 +113,17 @@ class TorchExportable:
     return tuple(hlo_in_shardings)
 
   @property
-  def out_shardings(self) -> tuple[HloSharding, ...]:
+  def out_shardings_hlo(self) -> tuple[HloSharding, ...]:
     # Do we need really provide the out_sharding?
     if self._out_hlo_sharding is None:
       return jax.tree_util.tree_map(lambda x: None, self.out_avals)
     return tuple(self._out_hlo_sharding)
 
-  @out_shardings.setter
+  @property
+  def out_avals(self):
+    return self._out_avals
+
+  @out_shardings_hlo.setter
   def out_shardings(self, jax_shardings: tuple[Sharding, ...]):
     """Provide the function to change out_sharding."""
     out_aval = self.out_avals
@@ -160,44 +160,9 @@ class TorchExportable:
     return exportable_utils.serialize_stablehlo_mlir_module(self.mlir_module)
 
   @property
-  def mlir_module_serialization_version(self) -> int:
-    """Returns the mlir module serialization version."""
-    version = jax.config.jax_serialization_version
-    minimum_supported_serialization_version = (
-        jax_export.minimum_supported_serialization_version
-    )
-    maximum_supported_serialization_version = (
-        jax_export.maximum_supported_serialization_version
-    )
-    if (
-        version < minimum_supported_serialization_version
-        or version > maximum_supported_serialization_version
-    ):
-      raise ValueError(
-          f"The requested jax_serialization version {version} is outside the "
-          "range of supported versions"
-          f" [{minimum_supported_serialization_version}"
-          f"..{maximum_supported_serialization_version}]"
-      )
-    return version
+  def ordered_effects(self):
+    return tuple()
 
-  def export(self) -> jax_export.Exported:
-    return jax_export.Exported(
-        fun_name=self.fun_name,
-        in_tree=self.in_tree,
-        out_tree=self.out_tree,
-        in_avals=self.in_avals,
-        out_avals=self.out_avals,
-        in_shardings=self.in_shardings,
-        out_shardings=self.out_shardings,
-        nr_devices=self.nr_devices,
-        lowering_platforms=self.actual_lowering_platforms,
-        ordered_effects=tuple(),
-        unordered_effects=tuple(),
-        disabled_safety_checks=tuple(),
-        mlir_module_serialized=self.mlir_module_serialized,
-        module_kept_var_idx=self.module_kept_var_idx,
-        uses_shape_polymorphism=False,
-        mlir_module_serialization_version=self.mlir_module_serialization_version,
-        _get_vjp=None,
-    )
+  @property
+  def unordered_effects(self):
+    return tuple()

@@ -19,7 +19,6 @@ from absl.testing import absltest
 import chex
 import jax
 from jax import numpy as jnp
-from jax.experimental import export as jax_export
 from jaxonnxruntime.experimental.export import exportable
 from jaxonnxruntime.experimental.export import exportable_test_utils
 import numpy as np
@@ -47,8 +46,8 @@ class ExportableTest(exportable_test_utils.ExportableTestCase):
     loaded_exported = self._save_and_load_exported(exported)
     self.assertClassAttributeType(exported, loaded_exported)
 
-    result = jax_export.call(exported)(*exported_inputs)
-    result2 = jax_export.call(loaded_exported)(*exported_inputs)
+    result = exported.call(*exported_inputs)
+    result2 = loaded_exported.call(*exported_inputs)
     chex.assert_trees_all_close(result, result2)
 
 

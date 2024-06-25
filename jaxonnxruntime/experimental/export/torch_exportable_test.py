@@ -18,7 +18,6 @@ from absl import logging
 from absl.testing import absltest
 import chex
 import jax
-from jax.experimental import export as jax_export
 from jaxonnxruntime.experimental.export import exportable_test_utils
 from jaxonnxruntime.experimental.export import exportable_utils
 from jaxonnxruntime.experimental.export import torch_exportable
@@ -39,7 +38,7 @@ class TorchExportableObjTest(exportable_test_utils.ExportableTestCase):
     torch_module = f
 
     self.exportable = torch_exportable.TorchExportable(
-        torch_module, args, kwargs, 'cpu'
+        torch_module, args, kwargs, ['cpu']
     )
     self.args = args
     self.kwargs = kwargs
@@ -56,8 +55,8 @@ class TorchExportableObjTest(exportable_test_utils.ExportableTestCase):
     kwargs = jax.tree_util.tree_map(
         exportable_utils.torch_tensor_to_jax_array, self.kwargs
     )
-    result = jax_export.call(exported)(*args, **kwargs)
-    result2 = jax_export.call(loaded_exported)(*args, **kwargs)
+    result = exported.call(*args, **kwargs)
+    result2 = loaded_exported.call(*args, **kwargs)
     chex.assert_trees_all_close(result, result2)
 
 

@@ -19,8 +19,8 @@ from absl import logging
 from absl.testing import absltest
 import chex
 import jax
+from jax import export as jax_export
 from jax import numpy as jnp
-from jax.experimental import export as jax_export
 from jax.experimental import jax2tf
 from jax.experimental import mesh_utils
 from jax.experimental import pjit
@@ -38,7 +38,7 @@ class ExportedTest(exportable_test_utils.ExportableTestCase):
 
   def check_exported_call(self, exported: jax_export.Exported, *args, **kwargs):
     logging.info('exported.__dict__: %s', exported.__dict__)
-    f = jax_export.call(exported)
+    f = exported.call
     f = jax.jit(f)
     lowered = f.lower(*args, **kwargs)
     lowering = lowered._lowering
@@ -58,25 +58,25 @@ class ExportedTest(exportable_test_utils.ExportableTestCase):
     exported_inputs = (x,)
 
     with self.subTest('forward'):
-      exported = jax_export.export(jax2tf.call_tf(tf_func))(*exported_inputs)
+      jit_func = jax.jit(jax2tf.call_tf(tf_func))
+      exported = jax_export.export(jit_func)(*exported_inputs)
       loaded_exported = self._save_and_load_exported(exported)
 
       chex.assert_trees_all_equal(
-          jax_export.call(exported)(*exported_inputs),
-          jax_export.call(loaded_exported)(*exported_inputs),
+          exported.call(*exported_inputs),
+          loaded_exported.call(*exported_inputs),
       )
       chex.assert_trees_all_close(
-          jax_export.call(exported)(*exported_inputs), tf_func(*exported_inputs)
+          exported.call(*exported_inputs), tf_func(*exported_inputs)
       )
 
     with self.subTest('grad'):
-      exported = jax_export.export(jax.grad(jax2tf.call_tf(tf_func)))(
-          *exported_inputs
-      )
+      jit_func = jax.jit(jax.grad(jax2tf.call_tf(tf_func)))
+      exported = jax_export.export(jit_func)(*exported_inputs)
       loaded_exported = self._save_and_load_exported(exported)
       chex.assert_trees_all_equal(
-          jax_export.call(exported)(*exported_inputs),
-          jax_export.call(loaded_exported)(*exported_inputs),
+          exported.call(*exported_inputs),
+          loaded_exported.call(*exported_inputs),
       )
 
   def test_jax_pjit_func(self):
@@ -111,8 +111,8 @@ class ExportedTest(exportable_test_utils.ExportableTestCase):
     logging.info('check loaded_expoted.\n\n')
     self.check_exported_call(loaded_exported, *exported_inputs_sharded)
 
-    result1 = jax_export.call(exported)(*exported_inputs_sharded)
-    result2 = jax_export.call(loaded_exported)(*exported_inputs_sharded)
+    result1 = exported.call(*exported_inputs_sharded)
+    result2 = loaded_exported.call(*exported_inputs_sharded)
     chex.assert_trees_all_equal(result, result1)
     chex.assert_trees_all_equal(result1, result2)
 

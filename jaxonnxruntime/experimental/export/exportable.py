@@ -19,8 +19,7 @@ import dataclasses
 from typing import Any
 
 import jax
-from jax.experimental import export as jax_export
-from jax.interpreters import mlir
+from jax import export as jax_export
 from jaxonnxruntime.experimental.export import exportable_utils
 
 
@@ -35,6 +34,7 @@ class Exportable:
   args: tuple[Any, ...]
   kwargs: dict[str, Any]
   lowering_platforms: Sequence[str] | None = None
+  disabled_checks: Sequence[jax_export.DisabledSafetyCheck] = ()
 
   @classmethod
   def _to_xla_hlo_sharding(
@@ -45,26 +45,26 @@ class Exportable:
     return s._to_xla_hlo_sharding(aval.ndim)  # pylint: disable=protected-access
 
   def __post_init__(self):
-    if not hasattr(self.function, "lower"):
-      wrapped_func_jax = jax.jit(self.function)
+    if not hasattr(self.function, "trace"):
+      wrapped_fun_jax = jax.jit(self.function)
     else:
-      wrapped_func_jax = self.function
+      wrapped_fun_jax = self.function
 
-    self.lowered = wrapped_func_jax.lower(
-        *self.args,
-        **self.kwargs,
-        _experimental_lowering_parameters=mlir.LoweringParameters(
-            platforms=self.actual_lowering_platforms,
-        ),
+    traced = wrapped_fun_jax.trace(*self.args, **self.kwargs)
+    self.lowered = traced.lower(
+        lowering_platforms=self.platforms,
     )
     self.lowering = self.lowered._lowering  # pylint: disable=protected-access
 
   @property
-  def actual_lowering_platforms(self) -> tuple[str, ...]:
+  def platforms(self) -> tuple[str, ...]:
     if self.lowering_platforms is not None:
-      return tuple(self.lowering_platforms)
+      assert isinstance(self.lowering_platforms, Sequence)
+      return tuple(
+          self.lowering_platforms,
+      )
     else:
-      return (jax_export.default_lowering_platform(),)
+      return (jax_export.default_export_platform(),)
 
   @property
   def fun_name(self) -> str:
@@ -99,7 +99,7 @@ class Exportable:
     return module_kept_var_idx
 
   @property
-  def in_shardings(self) -> tuple[HloSharding, ...]:
+  def in_shardings_hlo(self) -> tuple[HloSharding, ...]:
     lowering = self.lowering
     module_kept_var_idx = self.module_kept_var_idx
     in_shardings = lowering.compile_args["in_shardings"]
@@ -114,7 +114,7 @@ class Exportable:
     )
 
   @property
-  def out_shardings(self) -> tuple[HloSharding, ...]:
+  def out_shardings_hlo(self) -> tuple[HloSharding, ...]:
     return tuple(
         self._to_xla_hlo_sharding(s, aval)
         for s, aval in zip(
@@ -134,44 +134,74 @@ class Exportable:
     return exportable_utils.serialize_stablehlo_mlir_module(mlir_module)
 
   @property
-  def mlir_module_serialization_version(self) -> int:
-    """Returns the jax_serialization_version of the mlir module."""
-    version = jax.config.jax_serialization_version
-    minimum_supported_serialization_version = (
-        jax_export.minimum_supported_serialization_version
+  def calling_convention_version(self) -> int:
+    """Returns the jax_export_calling_convention_version of the mlir module."""
+    version = jax.config.jax_export_calling_convention_version
+    minimum_supported_calling_convention_version = (
+        jax_export.minimum_supported_calling_convention_version
     )
-    maximum_supported_serialization_version = (
-        jax_export.maximum_supported_serialization_version
+    maximum_supported_calling_convention_version = (
+        jax_export.maximum_supported_calling_convention_version
     )
     if (
-        version < minimum_supported_serialization_version
-        or version > maximum_supported_serialization_version
+        version < minimum_supported_calling_convention_version
+        or version > maximum_supported_calling_convention_version
     ):
       raise ValueError(
           f"The requested jax_serialization version {version} is outside the "
           "range of supported versions"
-          f" [{minimum_supported_serialization_version}"
-          f"..{maximum_supported_serialization_version}]"
+          f" [{minimum_supported_calling_convention_version}"
+          f"..{maximum_supported_calling_convention_version}]"
       )
     return version
+
+  @property
+  def in_tree(self):
+    return self.lowered.in_tree
+
+  @property
+  def out_tree(self):
+    return self.lowered.out_tree
+
+  @property
+  def ordered_effects(self):
+    if "ordered_effects" in self.lowering.compile_args:
+      return tuple(self.lowering.compile_args["ordered_effects"])
+    else:
+      return tuple()
+
+  @property
+  def unordered_effects(self):
+    if "unordered_effects" in self.lowering.compile_args:
+      return tuple(self.lowering.compile_args["unordered_effects"])
+    else:
+      return tuple()
+
+  @property
+  def disabled_safety_checks(self):
+    return tuple(self.disabled_checks)
+
+  @property
+  def uses_global_constants(self):
+    return True
 
   def export(self) -> jax_export.Exported:
     return jax_export.Exported(
         fun_name=self.fun_name,
-        in_tree=self.lowered.in_tree,
-        out_tree=self.lowered.out_tree,
+        in_tree=self.in_tree,
+        out_tree=self.out_tree,
         in_avals=self.in_avals,
         out_avals=self.out_avals,
-        in_shardings=self.in_shardings,
-        out_shardings=self.out_shardings,
+        in_shardings_hlo=self.in_shardings_hlo,
+        out_shardings_hlo=self.out_shardings_hlo,
         nr_devices=self.nr_devices,
-        lowering_platforms=self.actual_lowering_platforms,
-        ordered_effects=tuple(),
-        unordered_effects=tuple(),
-        disabled_safety_checks=tuple(),
+        platforms=self.platforms,
+        ordered_effects=self.ordered_effects,
+        unordered_effects=self.unordered_effects,
+        disabled_safety_checks=self.disabled_safety_checks,
         mlir_module_serialized=self.mlir_module_serialized,
         module_kept_var_idx=self.module_kept_var_idx,
-        uses_shape_polymorphism=False,
-        mlir_module_serialization_version=self.mlir_module_serialization_version,
+        uses_global_constants=self.uses_global_constants,
+        calling_convention_version=self.calling_convention_version,
         _get_vjp=None,
     )

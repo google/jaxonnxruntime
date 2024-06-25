@@ -14,12 +14,10 @@
 
 """Tests for tensorflow_exportable."""
 
-from typing import Any
 from absl import logging
 from absl.testing import absltest
 import chex
 import jax
-from jax.experimental import export as jax_export
 from jaxonnxruntime.experimental.export import exportable_test_utils
 from jaxonnxruntime.experimental.export import tensorflow_exportable
 import tensorflow as tf
@@ -47,7 +45,7 @@ class TensorflowExportableObjTest(exportable_test_utils.ExportableTestCase):
         'b': tf.ones((3, 2), dtype=tf.float32),
     }
     self.tf_exportable = tensorflow_exportable.TensorflowExportable(
-        tf_func, args, kwargs, 'cpu'
+        tf_func, args, kwargs, ['cpu']
     )
     self.args = args
     self.kwargs = kwargs
@@ -56,8 +54,8 @@ class TensorflowExportableObjTest(exportable_test_utils.ExportableTestCase):
     name = self.tf_exportable.fun_name
     self.assertEqual(name, 'tf_func')
 
-  def test_actual_lowering_platforms(self):
-    self.assertEqual(self.tf_exportable.actual_lowering_platforms, ('cpu',))
+  def test_platforms(self):
+    self.assertEqual(self.tf_exportable.platforms, ('cpu',))
 
   def test_tf_platform(self):
     self.assertEqual(self.tf_exportable.tf_platform, 'CPU')
@@ -76,12 +74,12 @@ class TensorflowExportableObjTest(exportable_test_utils.ExportableTestCase):
     self.assertEqual(self.tf_exportable.module_kept_var_idx, (0, 1, 2, 3))
 
   def test_in_sharding(self):
-    in_sharding = self.tf_exportable.in_shardings
+    in_sharding = self.tf_exportable.in_shardings_hlo
     self.assertLen(in_sharding, 4)
     self.assertFalse(all(in_sharding))
 
   def test_out_sharding(self):
-    out_sharding = self.tf_exportable.out_shardings
+    out_sharding = self.tf_exportable.out_shardings_hlo
     self.assertLen(out_sharding, len(self.tf_exportable.out_avals))
     self.assertFalse(all(out_sharding))
 
@@ -99,8 +97,8 @@ class TensorflowExportableObjTest(exportable_test_utils.ExportableTestCase):
     self.assertClassAttributeType(exported, loaded_exported)
     args = jax.tree_util.tree_map(lambda x: x.numpy(), self.args)
     kwargs = jax.tree_util.tree_map(lambda x: x.numpy(), self.kwargs)
-    result = jax_export.call(exported)(*args, **kwargs)
-    result2 = jax_export.call(loaded_exported)(*args, **kwargs)
+    result = exported.call(*args, **kwargs)
+    result2 = loaded_exported.call(*args, **kwargs)
     chex.assert_trees_all_close(result, result2)
 
 
