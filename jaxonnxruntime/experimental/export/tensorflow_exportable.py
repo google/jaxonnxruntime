@@ -18,6 +18,7 @@ import dataclasses
 
 import jax
 from jax.lib import xla_client
+from jax.lib import xla_extension
 from jaxonnxruntime.experimental.export import exportable
 from jaxonnxruntime.experimental.export import exportable_utils
 import tensorflow as tf
@@ -165,7 +166,7 @@ class TensorflowExportable(exportable.Exportable):
     )(stage="hlo_serialized", platform_name=self.tf_platform)
 
     xla_comp = xla_client.XlaComputation(func_tf_hlo)
-    mlir_str = xla_client._xla.mlir.xla_computation_to_mlir_module(xla_comp)  # pylint: disable=protected-access
+    mlir_str = xla_extension.mlir.xla_computation_to_mlir_module(xla_comp)
     return mlir_str
 
   @property
