@@ -109,7 +109,7 @@ def serialize_stablehlo_mlir_str(mlir_str: str) -> bytes:
   # and still have the payloads produced by `serialize_portable_artifact`
   # compatible with potential consumers from the past.
   target_version = stablehlo.get_minimum_version()
-  return stablehlo.serialize_portable_artifact_str(mlir_str, target_version)
+  return stablehlo.serialize_portable_artifact(mlir_str, target_version)
 
 
 def serialize_stablehlo_mlir_module(mlir_module: ir.Module) -> bytes:
