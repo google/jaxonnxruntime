@@ -15,43 +15,12 @@
 """Tests for tf2export."""
 
 import inspect
-import os
 from typing import Any
 from absl import logging
 from absl.testing import parameterized
 import jax
 from jax import export as jax_export
-from jax.lib import xla_bridge
 from jaxonnxruntime.experimental.export import exportable_utils
-
-
-def set_up_module(global_vars: dict[str, Any]):
-  """Set up module for exportable tests."""
-  global_vars['prev_xla_flags'] = os.getenv('XLA_FLAGS')
-  flags_str = global_vars['prev_xla_flags'] or ''
-  # Don't override user-specified device count, or other XLA flags.
-  if 'xla_force_host_platform_device_count' not in flags_str:
-    os.environ['XLA_FLAGS'] = (
-        flags_str + ' --xla_force_host_platform_device_count=8'
-    )
-  # Clear any cached backends so new CPU backend will pick up the env var.
-  xla_bridge.get_backend.cache_clear()
-  global_vars['prev_spmd_lowering_flag'] = (
-      jax.config.experimental_xmap_spmd_lowering
-  )
-  jax.config.update('experimental_xmap_spmd_lowering', True)
-
-
-def tear_down_module(global_vars: dict[str, Any]):
-  """Tear down module for exportable tests."""
-  if global_vars.get('prev_xla_flags') is None:
-    del os.environ['XLA_FLAGS']
-  else:
-    os.environ['XLA_FLAGS'] = global_vars['prev_xla_flags']
-  xla_bridge.get_backend.cache_clear()
-  jax.config.update(
-      'experimental_xmap_spmd_lowering', global_vars['prev_spmd_lowering_flag']
-  )
 
 
 class ExportableTestCase(parameterized.TestCase):

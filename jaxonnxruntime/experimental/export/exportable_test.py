@@ -14,6 +14,7 @@
 
 """Tests for jax exportable."""
 
+import os
 from typing import Any
 from absl.testing import absltest
 import chex
@@ -22,12 +23,6 @@ from jax import numpy as jnp
 from jaxonnxruntime.experimental.export import exportable
 from jaxonnxruntime.experimental.export import exportable_test_utils
 import numpy as np
-
-global_vars: dict[str, Any] = {}
-
-
-def setUpModule():
-  chex.set_n_cpu_devices(8)
 
 
 class ExportableTest(exportable_test_utils.ExportableTestCase):
@@ -53,4 +48,7 @@ class ExportableTest(exportable_test_utils.ExportableTestCase):
 
 if __name__ == '__main__':
   jax.config.parse_flags_with_absl()
+  os.environ['XLA_FLAGS'] = (
+      '--xla_force_host_platform_device_count=8'  # Use 8 CPU devices
+  )
   absltest.main()
