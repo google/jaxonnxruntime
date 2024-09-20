@@ -46,7 +46,6 @@ class TestCallTorchBasic(call_torch.CallTorchTestCase):
     torch_inputs = (torch.rand(3), torch.rand(3))
     self.assert_call_torch_convert_and_compare(torch_func, torch_inputs)
 
-  @absltest.skip("torch_repeat_interleave has bug during onnx.export")
   def test_torch_repeat_interleave(self):
     output_dir = os.getenv(
         "TEST_UNDECLARED_OUTPUTS_DIR", "/tmp/torch_repeat_interleave"
