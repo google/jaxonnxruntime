@@ -103,7 +103,7 @@ def call_torch_xla_impl(*args, module):
 call_torch_xla_p.def_impl(call_torch_xla_impl)
 
 
-# See https://github.com/google/jax/blob/main/jax/_src/interpreters/mlir.py#L115
+# See https://github.com/jax-ml/jax/blob/main/jax/_src/interpreters/mlir.py#L115
 # for reference
 def _ir_type_to_dtype(ir_type: ir.Type) -> jnp.dtype:
   """Converts MLIR type to JAX dtype."""
@@ -185,7 +185,7 @@ call_torch_xla_p.def_abstract_eval(call_torch_xla_abstract_eval)
 
 
 # Taken from
-# github.com/google/jax/blob/main/jax/experimental/jax2tf/jax_export.py#L859
+# github.com/jax-ml/jax/blob/main/jax/experimental/jax2tf/jax_export.py#L859
 def refine_polymorphic_shapes(
     module: ir.Module, validate_static_shapes: bool
 ) -> ir.Module:
