@@ -18,6 +18,7 @@ from typing import Any, Tuple, Union
 from absl import logging
 import jax
 from jax import core
+import jax.extend as jex
 from jax.interpreters import mlir
 from jax.interpreters import xla
 from jax.lib import xla_client as xc
@@ -56,7 +57,7 @@ def _clean_mhlo_attributes(mlir_module):
   return new_module
 
 
-call_torch_xla_p = core.Primitive("call_torch_xla")
+call_torch_xla_p = jex.core.Primitive("call_torch_xla")
 call_torch_xla_p.multiple_results = True
 
 
