@@ -205,7 +205,7 @@ class OnnxGraph:
     outputs = node_down_to_tensor_dict[node_name]
     results = []
     for output_ in outputs:
-      if output_ in tensor_down_to_node_dict:
+      if output_ and output_ in tensor_down_to_node_dict:
         results.extend(tensor_down_to_node_dict[output_])
     return results
 
