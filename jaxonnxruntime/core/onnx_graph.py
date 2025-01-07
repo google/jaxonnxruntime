@@ -206,6 +206,7 @@ class OnnxGraph:
     results = []
     for output_ in outputs:
       if output_ and output_ in tensor_down_to_node_dict:
+        # Ignore empty strings as they represent unused optional outputs.
         results.extend(tensor_down_to_node_dict[output_])
     return results
 
