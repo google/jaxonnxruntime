@@ -64,4 +64,4 @@ def onnx_clip(data, amin=None, amax=None):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Clip for more details."""
   if amin is None and amax is None:
     return data
-  return jnp.clip(data, a_min=amin, a_max=amax)
+  return jnp.clip(data, min=amin, max=amax)
