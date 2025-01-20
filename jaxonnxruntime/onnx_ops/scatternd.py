@@ -155,7 +155,10 @@ def onnx_scatternd(*input_args, reduction: str):
   # [(z,1,1,1), (z,1,1,1)..] + [(1,range(x1),1,1), (1,1,range(x2),1), (1,1,1,range(x3))]
   # ------------k----------      ----------------------(r-k)---------------------------
   idx = indices + idx[1:]
-  assert set(i.ndim for i in idx) == {data.ndim}
+  assert len(idx) == data.ndim, f"{len(idx)} != {data.ndim}"
+  assert (
+      len(set(i.ndim for i in idx)) == 1
+  ), f"all idx must have the same ndim but were: {set(i.ndim for i in idx)}"
   select_shape = jnp.broadcast_shapes(*[i.shape for i in idx])
   assert select_shape == updates.shape, (
       "Shape of index-selected data must match the shape of the update:"
