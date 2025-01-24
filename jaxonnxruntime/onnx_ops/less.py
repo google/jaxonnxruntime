@@ -50,6 +50,14 @@ class Less(handler.Handler):
     onnx_ops_utils.update_node_attrs_dict(node, onnx_jax_impl)
 
   @classmethod
+  def version_7(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_7 Less op."""
+    cls._prepare(node, inputs, onnx_less)
+    return onnx_less
+
+  @classmethod
   def version_9(
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
   ) -> Callable[..., Any]:
