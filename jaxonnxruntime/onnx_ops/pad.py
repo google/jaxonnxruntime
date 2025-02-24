@@ -127,7 +127,7 @@ def onnx_pad(
   input_rank = x.ndim
   axes = [axis if axis >= 0 else axis + input_rank for axis in axes]
   num_axes = len(axes)
-  if num_axes * 2 != jnp.size(pads):
+  if num_axes * 2 != len(pads):
     raise ValueError(
         'The number of elements in raw_pads should be 2 * len(axis)'
         f'pads = {pads}, axis = {axes}'
