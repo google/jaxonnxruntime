@@ -25,6 +25,7 @@ from jax.lib import xla_client as xc
 from jax.lib import xla_extension
 import jax.numpy as jnp
 from jaxlib.mlir import ir
+from mlir.dialects import func
 
 __all__ = ["call_torch_xla"]
 
@@ -241,7 +242,7 @@ def call_torch_xla_lowering(ctx: mlir.LoweringRuleContext, *args, module: str):
       len(args),
   )
 
-  call = mlir.func_dialect.CallOp(
+  call = func.CallOp(
       result_types,
       ir.FlatSymbolRefAttr.get(callee_name),
       args,
