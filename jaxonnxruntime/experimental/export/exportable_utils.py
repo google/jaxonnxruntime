@@ -100,7 +100,7 @@ def torch_tensor_to_jax_array(
   return jax.dlpack.from_dlpack(tensor)
 
 
-def serialize_stablehlo_mlir_str(mlir_str: str) -> bytes:
+def serialize_stablehlo_mlir_str(mlir_str: str | bytes) -> bytes:
   """Serializes a StableHLO MLIR module string to a bytecode."""
   # https://github.com/openxla/stablehlo/blob/main/docs/compatibility.md
   # `stablehlo.get_minimum_version()` returns `consumer_version_min`
