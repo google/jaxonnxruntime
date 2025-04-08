@@ -155,7 +155,7 @@ class TensorflowExportable(exportable.Exportable):
     return len(jax.devices())
 
   @property
-  def mlir_module_str(self) -> str:
+  def mlir_module_str(self) -> bytes:
     """Returns the mlir module from TF."""
     args_tf_flat = jax.tree_util.tree_map(
         lambda x: x.tensor if isinstance(x, TensorWithSharding) else x,
@@ -164,10 +164,7 @@ class TensorflowExportable(exportable.Exportable):
     func_tf_hlo = self.function_flat_tf.experimental_get_compiler_ir(
         *args_tf_flat
     )(stage="hlo_serialized", platform_name=self.tf_platform)
-
-    xla_comp = xla_client.XlaComputation(func_tf_hlo)
-    mlir_str = xla_extension.mlir.xla_computation_to_mlir_module(xla_comp)
-    return mlir_str
+    return xla_extension.mlir.hlo_to_stablehlo(func_tf_hlo)
 
   @property
   def mlir_module_serialized(self) -> bytes:
