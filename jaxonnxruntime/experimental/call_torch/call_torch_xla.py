@@ -16,7 +16,6 @@
 
 from typing import Any, Tuple, Union
 from absl import logging
-import jax
 from jax import core
 import jax.extend as jex
 from jax.interpreters import mlir
@@ -27,8 +26,6 @@ from jaxlib.mlir import ir
 from mlir.dialects import func
 
 __all__ = ["call_torch_xla"]
-
-safe_zip = jax.util.safe_zip
 
 
 def _clean_mhlo_attributes(mlir_module):
