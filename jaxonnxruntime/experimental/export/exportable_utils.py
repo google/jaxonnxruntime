@@ -1,4 +1,4 @@
-# Copyright 2024 The Jaxonnxruntime Authors.
+# Copyright 2025 The Jaxonnxruntime Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,6 +29,15 @@ import torch
 MLIRModule = ir.Module
 HloSharding = xla_client.HloSharding | None
 Sharding = jax.sharding.Sharding | None
+
+
+def _get_stablehlo_version() -> str:
+  """Returns >=4w StableHLO version."""
+  # Require 4w forward compatibility, similar to jax export.
+  # See https://github.com/openxla/stablehlo/blob/main/docs/compatibility.md.
+  return stablehlo.get_version_from_compatibility_requirement(
+      stablehlo.StablehloCompatibilityRequirement.WEEK_4
+  )
 
 
 def save_exported(exp: jax_export.Exported, export_path: str) -> None:
@@ -102,17 +111,18 @@ def torch_tensor_to_jax_array(
 
 def serialize_stablehlo_mlir_str(mlir_str: bytes | str) -> bytes:
   """Serializes a StableHLO MLIR module string to a bytecode."""
-  # https://github.com/openxla/stablehlo/blob/main/docs/compatibility.md
-  # `stablehlo.get_minimum_version()` returns `consumer_version_min`
-  # for the current version of StableHLO. We are using it here to maximize
-  # forward compatibility, i.e. to maximize how far into the past we can go
-  # and still have the payloads produced by `serialize_portable_artifact`
-  # compatible with potential consumers from the past.
-  target_version = stablehlo.get_minimum_version()
+  target_version = _get_stablehlo_version()
   return stablehlo.serialize_portable_artifact_str(mlir_str, target_version)
 
 
 def serialize_stablehlo_mlir_module(mlir_module: ir.Module) -> bytes:
   """Serializes a StableHLO MLIR module to a bytecode."""
-  target_version = stablehlo.get_minimum_version()
-  return stablehlo.serialize_portable_artifact(mlir_module, target_version)
+  target_version = _get_stablehlo_version()
+  mixed_serialization_ok = "1.10.10"
+  allow_other_dialects = (
+      stablehlo.get_smaller_version(target_version, mixed_serialization_ok)
+      == mixed_serialization_ok
+  )
+  return stablehlo.serialize_portable_artifact(
+      mlir_module, target_version, allow_other_dialects
+  )
