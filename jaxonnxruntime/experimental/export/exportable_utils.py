@@ -118,7 +118,7 @@ def serialize_stablehlo_mlir_str(mlir_str: bytes | str) -> bytes:
 def serialize_stablehlo_mlir_module(mlir_module: ir.Module) -> bytes:
   """Serializes a StableHLO MLIR module to a bytecode."""
   target_version = _get_stablehlo_version()
-  mixed_serialization_ok = "1.10.10"
+  mixed_serialization_ok = "1.11.0"
   allow_other_dialects = (
       stablehlo.get_smaller_version(target_version, mixed_serialization_ok)
       == mixed_serialization_ok
