@@ -125,7 +125,7 @@ class Exportable:
   @property
   def nr_devices(self) -> int:
     lowering = self.lowering
-    nr_devices = len(lowering.compile_args["device_assignment"])
+    nr_devices = len(lowering._device_list)
     return nr_devices
 
   @property
