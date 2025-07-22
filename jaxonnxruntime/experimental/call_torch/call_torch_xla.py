@@ -25,6 +25,7 @@ import jax.numpy as jnp
 from jaxlib.mlir import ir
 from mlir.dialects import func
 
+
 __all__ = ["call_torch_xla"]
 
 

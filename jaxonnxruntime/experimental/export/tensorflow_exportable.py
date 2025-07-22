@@ -17,7 +17,6 @@
 import dataclasses
 
 import jax
-from jax.lib import xla_client
 from jax.lib import xla_extension
 from jaxonnxruntime.experimental.export import exportable
 from jaxonnxruntime.experimental.export import exportable_utils
