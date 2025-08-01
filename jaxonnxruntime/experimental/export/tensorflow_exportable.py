@@ -17,8 +17,7 @@
 import dataclasses
 
 import jax
-from jax.lib import xla_client
-from jax.lib import xla_extension
+import jax.extend
 from jaxonnxruntime.experimental.export import exportable
 from jaxonnxruntime.experimental.export import exportable_utils
 import tensorflow as tf
@@ -164,7 +163,7 @@ class TensorflowExportable(exportable.Exportable):
     func_tf_hlo = self.function_flat_tf.experimental_get_compiler_ir(
         *args_tf_flat
     )(stage="hlo_serialized", platform_name=self.tf_platform)
-    return xla_extension.mlir.hlo_to_stablehlo(func_tf_hlo)
+    return jax.extend.mlir.hlo_to_stablehlo(func_tf_hlo)
 
   @property
   def mlir_module_serialized(self) -> bytes:
