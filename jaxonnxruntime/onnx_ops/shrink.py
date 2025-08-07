@@ -19,7 +19,7 @@ class Shrink(handler.Handler):
   @classmethod
   def _prepare(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any):
     node.attrs_dict['bias'] = node.attrs.get('bias', 0.0)
-    node.attrs_dict['lambd'] = node.attrs.get('lambd', 0.0)
+    node.attrs_dict['lambd'] = node.attrs.get('lambd', 0.5)
 
   @classmethod
   def version_9(cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]) -> Callable[..., Any]:
