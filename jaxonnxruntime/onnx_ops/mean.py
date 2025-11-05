@@ -47,5 +47,8 @@ class Mean(handler.Handler):
 
 @functools.partial(jax.jit, static_argnames=())
 def onnx_mean(*input_args):
+  """Element-wise mean of input tensors."""
+  # Stack all inputs and compute mean along the first axis
+  # This computes (A + B + C + ...) / N
   stacked = jnp.stack(input_args, axis=0)
   return jnp.mean(stacked, axis=0)
