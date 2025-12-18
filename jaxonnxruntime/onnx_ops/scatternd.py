@@ -141,10 +141,12 @@ def onnx_scatternd(*input_args, reduction: str):
   # e.g., for (r-k)=3 and z updates:
   # [(1,1,1,1), (1,range(x1),1,1), (1,1,range(x2),1), (1,1,1,range(x3))]
   #   L----------L------------------L------------------L----> dim for z
-  idx = jnp.meshgrid(
-      *(jnp.arange(n) for n in [1] + list(data.shape[k:])),
-      sparse=True,
-      indexing="ij",
+  idx = list(
+      jnp.meshgrid(
+          *(jnp.arange(n) for n in [1] + list(data.shape[k:])),
+          sparse=True,
+          indexing="ij",
+      )
   )
   assert idx[0].ndim == (r - k) + 1
 

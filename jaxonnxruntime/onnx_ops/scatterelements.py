@@ -96,8 +96,10 @@ def onnx_scatterelements(*input_args, axis, reduction):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#ScatterElements for more details."""
   data, indices, updates = input_args
 
-  idx = jnp.meshgrid(
-      *(jnp.arange(n) for n in data.shape), sparse=True, indexing="ij"
+  idx = list(
+      jnp.meshgrid(
+          *(jnp.arange(n) for n in data.shape), sparse=True, indexing="ij"
+      )
   )
   idx[axis] = indices
   out = getattr(data.at[tuple(idx)], reduction)(
