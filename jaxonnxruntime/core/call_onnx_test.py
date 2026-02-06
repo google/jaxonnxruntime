@@ -18,7 +18,6 @@ from jaxonnxruntime.core import call_onnx
 from jaxonnxruntime.core import config_class
 from jaxonnxruntime.onnx_ops import abs
 import numpy as np
-
 import onnx
 
 

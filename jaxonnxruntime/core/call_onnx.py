@@ -24,7 +24,6 @@ from jaxonnxruntime.core import onnx_graph
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
 import jaxtyping
-
 import onnx
 from onnx import helper as onnx_helper
 

@@ -14,7 +14,6 @@
 
 from absl.testing import absltest
 from jaxonnxruntime.core import onnx_graph
-
 import onnx
 
 OnnxGraph = onnx_graph.OnnxGraph

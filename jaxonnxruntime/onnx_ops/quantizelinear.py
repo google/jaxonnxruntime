@@ -25,7 +25,6 @@ from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
 from jaxonnxruntime.onnx_ops import onnx_ops_utils
-
 import onnx
 
 

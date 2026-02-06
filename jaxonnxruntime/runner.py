@@ -31,7 +31,6 @@ from absl import logging
 import jax
 from jaxonnxruntime import backend as jort_backend
 import numpy as np
-
 import onnx
 from onnx import numpy_helper
 
@@ -68,7 +67,9 @@ class TestCase:
 
 
 DATA_DIR = os.path.join(
-    os.path.realpath(os.path.dirname(onnx.__file__)), 'backend/test/data'
+    # TODO(derricktli): Fix this hack.
+    os.path.realpath(os.path.dirname(numpy_helper.__file__)),
+    'backend/test/data',
 )
 
 

@@ -39,7 +39,6 @@ from jaxonnxruntime.core import config_class
 from jaxonnxruntime.core import handler
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.core import onnx_utils
-
 import onnx
 
 config = config_class.config
