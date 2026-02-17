@@ -26,11 +26,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Jaxonnxruntime python API example."""
+
 from jaxonnxruntime import backend as jax_backend
 import numpy as np
-import torch
-
 import onnx
+import torch
 
 MODEL_FILE = ".model.onnx"
 

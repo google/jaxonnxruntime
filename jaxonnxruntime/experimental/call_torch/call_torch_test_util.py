@@ -24,9 +24,8 @@ from jax import numpy as jnp
 from jaxonnxruntime.core import onnx_utils
 from jaxonnxruntime.experimental import call_torch
 import numpy as np
-import torch
-
 import onnx
+import torch
 
 
 def _maybe_upcast(x: jax.Array):

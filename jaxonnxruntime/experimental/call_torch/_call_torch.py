@@ -21,9 +21,8 @@ from typing import Any, Callable, Tuple, Union
 from absl import logging
 import jax
 from jaxonnxruntime.core import call_onnx
-import torch
-
 import onnx
+import torch
 
 
 class TorchONNXExportError(Exception):

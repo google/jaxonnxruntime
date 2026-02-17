@@ -16,7 +16,6 @@ from absl.testing import absltest
 from jaxonnxruntime.core import onnx_node
 from jaxonnxruntime.onnx_ops import onehot
 import numpy as np
-
 import onnx
 
 NodeProto = onnx.NodeProto

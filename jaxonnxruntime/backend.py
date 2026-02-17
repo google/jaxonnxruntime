@@ -31,7 +31,6 @@ from typing import Any
 
 import jax
 from jaxonnxruntime.core import call_onnx
-
 import onnx
 
 

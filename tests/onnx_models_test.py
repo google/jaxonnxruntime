@@ -27,7 +27,6 @@ from jaxonnxruntime import runner
 from jaxonnxruntime.core import onnx_utils
 from onnx import hub
 import numpy as np
-
 import onnx
 
 config = jaxonnxruntime.config

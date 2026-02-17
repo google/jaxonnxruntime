@@ -23,7 +23,6 @@ import jax
 from jax import numpy as jnp
 from jaxonnxruntime.core import config_class
 import numpy as np
-
 import onnx
 from onnx import helper as onnx_helper
 from onnx import numpy_helper

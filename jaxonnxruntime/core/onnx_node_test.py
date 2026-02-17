@@ -14,7 +14,6 @@
 
 from absl.testing import absltest
 from jaxonnxruntime.core import onnx_node
-
 import onnx
 
 
