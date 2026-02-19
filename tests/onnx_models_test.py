@@ -1,4 +1,4 @@
-# Copyright 2025 The Jaxonnxruntime Authors.
+# Copyright 2026 The Jaxonnxruntime Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ def _create_dummy_tensor(model_info_input):
       shape[i] = 1
   dtype_name = _get_tensor_type_name(model_info_input.get("type"))
   dtype_value = onnx.TensorProto.DataType.Value(dtype_name.upper())
-  dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[dtype_value]
+  dtype = onnx_utils.tensor_dtype_to_jnp_dtype(dtype_value)
   return np.random.normal(size=shape).astype(dtype)
 
 
