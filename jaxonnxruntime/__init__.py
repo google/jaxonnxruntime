@@ -50,6 +50,7 @@ from jaxonnxruntime.onnx_ops import dequantizelinear
 from jaxonnxruntime.onnx_ops import div
 from jaxonnxruntime.onnx_ops import dropout
 from jaxonnxruntime.onnx_ops import einsum
+from jaxonnxruntime.onnx_ops import elu
 from jaxonnxruntime.onnx_ops import equal
 from jaxonnxruntime.onnx_ops import erf
 from jaxonnxruntime.onnx_ops import exp
@@ -61,6 +62,7 @@ from jaxonnxruntime.onnx_ops import gemm
 from jaxonnxruntime.onnx_ops import globalaveragepool
 from jaxonnxruntime.onnx_ops import greater
 from jaxonnxruntime.onnx_ops import greaterorequal
+from jaxonnxruntime.onnx_ops import hardsigmoid
 from jaxonnxruntime.onnx_ops import identity
 from jaxonnxruntime.onnx_ops import if_op
 from jaxonnxruntime.onnx_ops import leakyrelu
@@ -94,7 +96,9 @@ from jaxonnxruntime.onnx_ops import scatterelements
 from jaxonnxruntime.onnx_ops import scatternd
 from jaxonnxruntime.onnx_ops import selu
 from jaxonnxruntime.onnx_ops import shape
+from jaxonnxruntime.onnx_ops import shrink
 from jaxonnxruntime.onnx_ops import sigmoid
+from jaxonnxruntime.onnx_ops import sign
 from jaxonnxruntime.onnx_ops import sin
 from jaxonnxruntime.onnx_ops import sinh
 from jaxonnxruntime.onnx_ops import slice
@@ -105,6 +109,7 @@ from jaxonnxruntime.onnx_ops import sqrt
 from jaxonnxruntime.onnx_ops import squeeze
 from jaxonnxruntime.onnx_ops import sub
 from jaxonnxruntime.onnx_ops import sum
+from jaxonnxruntime.onnx_ops import tan
 from jaxonnxruntime.onnx_ops import tanh
 from jaxonnxruntime.onnx_ops import tile
 from jaxonnxruntime.onnx_ops import topk
