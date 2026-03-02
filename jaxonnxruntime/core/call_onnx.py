@@ -80,7 +80,7 @@ def call_onnx_model(
 def call_onnx_graph(
     graph: onnx.GraphProto,
     tensor_dict: Dict[str, Any],
-    opset: ... = None,
+    opset=None,
 ) -> Callable[..., Any]:
   """Convert ONNX.GraphProto to jax_func with ONNX.GraphProto.initializer as parameters."""
   tensor_ref_dict = build_ref_dict(graph)
