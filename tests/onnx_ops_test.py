@@ -106,6 +106,7 @@ include_patterns.append('test_gemm_')
 include_patterns.append('test_globalaveragepool_')
 include_patterns.append('test_greater_')
 include_patterns.append('test_greaterorequal_')
+include_patterns.append('test_hardsigmoid_')
 include_patterns.append('test_identity_')
 include_patterns.append('test_if_')
 include_patterns.append('test_leakyrelu_')
@@ -133,6 +134,7 @@ include_patterns.append('test_reduce_mean_')
 include_patterns.append('test_reduce_sum_')
 include_patterns.append('test_relu_')
 include_patterns.append('test_reshape_')
+include_patterns.append('test_resize_')
 include_patterns.append('test_scatter_elements_')
 include_patterns.append('test_scatternd_')
 include_patterns.append('test_selu_')
@@ -251,6 +253,15 @@ expect_fail_patterns.extend([
     'test_training_dropout_default_',
     'test_training_dropout_default_mask_',
     'test_training_dropout_mask_',
+    # Resize: Needs full spec implementation for coordinate transformations and rounding
+    'test_resize_downsample_',
+    'test_resize_tf_crop_',
+    'test_resize_upsample_scales_cubic_align_corners_',
+    'test_resize_upsample_scales_cubic_asymmetric_',
+    'test_resize_upsample_scales_cubic_gpu',
+    'test_resize_upsample_scales_linear_align_corners_',
+    'test_resize_upsample_scales_linear_half_pixel_symmetric_',
+    'test_resize_upsample_sizes_',
 ])
 
 

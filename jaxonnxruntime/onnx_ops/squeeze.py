@@ -45,7 +45,7 @@ class Squeeze(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     if len(inputs) == 1:
-      node.attrs_dict['axis'] = None
+      node.attrs_dict['axis'] = node.attrs.get('axes', None)
     else:
       node.attrs_dict['axis'] = tuple(inputs[1].tolist())
 
@@ -76,6 +76,6 @@ class Squeeze(handler.Handler):
 
 @functools.partial(jax.jit, static_argnames='axis')
 def onnx_squeeze(*input_args, axis):
-  """The impl for https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#Squeeze."""
+  """The impl for Squeeze operator."""
   x = input_args[0]
   return jnp.squeeze(x, axis=axis)
