@@ -157,7 +157,7 @@ def call_torch_xla_abstract_eval(
     # the information is not available here.
     dynamic_count = 0
     output_specs = []
-    for res in symtab["main"].type.results:
+    for res in symtab["main"].type.results:  # pytype: disable=attribute-error
       if any(dim == res.get_dynamic_size() for dim in res.shape):
         out_shape = ", ".join(
             f"{_UKNOWN_DIM_PREFIX}_{(dynamic_count := dynamic_count + 1)}"
@@ -221,7 +221,7 @@ def call_torch_xla_lowering(ctx: mlir.LoweringRuleContext, *args, module: str):
   )
 
   symtab = ir.SymbolTable(ctx.module_context.module.operation)
-  result_types = symtab[program_name].type.results
+  result_types = symtab[program_name].type.results  # pytype: disable=attribute-error
 
   # Paranoid checks.
   assert len(mlir.flatten_ir_values(args)) == len(args), (
