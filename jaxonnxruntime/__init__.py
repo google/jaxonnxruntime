@@ -61,6 +61,7 @@ from jaxonnxruntime.onnx_ops import gemm
 from jaxonnxruntime.onnx_ops import globalaveragepool
 from jaxonnxruntime.onnx_ops import greater
 from jaxonnxruntime.onnx_ops import greaterorequal
+from jaxonnxruntime.onnx_ops import hardsigmoid
 from jaxonnxruntime.onnx_ops import identity
 from jaxonnxruntime.onnx_ops import if_op
 from jaxonnxruntime.onnx_ops import leakyrelu
@@ -90,6 +91,7 @@ from jaxonnxruntime.onnx_ops import reducemean
 from jaxonnxruntime.onnx_ops import reducesum
 from jaxonnxruntime.onnx_ops import relu
 from jaxonnxruntime.onnx_ops import reshape
+from jaxonnxruntime.onnx_ops import resize
 from jaxonnxruntime.onnx_ops import scatterelements
 from jaxonnxruntime.onnx_ops import scatternd
 from jaxonnxruntime.onnx_ops import selu
