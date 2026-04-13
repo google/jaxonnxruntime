@@ -76,6 +76,14 @@ class Dropout(handler.Handler):
     cls._prepare(node, inputs, onnx_dropout)
     return onnx_dropout
 
+  @classmethod
+  def version_22(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_22 Dropout op."""
+    cls._prepare(node, inputs, onnx_dropout)
+    return onnx_dropout
+
 
 @functools.partial(
     jax.jit, static_argnames=("ratio", "training_mode", "require_mask")

@@ -47,6 +47,7 @@ from jaxonnxruntime.onnx_ops import conv
 from jaxonnxruntime.onnx_ops import cos
 from jaxonnxruntime.onnx_ops import cosh
 from jaxonnxruntime.onnx_ops import dequantizelinear
+from jaxonnxruntime.onnx_ops import dft
 from jaxonnxruntime.onnx_ops import div
 from jaxonnxruntime.onnx_ops import dropout
 from jaxonnxruntime.onnx_ops import einsum

@@ -79,6 +79,14 @@ class Shape(handler.Handler):
     cls._prepare(node, inputs, onnx_shape)
     return onnx_shape
 
+  @classmethod
+  def version_24(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_24 Shape op."""
+    cls._prepare(node, inputs, onnx_shape)
+    return onnx_shape
+
 
 @functools.partial(jax.jit, static_argnames=('start', 'end'))
 def onnx_shape(*input_args, start=None, end=None):
@@ -86,4 +94,4 @@ def onnx_shape(*input_args, start=None, end=None):
   assert len(input_args) == 1
   x = input_args[0]
   dims = x.shape[start:end]
-  return jnp.asarray(dims)
+  return jnp.asarray(dims, dtype=jnp.int64)

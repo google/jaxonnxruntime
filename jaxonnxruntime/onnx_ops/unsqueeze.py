@@ -73,6 +73,14 @@ class Unsqueeze(handler.Handler):
     cls._prepare(node, inputs, onnx_unsqueeze)
     return onnx_unsqueeze
 
+  @classmethod
+  def version_24(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_24 Unsqueeze op."""
+    cls._prepare(node, inputs, onnx_unsqueeze)
+    return onnx_unsqueeze
+
 
 @functools.partial(jax.jit, static_argnames='axis')
 def onnx_unsqueeze(*input_args, axis: list[int]):

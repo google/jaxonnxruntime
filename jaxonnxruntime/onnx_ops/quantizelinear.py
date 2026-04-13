@@ -62,6 +62,14 @@ class QuantizeLinear(handler.Handler):
     cls._prepare(node, inputs, onnx_quantizelinear)
     return onnx_quantizelinear
 
+  @classmethod
+  def version_24(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_24 QuantizeLinear op."""
+    cls._prepare(node, inputs, onnx_quantizelinear)
+    return onnx_quantizelinear
+
 
 @functools.partial(jax.jit, static_argnames=("axis", "saturate"))
 def onnx_quantizelinear(*input_args, axis, saturate):

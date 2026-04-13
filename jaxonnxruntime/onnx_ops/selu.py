@@ -47,6 +47,14 @@ class Selu(handler.Handler):
     cls._prepare(node, inputs, onnx_selu)
     return onnx_selu
 
+  @classmethod
+  def version_22(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_22 Selu op."""
+    cls._prepare(node, inputs, onnx_selu)
+    return onnx_selu
+
 
 @functools.partial(jax.jit, static_argnames=('alpha', 'gamma'))
 def onnx_selu(*input_args, alpha, gamma):

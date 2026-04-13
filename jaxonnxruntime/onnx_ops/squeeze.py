@@ -73,6 +73,14 @@ class Squeeze(handler.Handler):
     cls._prepare(node, inputs, onnx_squeeze)
     return onnx_squeeze
 
+  @classmethod
+  def version_24(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_24 Squeeze op."""
+    cls._prepare(node, inputs, onnx_squeeze)
+    return onnx_squeeze
+
 
 @functools.partial(jax.jit, static_argnames='axis')
 def onnx_squeeze(*input_args, axis):

@@ -61,6 +61,14 @@ class TopK(handler.Handler):
     cls._prepare(node, inputs, onnx_topk)
     return onnx_topk
 
+  @classmethod
+  def version_24(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_24 TopK op."""
+    cls._prepare(node, inputs, onnx_topk)
+    return onnx_topk
+
 
 @functools.partial(jax.jit, static_argnames=('k', 'axis', 'largest', 'sorted'))
 def onnx_topk(*input_args, k, axis, largest, sorted):

@@ -71,6 +71,14 @@ class ReduceMax(handler.Handler):
     cls._prepare(node, inputs, onnx_reducemax)
     return onnx_reducemax
 
+  @classmethod
+  def version_20(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_20 ReduceMax op."""
+    cls._prepare(node, inputs, onnx_reducemax)
+    return onnx_reducemax
+
 
 @functools.partial(
     jax.jit, static_argnames=('axes', 'keepdims', 'noop_with_empty_axes')

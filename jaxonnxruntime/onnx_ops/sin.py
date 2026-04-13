@@ -43,6 +43,14 @@ class Sin(handler.Handler):
     cls._prepare(node, inputs, onnx_sin)
     return onnx_sin
 
+  @classmethod
+  def version_22(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_22 Sin op."""
+    cls._prepare(node, inputs, onnx_sin)
+    return onnx_sin
+
 
 @functools.partial(jax.jit, static_argnames=())
 def onnx_sin(*input_args):

@@ -44,6 +44,14 @@ class Sinh(handler.Handler):
     cls._prepare(node, inputs, onnx_sinh)
     return onnx_sinh
 
+  @classmethod
+  def version_22(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_22 Sinh op."""
+    cls._prepare(node, inputs, onnx_sinh)
+    return onnx_sinh
+
 
 @functools.partial(jax.jit, static_argnames=())
 def onnx_sinh(*input_args):

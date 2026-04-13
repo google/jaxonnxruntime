@@ -43,6 +43,14 @@ class Softplus(handler.Handler):
     cls._prepare(node, inputs, onnx_softplus)
     return onnx_softplus
 
+  @classmethod
+  def version_22(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_22 Softplus op."""
+    cls._prepare(node, inputs, onnx_softplus)
+    return onnx_softplus
+
 
 @functools.partial(jax.jit, static_argnames=())
 def onnx_softplus(*input_args):
