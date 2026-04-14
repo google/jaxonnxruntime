@@ -17,8 +17,10 @@
 from collections.abc import Callable, Sequence
 import inspect
 import logging
+import time
 from typing import Any
-
+import jax
+from jaxonnxruntime.core import config_class
 from onnx import defs
 
 
@@ -80,22 +82,53 @@ class Handler:
     Returns:
       The jax function.
     """
-    ver_handle = getattr(cls, "version_{}".format(cls.SINCE_VERSION), None)
-    if ver_handle:
-      return ver_handle(node, inputs, **kwargs)  # pylint: disable=not-callable
+    config = config_class.config
 
-    # Get all the methods that start with "version_"
-    class_methods = inspect.getmembers(cls, predicate=inspect.ismethod)
-    version_methods = [
-        method_name
-        for method_name, _ in class_methods
-        if method_name.startswith("version_")
-    ]
+    onnx_impl = None
+    if config.jaxort_use_pallas:
+      pallas_handle = getattr(
+          cls, "pallas_version_{}".format(cls.SINCE_VERSION), None
+      )
+      if pallas_handle:
+        onnx_impl = pallas_handle(node, inputs, **kwargs)  # pylint: disable=not-callable
 
-    raise NotImplementedError(
-        f"{node.op_type} version {cls.SINCE_VERSION} is not implemented."
-        f" Only have those versions: {version_methods}."
-    )
+    if onnx_impl is None:
+      ver_handle = getattr(cls, "version_{}".format(cls.SINCE_VERSION), None)
+      if ver_handle:
+        onnx_impl = ver_handle(node, inputs, **kwargs)  # pylint: disable=not-callable
+
+    if onnx_impl is None:
+      # Get all the methods that start with "version_"
+      class_methods = inspect.getmembers(cls, predicate=inspect.ismethod)
+      version_methods = [
+          method_name
+          for method_name, _ in class_methods
+          if method_name.startswith("version_")
+      ]
+
+      raise NotImplementedError(
+          f"{node.op_type} version {cls.SINCE_VERSION} is not implemented."
+          f" Only have those versions: {version_methods}."
+      )
+
+    if config.jaxort_benchmark:
+
+      def benchmark_wrapped(*args, **kwargs):
+        # Warmup
+        _ = onnx_impl(*args, **kwargs)
+
+        start = time.time()
+        for _ in range(100):
+          res = onnx_impl(*args, **kwargs)
+          jax.block_until_ready(res)
+        end = time.time()
+        mean_ms = (end - start) / 100 * 1000
+        print(f"Op {cls.OP_TYPE} mean time over 100 runs: {mean_ms:.3f} ms")
+        return onnx_impl(*args, **kwargs)
+
+      return benchmark_wrapped
+
+    return onnx_impl
 
   @classmethod
   def _prepare(

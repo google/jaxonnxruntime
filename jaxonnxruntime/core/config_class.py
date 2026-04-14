@@ -455,7 +455,7 @@ jaxort_nonzero_use_fully_padding = config.define_bool_state(
 
 jaxort_if_op_reshape_output_for_llama = config.define_bool_state(
     name='jaxort_if_op_reshape_output_for_llama',
-    default=False,
+    default=bool_env('JAXORT_IF_OP_RESHAPE_OUTPUT_FOR_LLAMA', False),
     help=(
         'The onnx If operator can have dynamic output shape, which cannot '
         'be supported by jax.jit. We have to manually manipulate the output '
@@ -466,7 +466,7 @@ jaxort_if_op_reshape_output_for_llama = config.define_bool_state(
 
 jaxort_experimental_support_abstract_shape = config.define_bool_state(
     name='jaxort_experimental_support_abstract_shape',
-    default=False,
+    default=bool_env('JAXORT_EXPERIMENTAL_SUPPORT_ABSTRACT_SHAPE', False),
     help=(
         'Default behaviour is that call_onnx require real model input to'
         ' tracethe JAX function. If `jaxort_support_abstract_input_shape`,'
@@ -477,7 +477,7 @@ jaxort_experimental_support_abstract_shape = config.define_bool_state(
 
 jaxort_jaxort_enable_backend_testing = config.define_bool_state(
     name='jaxort_enable_backend_testing',
-    default=False,
+    default=bool_env('JAXORT_ENABLE_BACKEND_TESTING', False),
     help=(
         'Enable the backend testing mode. When this option is set to True, the'
         ' ONNX model will be run using backend-specific tests, which may'
@@ -486,5 +486,23 @@ jaxort_jaxort_enable_backend_testing = config.define_bool_state(
         ' maintainers to validate their backend implementation against ONNX'
         ' models. By default, this option is set to False, and standard ONNX'
         ' model execution is performed.'
+    ),
+)
+
+jaxort_use_pallas = config.define_bool_state(
+    name='jaxort_use_pallas',
+    default=bool_env('JAXORT_USE_PALLAS', False),
+    help=(
+        'Enable Pallas implementation for ONNX operators if available. '
+        'Falls back to normal implementation otherwise.'
+    ),
+)
+
+jaxort_benchmark = config.define_bool_state(
+    name='jaxort_benchmark',
+    default=bool_env('JAXORT_BENCHMARK', False),
+    help=(
+        'Enable benchmarking for ONNX operators. '
+        'When enabled, each operator execution will be timed and printed.'
     ),
 )
