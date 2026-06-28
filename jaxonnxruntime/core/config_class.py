@@ -25,12 +25,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """global jaxonnxruntime configuration."""
 import contextlib
 import logging
 import os
 import threading
 from typing import Any, Callable, List, Optional
+from typing import TYPE_CHECKING
+
 # Borrow from jax/_src/config.py but removev all unnecceray flags support.
 # pylint: disable=redefined-builtin,invalid-name,broad-exception-raised
 # pylint: disable=missing-class-docstring,missing-function-docstring
@@ -70,6 +73,13 @@ def int_env(varname: str, default: int) -> int:
 
 class Config:
   _HAS_DYNAMIC_ATTRIBUTES = True
+  if TYPE_CHECKING:
+
+    def __getattr__(self, name: str) -> Any:
+      ...
+
+    def __setattr__(self, name: str, value: Any) -> None:
+      ...
 
   def __init__(self):
     self.values = {}
