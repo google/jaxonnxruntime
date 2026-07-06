@@ -50,7 +50,7 @@ class Exportable:
     else:
       wrapped_fun_jax = self.function
 
-    traced = wrapped_fun_jax.trace(*self.args, **self.kwargs)
+    traced = wrapped_fun_jax.trace(*self.args, **self.kwargs)  # pyrefly: ignore[missing-attribute]
     self.lowered = traced.lower(
         lowering_platforms=self.platforms,
     )
@@ -186,7 +186,7 @@ class Exportable:
     return True
 
   def export(self) -> jax_export.Exported:
-    return jax_export.Exported(
+    return jax_export.Exported(  # pyrefly: ignore[missing-argument]
         fun_name=self.fun_name,
         in_tree=self.in_tree,
         out_tree=self.out_tree,

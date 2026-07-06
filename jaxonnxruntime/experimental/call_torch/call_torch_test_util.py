@@ -94,6 +94,6 @@ class CallTorchTestCase(onnx_utils.JortTestCase):
         rtol=rtol,
     )
     if onnx_dump_prefix:
-      onnx_model = onnx.load(os.path.join(onnx_dump_prefix, "model.onnx"))
+      onnx_model = onnx.load(os.path.join(onnx_dump_prefix, "model.onnx"))  # pyrefly: ignore[missing-attribute]
       self.assert_ort_jort_all_close(onnx_model, jax_inputs)
     return jax_fn, jax_params, jax_inputs, torch_outputs, jax_outputs

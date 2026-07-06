@@ -35,7 +35,7 @@ class Pad(handler.Handler):
       cls, node: onnx_node.OnnxNode, inputs: Sequence[Any], onnx_jax_impl: Any
   ):
     node.attrs_dict['mode'] = node.attrs.get('mode', 'constant')
-    node.attrs_dict['pads'] = tuple(node.attrs.get('pads'))
+    node.attrs_dict['pads'] = tuple(node.attrs.get('pads'))  # pyrefly: ignore[bad-argument-type]
     node.attrs_dict['constant_value'] = node.attrs.get('value', 0.0)
     node.attrs_dict['axes'] = tuple(range(len(inputs[0].shape)))
 

@@ -124,7 +124,7 @@ class TensorflowExportable(exportable.Exportable):
   def in_shardings_hlo(self) -> tuple[HloSharding, ...]:
 
     hlo_in_shardings = jax.tree_util.tree_map(
-        lambda x: self._to_xla_hlo_sharding(x.sharding, x.tensor)
+        lambda x: self._to_xla_hlo_sharding(x.sharding, x.tensor)  # pyrefly: ignore[bad-argument-type]
         if isinstance(x, TensorWithSharding)
         else None,
         self.args_maybe_sharding_flat,

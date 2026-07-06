@@ -113,10 +113,10 @@ def onnx_split(*input_args, num_outputs, split=None, axis=0):
   starts.append([0] * x.ndim)
   for idx in range(1, num_outputs):
     st = [0] * x.ndim
-    st[axis] = sum(split[:idx])
+    st[axis] = sum(split[:idx])  # pyrefly: ignore[unsupported-operation]
     starts.append(st)
     en = list(x.shape)
-    en[axis] = sum(split[:idx])
+    en[axis] = sum(split[:idx])  # pyrefly: ignore[unsupported-operation]
     ends.append(en)
   ends.append(list(x.shape))
 

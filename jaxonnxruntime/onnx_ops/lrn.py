@@ -50,7 +50,7 @@ class LRN(handler.Handler):
     node.attrs_dict["alpha"] = node.attrs.get("alpha", float(0.0001))
     node.attrs_dict["beta"] = node.attrs.get("beta", float(0.75))
     node.attrs_dict["bias"] = node.attrs.get("bias", float(1.0))
-    node.attrs_dict["size"] = int(node.attrs.get("size"))
+    node.attrs_dict["size"] = int(node.attrs.get("size"))  # pyrefly: ignore[bad-argument-type]
     assert node.attrs_dict["size"] is not None
 
   @classmethod

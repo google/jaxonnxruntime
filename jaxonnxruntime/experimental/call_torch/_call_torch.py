@@ -84,7 +84,7 @@ def call_torch(
       f.write(file_obj.getvalue())
     logging.info("Saving debug model.onnx to %s", onnx_model_file)
   file_obj.seek(0)
-  onnx_model = onnx.load(file_obj)
+  onnx_model = onnx.load(file_obj)  # pyrefly: ignore[missing-attribute]
   jax_args = jax.tree_util.tree_leaves(
       jax.tree.map(torch_tensor_to_jax_array, args)
   )

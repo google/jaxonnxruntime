@@ -60,7 +60,7 @@ def _create_dummy_tensor(model_info_input):
 class Runner(runner.Runner):
 
   def __init__(
-      self, backend: type(JaxBackend), parent_module: Any = None
+      self, backend: type(JaxBackend), parent_module: Any = None  # pyrefly: ignore[invalid-annotation]
   ) -> None:
     self.backend = backend
     self._parent_module = parent_module

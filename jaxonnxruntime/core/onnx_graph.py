@@ -72,7 +72,7 @@ class OnnxGraph:
       node_name = f"node_{index}"
       nd.name = node_name
       self.node_dict[node_name] = nd
-    self.initializer_dict: dict[str, Union[jax.Array, np.ndarray]] = {
+    self.initializer_dict: dict[str, Union[jax.Array, np.ndarray]] = {  # pyrefly: ignore[bad-assignment]
         ts.name: onnx_utils.onnx_tensor_to_np_array(ts)
         for ts in graph_proto.initializer
     }
@@ -124,19 +124,19 @@ class OnnxGraph:
       node_up_to_tensor_dict[nd_name] = input_names
 
     # This dictionary maps the input tensor to those nodes that comsume it.
-    self.metadata["tensor_down_to_node_dict"]: dict[
+    self.metadata["tensor_down_to_node_dict"]: dict[  # pyrefly: ignore[invalid-syntax]
         str, list[str]
     ] = tensor_down_to_node_dict
     # This dictionary maps the output tensor to the node that produce them.
-    self.metadata["tensor_up_to_node_dict"]: dict[
+    self.metadata["tensor_up_to_node_dict"]: dict[  # pyrefly: ignore[invalid-syntax]
         str, str
     ] = tensor_up_to_node_dict
     # This dictionary maps the node to those output tensors by this node.
-    self.metadata["node_down_to_tensor_dict"]: dict[
+    self.metadata["node_down_to_tensor_dict"]: dict[  # pyrefly: ignore[invalid-syntax]
         str, list[str]
     ] = node_down_to_tensor_dict
     # This dictionary maps the node to those input tensors of this node.
-    self.metadata["node_up_to_tensor_dict"]: dict[
+    self.metadata["node_up_to_tensor_dict"]: dict[  # pyrefly: ignore[invalid-syntax]
         str, list[str]
     ] = node_up_to_tensor_dict
 

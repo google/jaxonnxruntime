@@ -33,7 +33,7 @@ class Slice(handler.Handler):
     node.attrs_dict['starts'] = starts
     node.attrs_dict['ends'] = node.attrs.get('ends')
     node.attrs_dict['axes'] = node.attrs.get(
-        'axes', tuple(i for i in range(len(starts)))
+        'axes', tuple(i for i in range(len(starts)))  # pyrefly: ignore[bad-argument-type]
     )
     node.attrs_dict['steps'] = None
 

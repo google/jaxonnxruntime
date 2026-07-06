@@ -52,8 +52,8 @@ class MaxPool(handler.Handler):
     )
     kernel_shape = node.attrs.get("kernel_shape", None)
     node.attrs_dict["kernel_shape"] = (1,) * (
-        x.ndim - len(kernel_shape)
-    ) + tuple(kernel_shape)
+        x.ndim - len(kernel_shape)  # pyrefly: ignore[bad-argument-type]
+    ) + tuple(kernel_shape)  # pyrefly: ignore[bad-argument-type]
 
     if "pads" in node.attrs:
       pads = node.attrs["pads"]

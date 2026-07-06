@@ -124,7 +124,7 @@ def _ir_type_to_dtype(ir_type: ir.Type) -> jnp.dtype:
       ir.Float8E4M3FNType.get(): jnp.float8_e4m3fn,
       ir.Float8E5M2Type.get(): jnp.float8_e5m2,
   }
-  return ir_to_jax[ir_type]
+  return ir_to_jax[ir_type]  # pyrefly: ignore[bad-index]
 
 
 _UKNOWN_DIM_PREFIX = "call_torch_unknown_dim"
@@ -232,7 +232,7 @@ def call_torch_xla_lowering(ctx: mlir.LoweringRuleContext, *args, module: str):
   call = func.CallOp(
       result_types,
       ir.FlatSymbolRefAttr.get(callee_name),
-      args,
+      args,  # pyrefly: ignore[bad-argument-type]
   )
   return tuple(x for x in call.results)
 
