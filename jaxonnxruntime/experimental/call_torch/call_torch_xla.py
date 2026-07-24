@@ -58,7 +58,7 @@ call_torch_xla_p.multiple_results = True
 
 
 def call_torch_xla(*args, module: Union[str, Any], clean_mhlo_attributes=True):
-  """Lower torch module to XLA and wrap it as JAX funtion.
+  """Lower torch module to XLA and wrap it as JAX function.
 
   Given the the torch module and its input arguments, this function will lower
   the torch module into stablehlo first. Then it wrap the stablehlo module as
