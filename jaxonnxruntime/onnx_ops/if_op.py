@@ -138,7 +138,7 @@ def bypass_output_shape_check():
   Without this config, we require the output shape of else and then branches
   to be the same, which aligns with jax.lax.cond.
 
-  **Please add relevent global config to `config_list`.**
+  **Please add relevant global config to `config_list`.**
 
   Returns:
     bypass: Bool, whether to bypass the output shape check.

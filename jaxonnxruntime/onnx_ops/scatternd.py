@@ -117,7 +117,7 @@ def onnx_scatternd(*input_args, reduction: str):
 
   assert (
       indices.shape[: q - 1] == updates.shape[: q - 1]
-  ), "first q-1 dims of indicies and updates must match"
+  ), "first q-1 dims of indices and updates must match"
   assert (
       data.shape[k:] == updates.shape[q - 1 :]
   ), "last dimensions of data and updates must match"

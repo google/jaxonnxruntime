@@ -69,7 +69,7 @@ class Handler:
   def handle(
       cls, node: OnnxNode, inputs: Sequence[Any], **kwargs
   ) -> Callable[..., Any]:
-    """Return the version method jax function depending on OnnxNode verison.
+    """Return the version method jax function depending on OnnxNode version.
 
     For example, onnx abs op with version 4 will call jax class `abs.version_4`
     API.

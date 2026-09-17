@@ -27,7 +27,7 @@
 # limitations under the License.
 """Define Custom ONNX ZerosLike operator.
 
-Here we demo how to reuse Tensorflow ops impelmentation.
+Here we demo how to reuse Tensorflow ops implementation.
 """
 
 
