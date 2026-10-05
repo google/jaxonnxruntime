@@ -127,7 +127,7 @@ def _ir_type_to_dtype(ir_type: ir.Type) -> jnp.dtype:
   return ir_to_jax[ir_type]  # pyrefly: ignore[bad-index, bad-return]
 
 
-_UKNOWN_DIM_PREFIX = "call_torch_unknown_dim"
+_UNKNOWN_DIM_PREFIX = "call_torch_unknown_dim"
 
 
 def call_torch_xla_abstract_eval(
@@ -144,10 +144,10 @@ def call_torch_xla_abstract_eval(
       for dim in val.shape:
         if not isinstance(dim, int):
           has_polymorphic = True
-          if any(x.startswith(_UKNOWN_DIM_PREFIX) for x in dim.get_vars()):
+          if any(x.startswith(_UNKNOWN_DIM_PREFIX) for x in dim.get_vars()):
             raise ValueError(
                 "Polymorphic variable name that start with"
-                f" `{_UKNOWN_DIM_PREFIX}` are reserved for use by call_torch"
+                f" `{_UNKNOWN_DIM_PREFIX}` are reserved for use by call_torch"
                 f" internal for outputs: `{val.shape}`"
             )
 
@@ -160,7 +160,7 @@ def call_torch_xla_abstract_eval(
     for res in symtab["main"].type.results:  # pytype: disable=attribute-error
       if any(dim == res.get_dynamic_size() for dim in res.shape):
         out_shape = ", ".join(
-            f"{_UKNOWN_DIM_PREFIX}_{(dynamic_count := dynamic_count + 1)}"
+            f"{_UNKNOWN_DIM_PREFIX}_{(dynamic_count := dynamic_count + 1)}"
             if dim == res.get_dynamic_size()
             else str(dim)
             for dim in res.shape
