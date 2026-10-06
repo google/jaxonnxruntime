@@ -157,7 +157,7 @@ def call_torch_xla_abstract_eval(
     # the information is not available here.
     dynamic_count = 0
     output_specs = []
-    for res in symtab["main"].type.results:  # pytype: disable=attribute-error
+    for res in symtab["main"].type.results:  # pyrefly: ignore[missing-attribute]
       if any(dim == res.get_dynamic_size() for dim in res.shape):
         out_shape = ", ".join(
             f"{_UNKNOWN_DIM_PREFIX}_{(dynamic_count := dynamic_count + 1)}"
@@ -167,7 +167,7 @@ def call_torch_xla_abstract_eval(
         )
 
         assert has_polymorphic, has_polymorphic
-        from jax.experimental.export import shape_poly  # pylint: disable=g-import-not-at-top  # pytype: disable=import-error
+        from jax.experimental.export import shape_poly  # pylint: disable=g-import-not-at-top  # pyrefly: ignore[missing-import]
 
         out_shape = shape_poly.symbolic_shape(out_shape, like=res.shape)  # pylint: disable=protected-access
       else:
@@ -221,7 +221,7 @@ def call_torch_xla_lowering(ctx: mlir.LoweringRuleContext, *args, module: str):
   )
 
   symtab = ir.SymbolTable(ctx.module_context.module.operation)
-  result_types = symtab[program_name].type.results  # pytype: disable=attribute-error
+  result_types = symtab[program_name].type.results  # pyrefly: ignore[missing-attribute]
 
   # Paranoid checks.
   assert len(mlir.flatten_ir_values(args)) == len(args), (
