@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Convert PyTorch function to Jax funtion."""
+"""Convert PyTorch function to Jax function."""
 
 import io
 import os
