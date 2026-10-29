@@ -71,6 +71,15 @@ class Transpose(handler.Handler):
     cls._prepare(node, inputs, onnx_transpose)
     return onnx_transpose
 
+  @classmethod
+  def version_25(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_25 Transpose op.
+
+    Same semantics as version_24; onnx 25 only extends the supported types.
+    """
+    return cls.version_24(node, inputs)
 
 @functools.partial(jax.jit, static_argnames="perm")
 def onnx_transpose(*input_args, perm):

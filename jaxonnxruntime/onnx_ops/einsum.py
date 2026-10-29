@@ -44,6 +44,15 @@ class Einsum(handler.Handler):
     cls._prepare(node, inputs, onnx_einsum)
     return onnx_einsum
 
+  @classmethod
+  def version_28(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_28 Einsum op.
+
+    Same semantics as version_12; onnx 28 only extends the supported types.
+    """
+    return cls.version_12(node, inputs)
 
 @functools.partial(jax.jit, static_argnames=("equation",))
 def onnx_einsum(*input_args, equation):

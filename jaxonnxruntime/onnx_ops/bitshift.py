@@ -52,6 +52,15 @@ class BitShift(handler.Handler):
     cls._prepare(node, inputs, onnx_bitshift)
     return onnx_bitshift
 
+  @classmethod
+  def version_28(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_28 BitShift op.
+
+    Same semantics as version_11; onnx 28 only extends the supported types.
+    """
+    return cls.version_11(node, inputs)
 
 @functools.partial(jax.jit, static_argnames="direction")
 def onnx_bitshift(x, y, *, direction):

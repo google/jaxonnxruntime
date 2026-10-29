@@ -227,6 +227,12 @@ exclude_patterns.append('test_range_int32_type_negative_delta_expanded')
 exclude_patterns.append('test_pow_types_')
 
 expect_fail_patterns.extend([
+    # DFT inverse real FFT (irfft) is not implemented; new test in onnx 1.20+.
+    'test_dft_irfft',
+    # Function-expanded Range (Range-27 stash_type for float16/bfloat16) uses a
+    # Loop body with function-local inputs, which is not supported.
+    'test_range_float16_type_positive_delta_expanded',
+    'test_range_bfloat16_type_positive_delta_expanded',
     # cast
     'test_cast_FLOAT_to_STRING',
     'test_cast_STRING_to_FLOAT',

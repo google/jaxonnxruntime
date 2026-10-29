@@ -104,6 +104,15 @@ class Reshape(handler.Handler):
     cls._prepare(node, inputs, onnx_reshape)
     return onnx_reshape
 
+  @classmethod
+  def version_25(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_25 Reshape op.
+
+    Same semantics as version_24; onnx 25 only extends the supported types.
+    """
+    return cls.version_24(node, inputs)
 
 @functools.partial(jax.jit, static_argnames=('shape', 'allowzero'))
 def onnx_reshape(*input_args, shape, allowzero):

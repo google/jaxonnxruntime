@@ -192,6 +192,10 @@ class Exportable:
         out_tree=self.out_tree,
         in_avals=self.in_avals,
         out_avals=self.out_avals,
+        # Only HLO shardings are provided; no NamedShardings (same as
+        # jax.export deserialization of exports with HLO shardings).
+        _in_named_shardings=(None,) * len(self.in_avals),
+        _out_named_shardings=(None,) * len(self.out_avals),
         in_shardings_hlo=self.in_shardings_hlo,
         out_shardings_hlo=self.out_shardings_hlo,
         nr_devices=self.nr_devices,
