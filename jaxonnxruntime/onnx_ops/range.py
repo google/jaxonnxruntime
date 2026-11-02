@@ -74,6 +74,15 @@ class Range(handler.Handler):
     cls._prepare(node, inputs, onnx_range)
     return onnx_range
 
+  @classmethod
+  def version_27(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_27 Range op.
+
+    Same semantics as version_11; onnx 27 only extends the supported types.
+    """
+    return cls.version_11(node, inputs)
 
 @functools.partial(
     jax.jit, static_argnames=("start", "limit", "delta", "dtype")

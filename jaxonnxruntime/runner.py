@@ -73,6 +73,33 @@ DATA_DIR = os.path.join(
 )
 
 
+def _normalize_tensor(tensor: Union[np.ndarray, onnx.TensorProto]) -> Any:
+  """In-memory onnx test cases may hold TensorProto objects instead of arrays."""
+  if isinstance(tensor, onnx.TensorProto):
+    return numpy_helper.to_array(tensor)
+  return tensor
+
+
+def _load_node_model_tests() -> list[Any]:
+  """Returns onnx's node test cases, generated in memory.
+
+  onnx >= 1.20 provides onnx.backend.test.loader.load_node_model_tests(). Older
+  versions (e.g. 1.19) generate the same cases through
+  onnx.backend.test.case.node._NodeTestCases.
+  """
+  # pylint: disable=g-import-not-at-top
+  from onnx.backend.test import loader as onnx_test_loader
+
+  if hasattr(onnx_test_loader, 'load_node_model_tests'):
+    return onnx_test_loader.load_node_model_tests()
+  import onnx.backend.test.case.node as onnx_node_cases
+  from onnx.backend.test.case.utils import import_recursive
+  # pylint: enable=g-import-not-at-top
+
+  import_recursive(onnx_node_cases)
+  return onnx_node_cases._NodeTestCases  # pylint: disable=protected-access
+
+
 class BackendIsNotSupposedToImplementIt(unittest.SkipTest):  # pylint: disable=g-bad-exception-name
   """Raised when the backend is not supposed to implement."""
 
@@ -110,6 +137,26 @@ class Runner:
       kind: Optional[str] = None,
   ) -> list[TestCase]:
     """Load model test cases from on-disk data files."""
+
+    if kind == 'node' and not os.path.isdir(os.path.join(data_dir, kind)):
+      # Since onnx 1.20 the node test data (onnx/backend/test/data/node) is no
+      # longer shipped; node test cases are generated in memory instead, the
+      # same way onnx.backend.test.loader.load_model_tests does. Older onnx
+      # versions that still ship the data keep loading it from disk.
+      return [
+          TestCase(
+              name=tc.name,
+              model_name=tc.model_name,
+              url=tc.url,
+              model_dir=tc.model_dir,
+              model=tc.model,
+              data_sets=tc.data_sets,
+              kind=tc.kind,
+              rtol=tc.rtol,
+              atol=tc.atol,
+          )
+          for tc in _load_node_model_tests()
+      ]
 
     supported_kinds = os.listdir(data_dir)
     if kind not in supported_kinds:
@@ -315,6 +362,26 @@ class Runner:
       if logging.vlog_is_on(3):
         logging.vlog(3, f'jax devices = {jax.devices()}')
         logging.vlog(3, f'default backend = {jax.default_backend()}')
+      if model_test.model_dir is None and model_test.model is not None:
+        # In-memory test case (node tests since onnx 1.20).
+        model = model_test.model
+        model_marker[0] = model
+        if (
+            hasattr(self.backend, 'is_compatible')
+            and callable(self.backend.is_compatible)
+            and not self.backend.is_compatible(model, device)
+        ):
+          raise unittest.SkipTest('Not compatible with backend')
+        prepared_model = self.backend.prepare(model, device)
+        assert prepared_model is not None
+        for inputs, ref_outputs in model_test.data_sets or []:
+          inputs = [_normalize_tensor(t) for t in inputs]
+          ref_outputs = [_normalize_tensor(t) for t in ref_outputs]
+          outputs = list(prepared_model.run(inputs))
+          self.assert_similar_outputs(
+              ref_outputs, outputs, rtol=model_test.rtol, atol=model_test.atol
+          )
+        return
       model_dir = model_test.model_dir
       model_pb_path = os.path.join(model_dir, 'model.onnx')
       model = onnx.load(model_pb_path)

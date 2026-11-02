@@ -100,6 +100,15 @@ class Cast(handler.Handler):
     cls._prepare(node, inputs, onnx_cast)
     return onnx_cast
 
+  @classmethod
+  def version_25(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_25 Cast op.
+
+    Same semantics as version_19; onnx 25 only extends the supported types.
+    """
+    return cls.version_19(node, inputs)
 
 @functools.partial(jax.jit, static_argnames=("to", "from_type"))
 def onnx_cast(

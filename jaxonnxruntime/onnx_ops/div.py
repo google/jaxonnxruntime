@@ -88,6 +88,10 @@ def onnx_div(*input_args):
   if jnp.issubdtype(x.dtype, jnp.integer) and jnp.issubdtype(
       y.dtype, jnp.integer
   ):
-    return jnp.floor_divide(x, y)
+    # ONNX integer Div truncates toward zero (like C), not toward -inf.
+    quotient = jnp.floor_divide(x, y)
+    remainder = x - quotient * y
+    round_up = (remainder != 0) & ((x < 0) != (y < 0))
+    return jnp.where(round_up, quotient + 1, quotient)
   else:
     return jnp.true_divide(x, y)
