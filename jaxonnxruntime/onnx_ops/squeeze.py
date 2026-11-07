@@ -81,6 +81,15 @@ class Squeeze(handler.Handler):
     cls._prepare(node, inputs, onnx_squeeze)
     return onnx_squeeze
 
+  @classmethod
+  def version_25(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_25 Squeeze op.
+
+    Same semantics as version_24; onnx 25 only extends the supported types.
+    """
+    return cls.version_24(node, inputs)
 
 @functools.partial(jax.jit, static_argnames='axis')
 def onnx_squeeze(*input_args, axis):

@@ -58,13 +58,25 @@ class OneHot(handler.Handler):
     cls._prepare(node, inputs, onnx_onehot)
     return onnx_onehot
 
+  @classmethod
+  def version_28(
+      cls, node: onnx_node.OnnxNode, inputs: Sequence[Any]
+  ) -> Callable[..., Any]:
+    """ONNX version_28 OneHot op.
+
+    Same semantics as version_11; onnx 28 only extends the supported types.
+    """
+    return cls.version_11(node, inputs)
 
 @functools.partial(jax.jit, static_argnames=("depth", "axis"))
 def onnx_onehot(*input_args, depth, axis):
   """https://github.com/onnx/onnx/blob/v1.12.0/docs/Operators.md#OneHot for more details."""
   assert len(input_args) == 3
   indices, _, values = input_args
-  indices = jnp.mod(indices, depth)
+  # Negative indices in [-depth, -1] wrap around; indices outside
+  # [-depth, depth-1] stay out of range so they produce all 'off_value'
+  # (jax.nn.one_hot returns all zeros for them), as the ONNX spec requires.
+  indices = jnp.where(indices < 0, indices + depth, indices)
   encode = jax.nn.one_hot(indices, depth, axis=axis)
   encode = encode * (values[1] - values[0]) + values[0]
   return encode.astype(values.dtype)
